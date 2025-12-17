@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
 
 const Login = ({ onBack }: { onBack: () => void }) => {
@@ -186,13 +187,33 @@ const Login = ({ onBack }: { onBack: () => void }) => {
 
             {/* Buttons */}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSaveClient}>
-                <Text style={styles.saveButtonText}>Save Client</Text>
-              </TouchableOpacity>
+              <DynamicButton
+                text="Save Client"
+                onPress={handleSaveClient}
+                backgroundColor="#FFD700"
+                textColor="#000"
+                borderRadius={10}
+                paddingVertical={15}
+                paddingHorizontal={20}
+                fontSize={18}
+                fontWeight="bold"
+                width="48%"
+              />
               
-              <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
+              <DynamicButton
+                text="Cancel"
+                onPress={handleCancel}
+                backgroundColor="#333"
+                textColor="#fff"
+                borderRadius={10}
+                paddingVertical={15}
+                paddingHorizontal={20}
+                fontSize={18}
+                fontWeight="600"
+                borderWidth={1}
+                borderColor="#666"
+                width="48%"
+              />
             </View>
           </View>
         </ScrollView>
@@ -266,32 +287,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 15,
   },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#FFD700',
-    borderRadius: 10,
-    padding: 15,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: '#333',
-    borderRadius: 10,
-    padding: 15,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#666',
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-});
+  });
 
 export default Login;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import DetailCard from '../../common/Cards/DetailCard';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
@@ -46,9 +46,6 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
         <View style={styles.container}>
           {/* Black Header Section - 30vh */}
           <View style={styles.blackHeader}>
-            <TouchableOpacity onPress={onBack} style={styles.backButton}>
-              <Text style={styles.backText}>← Back</Text>
-            </TouchableOpacity>
             
             {/* Content Row with Image and Text */}
             <View style={styles.contentRow}>
@@ -112,7 +109,7 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
           </View>
 
           {/* Content */}
-          <View style={styles.content}>
+          <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
             {/* Conditional Rendering Based on Active Section */}
             {activeSection === 'default' && (
               <View style={styles.emptyState}>
@@ -135,11 +132,12 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
                     alignSelf: 'center',
                     width: '100%',
                     marginHorizontal: 0,
+                    marginBottom: 15,
                   }}
                 />
                 
-                {/* Three Images Below History Card */}
-                <View style={styles.imageContainer}>
+                {/* Two Images Below History Card */}
+                <View style={[styles.imageContainer, { marginBottom: 15 }]}>
                   <View style={styles.imageWrapper}>
                     <Image 
                       source={{ uri: 'https://picsum.photos/100/100' }} 
@@ -152,15 +150,6 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
                   <View style={styles.imageWrapper}>
                     <Image 
                       source={{ uri: 'https://picsum.photos/100/101' }} 
-                      style={styles.historyImage}
-                    />
-                    <View style={styles.imageOverlay}>
-                      <Text style={styles.overlayText}>After</Text>
-                    </View>
-                  </View>
-                  <View style={styles.imageWrapper}>
-                    <Image 
-                      source={{ uri: 'https://picsum.photos/100/102' }} 
                       style={styles.historyImage}
                     />
                     <View style={styles.imageOverlay}>
@@ -183,7 +172,7 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
                     alignSelf: 'center',
                     width: '100%',
                     marginHorizontal: 0,
-                    marginBottom: 4,
+                    marginBottom: 15,
                   }}
                 />
                 
@@ -197,6 +186,24 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
                   cardPadding={15}
                   imageSize={80}
                   backgroundColor="#F8F8F8"
+                />
+                
+                {/* Cancel Button at bottom of history section */}
+                <DynamicButton
+                  text="Cancel"
+                  onPress={() => onBack?.()}
+                  backgroundColor="#F44336"
+                  textColor="#FFFFFF"
+                  borderRadius={8}
+                  paddingVertical={12}
+                  paddingHorizontal={24}
+                  fontSize={16}
+                  width="80%"
+                  containerStyle={{
+                    marginTop: 20,
+                    marginBottom: 20,
+                    alignSelf: 'center',
+                  }}
                 />
               </View>
             )}
@@ -221,7 +228,7 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
                 />
               </View>
             )}
-          </View>
+          </ScrollView>
         </View>
       )}
     </SafeAreaView>
@@ -238,7 +245,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   blackHeader: {
-    height: '30%',
+    height: '25%',
     backgroundColor: '#000',
     paddingTop: 35,
     alignItems: 'center',
@@ -293,6 +300,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
   emptyState: {
     flex: 1,
@@ -359,17 +369,20 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginVertical: 8,
-    gap: 5,
-    marginLeft: -15,
+    gap: 0,
+    marginLeft: 0,
+    width: '100%',
   },
   imageWrapper: {
     position: 'relative',
+    width: '48%',
   },
   historyImage: {
-    width: 100,
-    height: 100,
+    width: '100%',
+    height: 120,
     borderRadius: 8,
   },
   imageOverlay: {
@@ -586,6 +599,6 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 16,
   },
-});
+  });
 
 export default About;

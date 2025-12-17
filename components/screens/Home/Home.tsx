@@ -25,7 +25,7 @@ const Home = () => {
     />
   );
 
-  // Sample Data (Replace with your actual data source)
+  // Sample Data (Only 5 cards for Home page)
   const clientData = [
     {
       id: 1,
@@ -39,6 +39,24 @@ const Home = () => {
       profileImageUri: "https://example.com/fatima.jpg",
       lastVisit: "Yesterday"
     },
+    {
+      id: 3,
+      name: "Zainab",
+      profileImageUri: "https://example.com/zainab.jpg",
+      lastVisit: "2 mins ago"
+    },
+    {
+      id: 4,
+      name: "Omar Hassan",
+      profileImageUri: "https://example.com/omar.jpg",
+      lastVisit: "1 hour ago"
+    },
+    {
+      id: 5,
+      name: "Sara Ahmed",
+      profileImageUri: "https://example.com/sara.jpg",
+      lastVisit: "3 hours ago"
+    }
   ];
 
   return (
@@ -93,28 +111,6 @@ const Home = () => {
                 }}
               />
             ))}
-            {/* *** CUSTOM CARD USAGE 2: Static example *** */}
-            <CustomCard
-              profileImageUri="https://example.com/new_client.jpg"
-              name="Zainab"
-              lastVisit="2 mins ago"
-              appIcon={whatsappIcon}
-              onPress={() => {
-                setSelectedClient("Zainab");
-                setShowAbout(true);
-              }}
-            />
-            {/* *** CUSTOM CARD USAGE 3: Static example *** */}
-            <CustomCard
-              profileImageUri="https://example.com/omar.jpg"
-              name="Omar Hassan"
-              lastVisit="1 hour ago"
-              appIcon={whatsappIcon}
-              onPress={() => {
-                setSelectedClient("Omar Hassan");
-                setShowAbout(true);
-              }}
-            />
           </ScrollView>
           {/* ======================================================= */}
 
@@ -137,7 +133,7 @@ const Home = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#00000031",
+    backgroundColor: "transparent",
     paddingTop: 35,
   },
 
@@ -198,7 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingBottom: 20,
-  }
+  },
 });
 
 export default Home;

@@ -1,6 +1,7 @@
-import React from 'react';
-import { Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import DynamicButton from '../../common/Buttons/DynamicButton';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useState } from 'react';
+import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import InfoCard from '../../common/Cards/InfoCard';
 
 interface NewVisitProps {
@@ -9,14 +10,46 @@ interface NewVisitProps {
 }
 
 const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) => {
+  const [beforeImage, setBeforeImage] = useState<string | null>(null);
+  const [afterImage, setAfterImage] = useState<string | null>(null);
+
+  const handleImageUpload = async (imageType: 'before' | 'after') => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.status !== 'granted') {
+        Alert.alert('Permission Denied', 'Permission to access camera roll is required!');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        if (imageType === 'before') {
+          setBeforeImage(selectedImage.uri);
+          Alert.alert('Success', 'Before image uploaded successfully!');
+        } else {
+          setAfterImage(selectedImage.uri);
+          Alert.alert('Success', 'After image uploaded successfully!');
+        }
+      }
+    } catch (error) {
+      console.error('Image picker error:', error);
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+    }
+  };
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Black Header Section - 30vh */}
         <View style={styles.blackHeader}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Text style={styles.backText}>← Back</Text>
-          </TouchableOpacity>
           
           {/* Content Row with Image and Text - Same as About page */}
           <View style={styles.contentRow}>
@@ -42,7 +75,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) =>
         </View>
 
         {/* White Section */}
-        <View style={styles.whiteSection}>
+        <ScrollView style={styles.whiteSection} contentContainerStyle={styles.scrollContent}>
           <InfoCard
             title="Service: "
             description="e.g Full Cut"
@@ -74,50 +107,52 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) =>
           {/* Formulas/Notes Section */}
           <View style={styles.formulasContainer}>
             <Text style={styles.formulasTitle}>Formulas/Notes</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter Technical Notes, Formulas"
-              placeholderTextColor="#999"
-              multiline
-              numberOfLines={4}
-            />
+            <Text style={styles.placeholderText}>Enter Technical Notes, Formulas</Text>
           </View>
           
-          {/* Add Photos Section */}
+          {/* Photos Section */}
           <View style={styles.photosContainer}>
             <Text style={styles.photosTitle}>Add Photos</Text>
             <View style={styles.photosGrid}>
-              <View style={styles.photoIcon}>
-                <Text style={styles.photoIconText}>📷</Text>
-                <Text style={styles.photoLabel}>Before</Text>
+              <View style={styles.photoItem}>
+                <TouchableOpacity onPress={() => handleImageUpload('before')} style={styles.photoButton}>
+                  {beforeImage ? (
+                    <Image source={{ uri: beforeImage }} style={styles.photoImage} />
+                  ) : (
+                    <View style={styles.photoPlaceholder}>
+                      <MaterialCommunityIcons name="camera" size={50} color="#000000" />
+                      <Text style={styles.photoText}>Before</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
-              <View style={styles.photoIcon}>
-                <Text style={styles.photoIconText}>📷</Text>
-                <Text style={styles.photoLabel}>After</Text>
-              </View>
-              <View style={styles.photoIcon}>
-                <Text style={styles.photoIconText}>📷</Text>
-                <Text style={styles.photoLabel}>Plus</Text>
+              
+              <View style={styles.photoItem}>
+                <TouchableOpacity onPress={() => handleImageUpload('after')} style={styles.photoButton}>
+                  {afterImage ? (
+                    <Image source={{ uri: afterImage }} style={styles.photoImage} />
+                  ) : (
+                    <View style={styles.photoPlaceholder}>
+                      <MaterialCommunityIcons name="camera" size={50} color="#000000" />
+                      <Text style={styles.photoText}>After</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
           </View>
           
-          {/* Dynamic Buttons Section */}
-          <View style={styles.buttonsContainer}>
-            <DynamicButton
-              text="Save Visit"
-              onPress={() => console.log('Save Visit pressed')}
-              backgroundColor="#4CAF50"
-              textColor="#FFFFFF"
-            />
-            <DynamicButton
-              text="Cancel"
-              onPress={() => console.log('Cancel pressed')}
-              backgroundColor="#F44336"
-              textColor="#FFFFFF"
-            />
+          {/* Buttons */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.saveButton} onPress={() => console.log('Save Visit pressed')}>
+              <Text style={styles.saveButtonText}>Save Visit</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.cancelButton} onPress={onBack}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -133,7 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   blackHeader: {
-    height: '30%',
+    height: '25%',
     backgroundColor: '#000',
     paddingTop: 35,
     alignItems: 'center',
@@ -237,6 +272,11 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
+  placeholderText: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+  },
   input: {
     fontSize: 14,
     color: '#333',
@@ -245,53 +285,101 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     minHeight: 60,
   },
+    buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    marginBottom: 10,
+    gap: 15,
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: '#FFD700',
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#333',
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#666',
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
   photosContainer: {
     marginTop: 20,
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
     paddingVertical: 15,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   photosTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 15,
+    alignSelf: 'flex-start',
   },
   photosGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  photoIcon: {
-    backgroundColor: '#F8F8F8',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 15,
     alignItems: 'center',
+    gap: 15,
+    width: '100%',
+  },
+  photoItem: {
+    alignItems: 'center',
+    width: '48%',
+  },
+  photoButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    width: '30%',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFD700',
   },
-  photoIconText: {
-    fontSize: 24,
-    marginBottom: 5,
+  photoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
-  photoLabel: {
+  photoPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photoText: {
+    color: '#000000',
     fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
+    marginTop: 5,
   },
-  buttonsContainer: {
-    marginTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+  scrollContent: {
     paddingBottom: 20,
-  },
-  saveButton: {
-    flex: 1,
-    marginRight: 10,
-  },
-  cancelButton: {
-    flex: 1,
-    marginLeft: 10,
   },
 });
 
