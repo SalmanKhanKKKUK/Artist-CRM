@@ -15,16 +15,18 @@ import {
 } from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
-import Signup from '../Signup/Signup';
 
-const Login = ({ onBack }: { onBack: () => void }) => {
+const Signup = ({ onBack }: { onBack: () => void }) => {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [showSignup, setShowSignup] = useState(false);
   const [errors, setErrors] = useState<{
+    fullName?: string;
     email?: string;
     password?: string;
+    confirmPassword?: string;
   }>({});
 
   const validateEmail = (email: string) => {
@@ -61,11 +63,19 @@ const Login = ({ onBack }: { onBack: () => void }) => {
     }
   };
 
-  const handleLogin = () => {
+  const handleSignup = () => {
     const newErrors: {
+      fullName?: string;
       email?: string;
       password?: string;
+      confirmPassword?: string;
     } = {};
+    
+    if (!fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    } else if (fullName.trim().length < 2) {
+      newErrors.fullName = 'Full name must be at least 2 characters';
+    }
     
     if (!email.trim()) {
       newErrors.email = 'Email is required';
@@ -79,31 +89,24 @@ const Login = ({ onBack }: { onBack: () => void }) => {
       newErrors.password = 'Password must be at least 6 characters';
     }
     
+    if (!confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
     
     setErrors({});
-    Alert.alert('Success', 'Login successful!');
+    Alert.alert('Success', 'Account created successfully!');
   };
 
   const handleCancel = () => {
     onBack();
   };
-
-  const handleSignupClick = () => {
-    setShowSignup(true);
-  };
-
-  const handleSignupBack = () => {
-    setShowSignup(false);
-  };
-
-  if (showSignup) {
-    return <Signup onBack={handleSignupBack} />;
-  }
-
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -114,7 +117,7 @@ const Login = ({ onBack }: { onBack: () => void }) => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Title Section */}
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>Sign Up</Text>
           </View>
 
           {/* Camera Section */}
@@ -131,11 +134,21 @@ const Login = ({ onBack }: { onBack: () => void }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Login Form */}
+          {/* Signup Form */}
           <View style={styles.formContainer}>
+            {/* Full Name Input */}
+            <Input
+              label="Full Name"
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Enter your full name"
+              leftIcon="account"
+              error={errors.fullName}
+            />
+
             {/* Email Input */}
             <Input
-              label="Enter Email"
+              label="Email"
               value={email}
               onChangeText={setEmail}
               placeholder="Enter your email address"
@@ -157,21 +170,22 @@ const Login = ({ onBack }: { onBack: () => void }) => {
               error={errors.password}
             />
 
-            {/* Forgot Password and Sign Up */}
-            <View style={styles.authLinksContainer}>
-              <TouchableOpacity style={styles.linkButton}>
-                <Text style={styles.linkText}>Forgot Password?</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.linkButton} onPress={handleSignupClick}>
-                <Text style={styles.linkText}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Confirm Password Input */}
+            <Input
+              label="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm your password"
+              secureTextEntry
+              leftIcon="lock"
+              error={errors.confirmPassword}
+            />
 
-            {/* Login Buttons */}
+            {/* Signup Buttons */}
             <View style={styles.buttonContainer}>
               <DynamicButton
-                text="Login"
-                onPress={handleLogin}
+                text="Sign Up"
+                onPress={handleSignup}
                 backgroundColor="#FFD700"
                 textColor="#000"
                 borderRadius={10}
@@ -214,6 +228,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 50,
   },
   titleContainer: {
     backgroundColor: '#000',
@@ -283,6 +298,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  });
+});
 
-export default Login;
+export default Signup;

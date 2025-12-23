@@ -53,7 +53,7 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
               <Image 
                 source={{ uri: 'https://picsum.photos/50/50' }} 
                 style={styles.profileImage}
-                defaultSource={require('../../../assets/homeimages/logo.png')}
+                defaultSource={require("../../../assets/homeimages/logo.png")}
               />
               
               {/* Title and Info with Button */}
