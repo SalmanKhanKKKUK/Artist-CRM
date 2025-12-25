@@ -3,7 +3,6 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from "react";
 import { Alert, Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DynamicButton from "../../common/Buttons/DynamicButton";
-import PlusButton from "../../common/Buttons/PlusButton";
 import InfoCard from "../../common/Cards/InfoCard";
 import Setting from "../Setting/Setting";
 
@@ -52,7 +51,9 @@ const Profile = ({ onBack }: ProfileProps) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       {showSetting ? (
-        <Setting onBack={handleSettingBack} />
+        <>
+          <Setting onBack={handleSettingBack} />
+        </>
       ) : (
         <>
       {/* Black Header Section - 20% of screen height */}
@@ -93,21 +94,9 @@ const Profile = ({ onBack }: ProfileProps) => {
         <InfoCard
           title="Email: "
           description="aqibshoaib@gmail.com"
-          containerStyle={{
-            width: "90%",
-            marginTop: 10,
-            marginHorizontal: 10,
-            alignSelf: "center",
-          }}
-          titleStyle={{
-            fontSize: 16,
-            fontWeight: "bold",
-            marginBottom: 0,
-          }}
-          descriptionStyle={{
-            fontSize: 14,
-            marginBottom: 0,
-          }}
+          containerStyle={styles.infoCardContainer}
+          titleStyle={styles.infoCardTitle}
+          descriptionStyle={styles.infoCardDescription}
           padding={12}
           margin={10}
           backgroundColor="#fff"
@@ -125,21 +114,9 @@ const Profile = ({ onBack }: ProfileProps) => {
         <InfoCard
           title="Phone: "
           description="3118298343"
-          containerStyle={{
-            width: "90%",
-            marginTop: 10,
-            marginHorizontal: 10,
-            alignSelf: "center",
-          }}
-          titleStyle={{
-            fontSize: 16,
-            fontWeight: "bold",
-            marginBottom: 0,
-          }}
-          descriptionStyle={{
-            fontSize: 14,
-            marginBottom: 0,
-          }}
+          containerStyle={styles.infoCardContainer}
+          titleStyle={styles.infoCardTitle}
+          descriptionStyle={styles.infoCardDescription}
           padding={12}
           margin={10}
           backgroundColor="#fff"
@@ -154,31 +131,24 @@ const Profile = ({ onBack }: ProfileProps) => {
         />
 
         {/* Setting Section */}
-        <View style={styles.settingContainer}>
-          <Text style={styles.settingTitle}>Setting</Text>
-          <PlusButton
-            size={40}
-            iconSize={20}
-            backgroundColor="#FFD700"
-            onPress={() => {
-              setShowSetting(true);
-            }}
-          />
+        <View style={styles.infoCardContainer}>
+          <View style={styles.settingContent}>
+            <Text style={styles.infoCardTitle}>Setting</Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowSetting(true)}>
+            <MaterialCommunityIcons 
+              name="greater-than" 
+              size={18} 
+              color="#333" 
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Manage Billing Display */}
         <InfoCard
           title="Manage Billing"
-          containerStyle={{
-            width: "90%",
-            marginTop: 10,
-            marginHorizontal: 10,
-            alignSelf: "center",
-          }}
-          titleStyle={{
-            fontSize: 16,
-            fontWeight: "bold",
-          }}
+          containerStyle={styles.infoCardContainer}
+          titleStyle={styles.infoCardTitle}
           padding={12}
           margin={10}
           backgroundColor="#fff"
@@ -355,6 +325,84 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#000",
+  },
+  infoCardContainer: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    marginTop: 10,
+    marginHorizontal: 10,
+    alignSelf: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    minHeight: 60,
+  },
+  infoCardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 0,
+  },
+  infoCardDescription: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 0,
+  },
+  settingContent: {
+    flex: 1,
+  },
+  profileSettingsContainer: {
+    width: "90%",
+    marginTop: 20,
+    marginHorizontal: 10,
+    alignSelf: "center",
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 15,
+  },
+  settingItem: {
+    height: 60,
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginTop: 10,
+  },
+  settingIcon: {
+    marginRight: 15,
+  },
+  settingItemTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  settingSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
   },
 });
 

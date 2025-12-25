@@ -1,6 +1,6 @@
-import React from 'react';
-import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 
 interface PlusButtonProps {
   onPress: () => void;
@@ -9,6 +9,8 @@ interface PlusButtonProps {
   iconSize?: number;
   disabled?: boolean;
   style?: ViewStyle;
+  iconName?: string;
+  iconColor?: string;
 }
 
 const PlusButton: React.FC<PlusButtonProps> = ({
@@ -18,6 +20,8 @@ const PlusButton: React.FC<PlusButtonProps> = ({
   iconSize = 30,
   disabled = false,
   style,
+  iconName = 'plus',
+  iconColor = '#FFFFFF',
 }) => {
   return (
     <TouchableOpacity
@@ -36,9 +40,9 @@ const PlusButton: React.FC<PlusButtonProps> = ({
       activeOpacity={0.8}
     >
       <MaterialCommunityIcons
-        name="plus"
+        name={iconName as any}
         size={iconSize}
-        color="#FFFFFF"
+        color={iconColor}
       />
     </TouchableOpacity>
   );

@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
-import { Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
-import PlusButton from '../../common/Buttons/PlusButton';
+import ToggleButton from '../../common/Buttons/ToggleButton';
+import CalendarCard from '../../common/Cards/CalendarCard';
 import FilterInput, { FilterSection } from '../../common/Inputs/FilterInput';
 import SearchInput from '../../common/Inputs/SearchInput';
 
@@ -11,12 +12,18 @@ interface SettingProps {
 }
 
 const Setting = ({ onBack }: SettingProps) => {
+  console.log('Setting component rendered');
+  
   const [searchText, setSearchText] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState('all');
   const [selectedServiceFilter, setSelectedServiceFilter] = useState('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [tempToggleStates, setTempToggleStates] = useState<{ [key: string]: boolean }>({});
   const { height: screenHeight } = Dimensions.get('window');
+  
+  console.log('All states initialized successfully');
 
   // Settings Data Structure
   const settingsData = useMemo(() => [
@@ -64,7 +71,8 @@ const Setting = ({ onBack }: SettingProps) => {
       icon: 'file-document',
       category: 'Policy',
       hasRightIcon: false,
-      hasPlusButton: true
+      hasPlusButton: true,
+      plusButtonIcon: 'toggle-switch-off'
     },
     {
       id: 6,
@@ -92,11 +100,12 @@ const Setting = ({ onBack }: SettingProps) => {
       category: 'Financial',
       hasRightIcon: false,
       hasPlusButton: true,
-      hasIconGroup: true
+      hasIconGroup: true,
+      plusButtonIcon: 'toggle-switch-off'
     },
     {
       id: 9,
-      title: 'Two-Factor Authentication Security',
+      title: 'Two-Factor Auth Security',
       subtitle: '',
       icon: 'shield-key',
       category: 'Security',
@@ -110,7 +119,8 @@ const Setting = ({ onBack }: SettingProps) => {
       icon: 'moon-waning-crescent',
       category: 'Appearance',
       hasRightIcon: false,
-      hasPlusButton: true
+      hasPlusButton: true,
+      plusButtonIcon: 'toggle-switch-off'
     }
   ], []);
 
@@ -160,7 +170,38 @@ const Setting = ({ onBack }: SettingProps) => {
     }
   ];
 
-  // Filter Input Handlers
+  // Toggle Button Handler with Alert for Cancellation Policy
+  const handleTogglePress = (setting: any, isOn: boolean) => {
+    if (setting.title === 'Cancellation Policy') {
+      // Show alert for Cancellation Policy
+      Alert.alert(
+        'Cancel Policy',
+        'Are you sure to cancel\'s policy?',
+        [
+          {
+            text: 'No',
+            onPress: () => {
+              // Revert toggle state
+              setTempToggleStates(prev => ({ ...prev, [setting.title]: !isOn }));
+            },
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => {
+              // Confirm toggle state
+              setTempToggleStates(prev => ({ ...prev, [setting.title]: isOn }));
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      // Normal toggle for other settings
+      setTempToggleStates(prev => ({ ...prev, [setting.title]: isOn }));
+    }
+  };
+
   const handleFilterApply = (selections: Record<string, string>) => {
     if (selections.category) {
       setSelectedFilter(selections.category);
@@ -293,69 +334,92 @@ const Setting = ({ onBack }: SettingProps) => {
         <Text style={styles.generalSettingTitle}>General Business Setting</Text>
         
         {/* Mapped Settings Items */}
-        {filteredAndSortedData.map((setting) => (
-          <View key={setting.id} style={styles.businessProfileDiv}>
-            {/* Left Icon or Icon Group */}
-            {setting.hasIconGroup ? (
-              <View style={styles.iconGroup}>
+        {filteredAndSortedData.map((setting) => {
+          // Use inline CalendarCard for Book & Appointment
+          if (setting.title === 'Book & Appointment') {
+            return (
+              <View key={setting.id} style={styles.businessProfileDiv}>
                 <MaterialCommunityIcons 
-                  name="account-circle" 
-                  size={16} 
+                  name={setting.icon as any}
+                  size={20} 
                   color="#333" 
+                  style={styles.settingIcon}
                 />
-                <MaterialCommunityIcons 
-                  name="account-circle" 
-                  size={16} 
-                  color="#333" 
-                  style={styles.overlapIcon}
-                />
-                <MaterialCommunityIcons 
-                  name="account-circle" 
-                  size={16} 
-                  color="#333" 
-                  style={styles.overlapIcon}
-                />
+                <View style={styles.centerContent}>
+                  <Text style={styles.businessProfileTitle}>{setting.title}</Text>
+                  {setting.subtitle && (
+                    <Text style={styles.subText}>{setting.subtitle}</Text>
+                  )}
+                </View>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowCalendarModal(true);
+                  }}
+                  style={styles.calendarIconContainer}
+                >
+                  <MaterialCommunityIcons 
+                    name="calendar" 
+                    size={24} 
+                    color="#FFD700" 
+                  />
+                </TouchableOpacity>
               </View>
-            ) : (
-              <MaterialCommunityIcons 
-                name={setting.icon as any}
-                size={20} 
-                color="#333" 
-                style={styles.settingIcon}
-              />
-            )}
-            
-            {/* Center Content */}
-            <View style={styles.centerContent}>
-              <Text style={styles.businessProfileTitle}>{setting.title}</Text>
-              {setting.subtitle && (
-                <Text style={styles.subText}>{setting.subtitle}</Text>
-              )}
-            </View>
-            
-            {/* Right Icon */}
-            {setting.hasRightIcon && setting.rightIcon && (
-              <MaterialCommunityIcons 
-                name={setting.rightIcon as any}
-                size={20} 
-                color="#333" 
-                style={styles.rightIcon}
-              />
-            )}
-            
-            {/* Right Plus Button */}
-            {setting.hasPlusButton && (
-              <PlusButton
-                size={24}
-                iconSize={12}
-                backgroundColor="#FFD700"
-                onPress={() => {
-                  console.log(`${setting.title} Plus clicked`);
-                }}
-              />
-            )}
-          </View>
-        ))}
+            );
+          } else {
+            return (
+              <View key={setting.id} style={styles.businessProfileDiv}>
+                {/* Left Icon or Icon Group */}
+                {setting.hasIconGroup ? (
+                  <View style={styles.iconGroup}>
+                    <MaterialCommunityIcons 
+                      name="account-circle" 
+                      size={16} 
+                      color="#333" 
+                    />
+                    <MaterialCommunityIcons 
+                      name="account-circle" 
+                      size={16} 
+                      color="#333" 
+                      style={styles.overlapIcon}
+                    />
+                    <MaterialCommunityIcons 
+                      name="account-circle" 
+                      size={16} 
+                      color="#333" 
+                      style={styles.overlapIcon}
+                    />
+                  </View>
+                ) : (
+                  <MaterialCommunityIcons 
+                    name={setting.icon as any}
+                    size={20} 
+                    color="#333" 
+                    style={styles.settingIcon}
+                  />
+                )}
+                
+                {/* Center Content */}
+                <View style={styles.centerContent}>
+                  <Text style={styles.businessProfileTitle}>{setting.title}</Text>
+                  {setting.subtitle && (
+                    <Text style={styles.subText}>{setting.subtitle}</Text>
+                  )}
+                </View>
+                
+                {/* Right Plus Button */}
+                {setting.hasPlusButton && (
+                  <ToggleButton
+                    isOn={tempToggleStates[setting.title] || false}
+                    onToggle={(isOn) => handleTogglePress(setting, isOn)}
+                    size={24}
+                    activeColor="#4CAF50"
+                    inactiveColor="#9E9E9E"
+                  />
+                )}
+              </View>
+            );
+          }
+        })}
         
         {/* No Results Message */}
         {filteredAndSortedData.length === 0 && (
@@ -368,10 +432,14 @@ const Setting = ({ onBack }: SettingProps) => {
         <DynamicButton
           text="Save Changes"
           onPress={() => {
-            console.log('Save Changes clicked');
+            // Apply all temporary changes
+            console.log('Applying all changes:');
+            console.log('Toggle states:', tempToggleStates);
+            
+            console.log('All changes saved successfully!');
           }}
-          backgroundColor="#4CAF50"
-          textColor="#FFFFFF"
+          backgroundColor="#FFD700"
+          textColor="#000000"
           width="90%"
           paddingVertical={14}
           fontSize={16}
@@ -402,6 +470,39 @@ const Setting = ({ onBack }: SettingProps) => {
         onReset={handleFilterReset}
       />
       {/* ======================================================= */}
+
+      {/* ================= CALENDAR MODAL ================= */}
+      <Modal
+        visible={showCalendarModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowCalendarModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity 
+                onPress={() => setShowCalendarModal(false)}
+                style={styles.closeButton}
+              >
+                <MaterialCommunityIcons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            
+            <CalendarCard
+              title="Book & Appointment"
+              subtitle="Select appointment date"
+              icon="content-cut"
+              showHeader={false}
+              onDateSelect={(date) => {
+                console.log('Appointment date selected:', date);
+                setShowCalendarModal(false);
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
+      {/* ======================================================= */}
     </SafeAreaView>
   );
 };
@@ -412,6 +513,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   blackHeader: {
+    height: 120,
     backgroundColor: "#000",
     paddingTop: 35,
     alignItems: "center",
@@ -425,40 +527,45 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#fff", // White color
+    color: "#fff",
     textAlign: "center",
     textTransform: "uppercase",
-    marginBottom: 5, // Reduced gap
   },
-  searchBox: {
-    width: '90%',
-    marginTop: 0, // Removed extra gap
+  whiteContent: {
+    flex: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
   },
   scrollView: {
     flex: 1,
     backgroundColor: "#fff",
+    width: "100%",
   },
   scrollContent: {
     alignItems: "center",
-    paddingTop: 20,
-    paddingBottom: 30,
+    paddingVertical: 20,
   },
-  generalSettingTitle: {
-    fontSize: 24,
+  title: {
+    fontSize: 28,
     fontWeight: "bold",
     color: "#000",
-    textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
-  businessProfileDiv: {
-    height: 60, // Increased height to fit title and subtitle properly
-    width: '90%',
-    backgroundColor: '#fff',
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 30,
+  },
+  settingItem: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#fff",
     borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    shadowColor: '#000',
+    marginBottom: 10,
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -466,21 +573,55 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    marginTop: 10,
+  },
+  settingText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  settingValue: {
+    fontSize: 14,
+    color: "#666",
+  },
+  generalSettingTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 20,
+    width: "100%",
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
+  businessProfileDiv: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   settingIcon: {
     marginRight: 15,
   },
-  rightIcon: {
-    marginLeft: 15,
+  calendarIconContainer: {
+    padding: 5,
   },
   iconGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
     marginRight: 15,
   },
   overlapIcon: {
-    marginLeft: -8, // Overlap the icons
+    marginLeft: -8,
   },
   centerContent: {
     flex: 1,
@@ -497,6 +638,13 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginTop: 2,
   },
+  rightIcon: {
+    marginLeft: 10,
+  },
+  searchBox: {
+    width: "90%",
+    marginTop: 15,
+  },
   noResultsContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -507,6 +655,98 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#888',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  confirmModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  confirmModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    width: '85%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  confirmModalHeader: {
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  confirmModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  confirmModalBody: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  confirmModalText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+  },
+  confirmModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  confirmCancelButton: {
+    flex: 1,
+    backgroundColor: '#e0e0e0',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  confirmOkButton: {
+    flex: 1,
+    backgroundColor: '#FFD700',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginLeft: 10,
+    alignItems: 'center',
+  },
+  confirmCancelText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#666',
+  },
+  confirmOkText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 10,
+  },
+  closeButton: {
+    padding: 5,
   },
 });
 
