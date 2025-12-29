@@ -23,23 +23,19 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   const today = new Date();
   const [selectedDay, setSelectedDay] = useState(0); // 0 means no day selected initially
   const [liveDate, setLiveDate] = useState(today);
-  const [displayDate, setDisplayDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1)); // Start of current month
 
-  // Update live date every second to keep it fully live
+  // Update live date every second for fully live calendar experience
   useEffect(() => {
     const updateLiveDate = () => {
       const now = new Date();
       setLiveDate(now);
-      
-      // Update displayDate to stay synchronized with liveDate for fully live calendar
-      setDisplayDate(new Date(now.getFullYear(), now.getMonth(), 1));
     };
 
     // Update immediately
     updateLiveDate();
 
     // Set up interval to update every second for fully live experience
-    const interval = setInterval(updateLiveDate, 1000); // 1 second
+    const interval = setInterval(updateLiveDate, 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -55,18 +51,17 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 
   const generateCalendarDays = () => {
     const days = [];
-    const daysCount = daysInMonth(displayDate); // Use displayDate for calendar grid
+    const daysCount = daysInMonth(liveDate); // Use liveDate for current month
     
-    // Get the actual day of week for the first day of the month
-    // Use displayDate instead of currentDate
-    const firstDay = new Date(displayDate.getFullYear(), displayDate.getMonth(), 1).getDay();
+    // Get the actual day of week for the first day of the current month
+    const firstDay = new Date(liveDate.getFullYear(), liveDate.getMonth(), 1).getDay();
     
     // Add empty cells for days before month starts (Sunday = 0, Monday = 1, etc.)
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
     
-    // Add all days of the month
+    // Add all days of the current month
     for (let i = 1; i <= daysCount; i++) {
       days.push(i);
     }
@@ -76,14 +71,24 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 
   const handleDayPress = (day: number) => {
     setSelectedDay(day);
-    const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth(), day);
+    const newDate = new Date(liveDate.getFullYear(), liveDate.getMonth(), day);
     if (onDateSelect) {
       onDateSelect(newDate);
     }
   };
 
+  // Auto-select today's date when calendar loads and when it becomes today
+  useEffect(() => {
+    const today = liveDate.getDate();
+    
+    if (selectedDay === 0) {
+      setSelectedDay(today);
+    }
+  }, [liveDate, selectedDay]);
+
   const handleCalendarPress = () => {
-    const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth(), selectedDay);
+    const dayToSelect = selectedDay > 0 ? selectedDay : liveDate.getDate();
+    const newDate = new Date(liveDate.getFullYear(), liveDate.getMonth(), dayToSelect);
     if (onDateSelect) {
       onDateSelect(newDate);
     }
@@ -122,14 +127,17 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
       
       {/* Full Calendar Section */}
       <View style={styles.calendarContainer}>
-        {/* Month/Year Header with Live Time - Fully Live Only */}
+        {/* Month/Year Header with Live Time - Fully Live */}
         <View style={styles.monthYearHeader}>
           <View style={styles.monthYearContainer}>
             <Text style={styles.monthYearText}>
-              {monthNames[displayDate.getMonth()]} {displayDate.getFullYear()}
+              {monthNames[liveDate.getMonth()]} {liveDate.getFullYear()}
             </Text>
             <Text style={styles.liveTimeText}>
               {liveDate.toLocaleTimeString()}
+            </Text>
+            <Text style={styles.liveDateText}>
+              {liveDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </Text>
           </View>
         </View>
@@ -137,19 +145,20 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
         {/* Days of Week Header - Dynamic */}
         <View style={styles.daysOfWeekContainer}>
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-            <Text 
-              key={day} 
-              style={[
-                styles.dayOfWeekText,
-                index === liveDate.getDay() && styles.currentDayOfWeekText
-              ]}
-            >
-              {day}
-            </Text>
+            <View key={day} style={styles.dayOfWeekCell}>
+              <Text 
+                style={[
+                  styles.dayOfWeekText,
+                  index === liveDate.getDay() && styles.currentDayOfWeekText
+                ]}
+              >
+                {day}
+              </Text>
+            </View>
           ))}
         </View>
         
-        {/* Calendar Days Grid */}
+        {/* Calendar Days Grid - Always shows current month */}
         <ScrollView style={styles.daysContainer} contentContainerStyle={styles.daysContent}>
           <View style={styles.daysGrid}>
             {generateCalendarDays().map((day, index) => {
@@ -162,8 +171,8 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
                     !day && styles.emptyDay,
                     selectedDay > 0 && day === selectedDay && styles.selectedDay,
                     day === liveDate.getDate() && 
-                    displayDate.getMonth() === liveDate.getMonth() && 
-                    displayDate.getFullYear() === liveDate.getFullYear() && styles.today
+                    liveDate.getMonth() === liveDate.getMonth() && 
+                    liveDate.getFullYear() === liveDate.getFullYear() && styles.today
                   ]}
                   disabled={!day}
                 >
@@ -172,8 +181,8 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
                       styles.dayText,
                       selectedDay > 0 && day === selectedDay && styles.selectedDayText,
                       day === liveDate.getDate() && 
-                      displayDate.getMonth() === liveDate.getMonth() && 
-                      displayDate.getFullYear() === liveDate.getFullYear() && styles.todayText
+                      liveDate.getMonth() === liveDate.getMonth() && 
+                      liveDate.getFullYear() === liveDate.getFullYear() && styles.todayText
                     ]}>
                       {day}
                     </Text>
@@ -279,6 +288,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '500',
   },
+  liveDateText: {
+    fontSize: 10,
+    color: '#CCCCCC',
+    marginTop: 2,
+    fontWeight: '400',
+  },
   navButton: {
     padding: 8,
     backgroundColor: '#FFD700',
@@ -286,19 +301,23 @@ const styles = StyleSheet.create({
   },
   daysOfWeekContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 10,
     backgroundColor: '#1a1a1a',
     paddingVertical: 10,
-    paddingHorizontal: 5,
+    paddingHorizontal: 3, // Minimal padding for tight fit
     borderRadius: 8,
     width: '100%',
   },
+  dayOfWeekCell: {
+    width: '14.285%', // Exact 1/7th width like calendar buttons
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   dayOfWeekText: {
-    fontSize: 11,
+    fontSize: 10, // Slightly smaller for better fit
     fontWeight: 'bold',
     color: '#FFD700', // Gold for day headers
-    width: 38, // Adjusted for perfect 7-day fit
     textAlign: 'center',
     textTransform: 'uppercase',
   },
@@ -320,17 +339,18 @@ const styles = StyleSheet.create({
   daysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
     width: '100%',
     alignItems: 'flex-start',
+    paddingHorizontal: 3, // Match week container padding
   },
   dayCell: {
-    width: 38, // Perfect for 7-column grid
-    height: 38,
+    width: '14.285%', // Exact 1/7th of width for 7 columns
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 1,
-    borderRadius: 19,
+    marginVertical: 1,
+    marginHorizontal: 0, // No horizontal margin for tight fit
+    borderRadius: 20,
     backgroundColor: '#1a1a1a',
     borderWidth: 1,
     borderColor: '#333333',
@@ -338,6 +358,11 @@ const styles = StyleSheet.create({
   emptyDay: {
     backgroundColor: 'transparent',
     borderColor: 'transparent',
+    // Ensure empty cells maintain same spacing as regular cells
+    width: '14.285%',
+    height: 40,
+    marginVertical: 1,
+    marginHorizontal: 0,
   },
   selectedDay: {
     backgroundColor: '#FFD700',

@@ -1,8 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import InfoCard from '../../common/Cards/InfoCard';
+import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface NewVisitProps {
   onBack?: () => void;
@@ -12,6 +11,7 @@ interface NewVisitProps {
 const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) => {
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
   const [afterImage, setAfterImage] = useState<string | null>(null);
+  const [formulaNotes, setFormulaNotes] = useState<string>('');
 
   const handleImageUpload = async (imageType: 'before' | 'after') => {
     try {
@@ -76,22 +76,10 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) =>
 
         {/* White Section */}
         <ScrollView style={styles.whiteSection} contentContainerStyle={styles.scrollContent}>
-          <InfoCard
-            title="Service: "
-            description="e.g Full Cut"
-            backgroundColor="#F8F8F8"
-            titleSize={16}
-            descriptionSize={12}
-            titleWeight="600"
-            descriptionWeight="normal"
-            margin={0}
-            containerStyle={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              padding: 15,
-            }}
-          />
+          {/* Service Section */}
+          <View style={styles.serviceContainer}>
+            <Text style={styles.serviceTitle}>Service: Full Cut, Half Cut</Text>
+          </View>
           
           {/* Quick Tags Section */}
           <View style={styles.quickTagsContainer}>
@@ -107,7 +95,15 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) =>
           {/* Formulas/Notes Section */}
           <View style={styles.formulasContainer}>
             <Text style={styles.formulasTitle}>Formulas/Notes</Text>
-            <Text style={styles.placeholderText}>Enter Technical Notes, Formulas</Text>
+            <TextInput
+              style={styles.formulaInput}
+              placeholder="Enter Technical Notes, Formulas"
+              placeholderTextColor="#999"
+              value={formulaNotes}
+              onChangeText={setFormulaNotes}
+              multiline
+              textAlignVertical="top"
+            />
           </View>
           
           {/* Photos Section */}
@@ -229,7 +225,18 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 20,
   },
-  quickTagsContainer: {
+  serviceContainer: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+  },
+  serviceTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+    quickTagsContainer: {
     marginTop: 20,
     paddingVertical: 15,
   },
@@ -265,6 +272,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
     padding: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   formulasTitle: {
     fontSize: 18,
@@ -272,18 +287,17 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
-  placeholderText: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-  },
-  input: {
+  formulaInput: {
     fontSize: 14,
     color: '#333',
     textAlignVertical: 'top',
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    minHeight: 60,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 6,
+    padding: 8,
+    minHeight: 50,
+    fontStyle: 'normal',
   },
     buttonContainer: {
     flexDirection: 'row',

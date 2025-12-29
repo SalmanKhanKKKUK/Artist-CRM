@@ -98,7 +98,7 @@ const Profile = ({ onBack }: ProfileProps) => {
           titleStyle={styles.infoCardTitle}
           descriptionStyle={styles.infoCardDescription}
           padding={12}
-          margin={10}
+          margin={0}
           backgroundColor="#fff"
           shadowColor="#000"
           shadowOffset={{
@@ -118,7 +118,7 @@ const Profile = ({ onBack }: ProfileProps) => {
           titleStyle={styles.infoCardTitle}
           descriptionStyle={styles.infoCardDescription}
           padding={12}
-          margin={10}
+          margin={0}
           backgroundColor="#fff"
           shadowColor="#000"
           shadowOffset={{
@@ -137,30 +137,26 @@ const Profile = ({ onBack }: ProfileProps) => {
           </View>
           <TouchableOpacity onPress={() => setShowSetting(true)}>
             <MaterialCommunityIcons 
-              name="greater-than" 
-              size={18} 
+              name="chevron-right" 
+              size={24} 
               color="#333" 
             />
           </TouchableOpacity>
         </View>
 
         {/* Manage Billing Display */}
-        <InfoCard
-          title="Manage Billing"
-          containerStyle={styles.infoCardContainer}
-          titleStyle={styles.infoCardTitle}
-          padding={12}
-          margin={10}
-          backgroundColor="#fff"
-          shadowColor="#000"
-          shadowOffset={{
-            width: 0,
-            height: 2,
-          }}
-          shadowOpacity={0.1}
-          shadowRadius={4}
-          elevation={3}
-        />
+        <View style={styles.infoCardContainer}>
+          <View style={styles.settingContent}>
+            <Text style={styles.infoCardTitle}>Manage Billing</Text>
+          </View>
+          <TouchableOpacity onPress={() => console.log('Manage Billing pressed')}>
+            <MaterialCommunityIcons 
+              name="chevron-right" 
+              size={24} 
+              color="#333" 
+            />
+          </TouchableOpacity>
+        </View>
 
         {/* Logout Button */}
         <DynamicButton

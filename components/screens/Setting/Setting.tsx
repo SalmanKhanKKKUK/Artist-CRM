@@ -30,10 +30,11 @@ const Setting = ({ onBack }: SettingProps) => {
     {
       id: 1,
       title: 'Business Profile',
-      subtitle: 'Name, Logo, Description, set Weekly Schedule',
+      subtitle: 'Name, Logo, Desc, set Weekly Schedule',
       icon: 'cog',
       category: 'General',
-      hasRightIcon: false,
+      hasRightIcon: true,
+      rightIcon: 'chevron-right',
       hasPlusButton: false
     },
     {
@@ -42,7 +43,8 @@ const Setting = ({ onBack }: SettingProps) => {
       subtitle: 'Notice, Buffer, Add Weekly Notice',
       icon: 'clock',
       category: 'General',
-      hasRightIcon: false,
+      hasRightIcon: true,
+      rightIcon: 'chevron-right',
       hasPlusButton: false
     },
     {
@@ -51,7 +53,8 @@ const Setting = ({ onBack }: SettingProps) => {
       subtitle: 'Fees and Refunds',
       icon: 'file-document',
       category: 'Financial',
-      hasRightIcon: false,
+      hasRightIcon: true,
+      rightIcon: 'chevron-right',
       hasPlusButton: false
     },
     {
@@ -80,7 +83,8 @@ const Setting = ({ onBack }: SettingProps) => {
       subtitle: '',
       icon: 'message',
       category: 'Notification',
-      hasRightIcon: false,
+      hasRightIcon: true,
+      rightIcon: 'chevron-right',
       hasPlusButton: false
     },
     {
@@ -89,18 +93,18 @@ const Setting = ({ onBack }: SettingProps) => {
       subtitle: '',
       icon: 'account-circle',
       category: 'Staff',
-      hasRightIcon: false,
+      hasRightIcon: true,
+      rightIcon: 'chevron-right',
       hasPlusButton: false
     },
     {
       id: 8,
       title: 'Commission',
       subtitle: '',
-      icon: 'account-group',
+      icon: 'account-circle',
       category: 'Financial',
       hasRightIcon: false,
       hasPlusButton: true,
-      hasIconGroup: true,
       plusButtonIcon: 'toggle-switch-off'
     },
     {
@@ -109,7 +113,8 @@ const Setting = ({ onBack }: SettingProps) => {
       subtitle: '',
       icon: 'shield-key',
       category: 'Security',
-      hasRightIcon: false,
+      hasRightIcon: true,
+      rightIcon: 'chevron-right',
       hasPlusButton: false
     },
     {
@@ -170,7 +175,7 @@ const Setting = ({ onBack }: SettingProps) => {
     }
   ];
 
-  // Toggle Button Handler with Alert for Cancellation Policy
+  // Toggle Button Handler with Alert for Cancellation Policy and Commission
   const handleTogglePress = (setting: any, isOn: boolean) => {
     if (setting.title === 'Cancellation Policy') {
       // Show alert for Cancellation Policy
@@ -196,8 +201,32 @@ const Setting = ({ onBack }: SettingProps) => {
         ],
         { cancelable: false }
       );
+    } else if (setting.title === 'Commission') {
+      // Show alert for Commission
+      Alert.alert(
+        'Commission Setting',
+        'Are you sure you want to enable commission settings?',
+        [
+          {
+            text: 'No',
+            onPress: () => {
+              // Revert toggle state
+              setTempToggleStates(prev => ({ ...prev, [setting.title]: !isOn }));
+            },
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => {
+              // Confirm toggle state
+              setTempToggleStates(prev => ({ ...prev, [setting.title]: isOn }));
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     } else {
-      // Normal toggle for other settings
+      // Normal toggle for other settings (including Dark Mood)
       setTempToggleStates(prev => ({ ...prev, [setting.title]: isOn }));
     }
   };
@@ -342,7 +371,7 @@ const Setting = ({ onBack }: SettingProps) => {
                 <MaterialCommunityIcons 
                   name={setting.icon as any}
                   size={20} 
-                  color="#333" 
+                  color="#000000" 
                   style={styles.settingIcon}
                 />
                 <View style={styles.centerContent}>
@@ -360,7 +389,7 @@ const Setting = ({ onBack }: SettingProps) => {
                   <MaterialCommunityIcons 
                     name="calendar" 
                     size={24} 
-                    color="#FFD700" 
+                    color="#9E9E9E" 
                   />
                 </TouchableOpacity>
               </View>
@@ -368,35 +397,13 @@ const Setting = ({ onBack }: SettingProps) => {
           } else {
             return (
               <View key={setting.id} style={styles.businessProfileDiv}>
-                {/* Left Icon or Icon Group */}
-                {setting.hasIconGroup ? (
-                  <View style={styles.iconGroup}>
-                    <MaterialCommunityIcons 
-                      name="account-circle" 
-                      size={16} 
-                      color="#333" 
-                    />
-                    <MaterialCommunityIcons 
-                      name="account-circle" 
-                      size={16} 
-                      color="#333" 
-                      style={styles.overlapIcon}
-                    />
-                    <MaterialCommunityIcons 
-                      name="account-circle" 
-                      size={16} 
-                      color="#333" 
-                      style={styles.overlapIcon}
-                    />
-                  </View>
-                ) : (
-                  <MaterialCommunityIcons 
-                    name={setting.icon as any}
-                    size={20} 
-                    color="#333" 
-                    style={styles.settingIcon}
-                  />
-                )}
+                {/* Left Icon */}
+                <MaterialCommunityIcons 
+                  name={setting.icon as any}
+                  size={20} 
+                  color="#333" 
+                  style={styles.settingIcon}
+                />
                 
                 {/* Center Content */}
                 <View style={styles.centerContent}>
@@ -406,16 +413,24 @@ const Setting = ({ onBack }: SettingProps) => {
                   )}
                 </View>
                 
-                {/* Right Plus Button */}
-                {setting.hasPlusButton && (
+                {/* Right Icon or Plus Button */}
+                {setting.hasPlusButton ? (
                   <ToggleButton
                     isOn={tempToggleStates[setting.title] || false}
                     onToggle={(isOn) => handleTogglePress(setting, isOn)}
-                    size={24}
+                    size={18}
                     activeColor="#4CAF50"
                     inactiveColor="#9E9E9E"
                   />
-                )}
+                ) : setting.hasRightIcon ? (
+                  <TouchableOpacity style={styles.rightIconContainer}>
+                    <MaterialCommunityIcons 
+                      name={setting.rightIcon as any}
+                      size={20} 
+                      color="#333" 
+                    />
+                  </TouchableOpacity>
+                ) : null}
               </View>
             );
           }
@@ -614,6 +629,9 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   calendarIconContainer: {
+    padding: 5,
+  },
+  rightIconContainer: {
     padding: 5,
   },
   iconGroup: {

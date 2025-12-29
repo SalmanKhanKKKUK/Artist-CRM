@@ -1,5 +1,6 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import DetailCard from '../../common/Cards/DetailCard';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
@@ -46,6 +47,10 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
         <View style={styles.container}>
           {/* Black Header Section - 30vh */}
           <View style={styles.blackHeader}>
+            {/* Back Arrow */}
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+            </TouchableOpacity>
             
             {/* Content Row with Image and Text */}
             <View style={styles.contentRow}>
@@ -188,23 +193,6 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
                   backgroundColor="#F8F8F8"
                 />
                 
-                {/* Cancel Button at bottom of history section */}
-                <DynamicButton
-                  text="Cancel"
-                  onPress={() => onBack?.()}
-                  backgroundColor="#F44336"
-                  textColor="#FFFFFF"
-                  borderRadius={8}
-                  paddingVertical={12}
-                  paddingHorizontal={24}
-                  fontSize={16}
-                  width="80%"
-                  containerStyle={{
-                    marginTop: 20,
-                    marginBottom: 20,
-                    alignSelf: 'center',
-                  }}
-                />
               </View>
             )}
 
@@ -225,6 +213,18 @@ const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistor
                   allergies="No allergies"
                   favoriteStyle="Modern Classic"
                   notes="Regular customer, prefers appointments on weekends. Sensitive to strong chemical smells."
+                />
+                
+                {/* Same ImageDesCard from History Section */}
+                <ImageDesCard
+                  imageSource={{ uri: 'https://picsum.photos/80/80' }}
+                  title="Service Title"
+                  description="This is a detailed description of the service provided to the client with all relevant."
+                  cardMargin={0}
+                  cardMarginTop={5}
+                  cardPadding={15}
+                  imageSize={80}
+                  backgroundColor="#F8F8F8"
                 />
               </View>
             )}
@@ -329,7 +329,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   sectionContent: {
-    flex: 1,
     padding: 20,
     marginTop: 0,
   },
