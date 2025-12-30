@@ -61,6 +61,7 @@ const Login = ({ onBack }: { onBack: () => void }) => {
     }
   };
 
+
   const handleLogin = () => {
     const newErrors: {
       email?: string;
@@ -104,7 +105,6 @@ const Login = ({ onBack }: { onBack: () => void }) => {
     return <Signup onBack={handleSignupBack} />;
   }
 
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView 
@@ -130,6 +130,7 @@ const Login = ({ onBack }: { onBack: () => void }) => {
               )}
             </TouchableOpacity>
           </View>
+
 
           {/* Login Form */}
           <View style={styles.formContainer}>

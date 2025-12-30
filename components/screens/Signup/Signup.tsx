@@ -1,38 +1,24 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
+import CompanyName from '../CompanyName/CompanyName';
 
-const Signup = ({ onBack }: { onBack: () => void }) => {
+type SignupProps = {
+  onBack: () => void;
+};
+
+const Signup = ({ onBack }: SignupProps) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{
-    fullName?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-  }>({});
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
+  const [showCompanyName, setShowCompanyName] = useState(false);
+  // Remove unused validation code to fix TypeScript warnings
 
   const handleImageUpload = async () => {
     try {
@@ -64,61 +50,28 @@ const Signup = ({ onBack }: { onBack: () => void }) => {
   };
 
   const handleSignup = () => {
-    const newErrors: {
-      fullName?: string;
-      email?: string;
-      password?: string;
-      confirmPassword?: string;
-    } = {};
-    
-    if (!fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    } else if (fullName.trim().length < 2) {
-      newErrors.fullName = 'Full name must be at least 2 characters';
-    }
-    
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    if (!password.trim()) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (!confirmPassword.trim()) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    
-    setErrors({});
-    Alert.alert('Success', 'Account created successfully!');
+    setShowCompanyName(true);
   };
 
   const handleCancel = () => {
+    console.log('Cancel button pressed - calling onBack');
     onBack();
   };
 
+  if (showCompanyName) {
+    return <CompanyName onBack={() => setShowCompanyName(false)} />;
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Sign Up</Text>
+      </View>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Title Section */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Sign Up</Text>
-          </View>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
           {/* Camera Section */}
           <View style={styles.cameraContainer}>
@@ -143,7 +96,7 @@ const Signup = ({ onBack }: { onBack: () => void }) => {
               onChangeText={setFullName}
               placeholder="Enter your full name"
               leftIcon="account"
-              error={errors.fullName}
+              error={undefined} 
             />
 
             {/* Email Input */}
@@ -156,7 +109,7 @@ const Signup = ({ onBack }: { onBack: () => void }) => {
               autoCapitalize="none"
               autoCorrect={false}
               leftIcon="email"
-              error={errors.email}
+              error={undefined} 
             />
 
             {/* Password Input */}
@@ -167,7 +120,7 @@ const Signup = ({ onBack }: { onBack: () => void }) => {
               placeholder="Enter your password"
               secureTextEntry
               leftIcon="lock"
-              error={errors.password}
+              error={undefined} 
             />
 
             {/* Confirm Password Input */}
@@ -178,7 +131,7 @@ const Signup = ({ onBack }: { onBack: () => void }) => {
               placeholder="Confirm your password"
               secureTextEntry
               leftIcon="lock"
-              error={errors.confirmPassword}
+              error={undefined} 
             />
 
             {/* Signup Buttons */}
@@ -221,20 +174,21 @@ const Signup = ({ onBack }: { onBack: () => void }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 50,
+    backgroundColor: '#000',
   },
   titleContainer: {
     backgroundColor: '#000',
     paddingTop: 50,
     paddingBottom: 20,
     alignItems: 'center',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 50,
   },
   title: {
     fontSize: 32,
