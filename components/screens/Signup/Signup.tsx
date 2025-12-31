@@ -5,19 +5,19 @@ import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, T
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
-import CompanyName from '../CompanyName/CompanyName';
 
 type SignupProps = {
   onBack: () => void;
+  onNavigateToCompanyName?: () => void;
+  onNavigateToLogin?: () => void;
 };
 
-const Signup = ({ onBack }: SignupProps) => {
+const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupProps) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
-  const [showCompanyName, setShowCompanyName] = useState(false);
   // Remove unused validation code to fix TypeScript warnings
 
   const handleImageUpload = async () => {
@@ -50,42 +50,41 @@ const Signup = ({ onBack }: SignupProps) => {
   };
 
   const handleSignup = () => {
-    setShowCompanyName(true);
+    if (onNavigateToCompanyName) {
+      onNavigateToCompanyName();
+    }
   };
 
   const handleCancel = () => {
-    console.log('Cancel button pressed - calling onBack');
-    onBack();
+    console.log('Cancel button pressed - going to Login page');
+    if (onNavigateToLogin) {
+      onNavigateToLogin();
+    }
   };
 
-  if (showCompanyName) {
-    return <CompanyName onBack={() => setShowCompanyName(false)} />;
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Sign Up</Text>
       </View>
+      <View style={styles.cameraContainer}>
+        <TouchableOpacity onPress={handleImageUpload} style={styles.cameraButton}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.cameraPlaceholder}>
+              <MaterialCommunityIcons name="camera" size={50} color="#FFD700" />
+              <Text style={styles.cameraText}>Upload Photo</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-
-          {/* Camera Section */}
-          <View style={styles.cameraContainer}>
-            <TouchableOpacity onPress={handleImageUpload} style={styles.cameraButton}>
-              {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
-              ) : (
-                <View style={styles.cameraPlaceholder}>
-                  <MaterialCommunityIcons name="camera" size={50} color="#FFD700" />
-                  <Text style={styles.cameraText}>Upload Photo</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
 
           {/* Signup Form */}
           <View style={styles.formContainer}>
@@ -174,7 +173,7 @@ const Signup = ({ onBack }: SignupProps) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#fff',
   },
   titleContainer: {
     backgroundColor: '#000',

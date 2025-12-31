@@ -283,3 +283,8 @@ const styles = {
 };
 
 export default DetailCard;
+
+
+// ye reusable component hai
+// s ko hum ne detail card k liye banaya hai
+// ye project k about page k andar info section k andar personal detail liye used hai

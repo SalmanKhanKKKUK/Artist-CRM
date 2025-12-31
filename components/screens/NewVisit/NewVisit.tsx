@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Input from '../../common/Inputs/Input';
 
 interface NewVisitProps {
   onBack?: () => void;
@@ -12,6 +13,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) =>
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
   const [afterImage, setAfterImage] = useState<string | null>(null);
   const [formulaNotes, setFormulaNotes] = useState<string>('');
+  const [serviceSearch, setServiceSearch] = useState<string>('');
 
   const handleImageUpload = async (imageType: 'before' | 'after') => {
     try {
@@ -78,7 +80,17 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack, clientName = "Client" }) =>
         <ScrollView style={styles.whiteSection} contentContainerStyle={styles.scrollContent}>
           {/* Service Section */}
           <View style={styles.serviceContainer}>
-            <Text style={styles.serviceTitle}>Service: Full Cut, Half Cut</Text>
+            <Text style={styles.formulasTitle}>Services</Text>
+            <Input
+              value={serviceSearch}
+              onChangeText={setServiceSearch}
+              placeholder="Search Service"
+              leftIcon="magnify"
+              variant="outlined"
+              size="medium"
+              containerStyle={{ height: 50, marginBottom: 6 }}
+              helperText={undefined}
+            />
           </View>
           
           {/* Quick Tags Section */}
@@ -226,10 +238,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   serviceContainer: {
+    marginTop: 0,
     backgroundColor: '#F8F8F8',
     borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingTop: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+    marginBottom: 10,
   },
   serviceTitle: {
     fontSize: 16,
@@ -237,8 +262,8 @@ const styles = StyleSheet.create({
     color: '#333',
   },
     quickTagsContainer: {
-    marginTop: 20,
-    paddingVertical: 15,
+    marginTop: 10,
+    paddingVertical: 10,
   },
   quickTagsTitle: {
     fontSize: 18,

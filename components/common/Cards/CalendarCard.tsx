@@ -394,3 +394,8 @@ const styles = StyleSheet.create({
 });
 
 export default CalendarCard;
+// ye reusable component hai
+// s ko hum ne Calender k liye reusbale bana ya hai
+// ye project k andar jitne b calendar used hoi hai os k liye hai
+// s ko setting page k andar used kia hoa hai 
+

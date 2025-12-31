@@ -23,14 +23,6 @@ export default function RootLayout() {
             headerShown: true,
           }} 
         />
-        <Stack.Screen 
-          name="CompanyName" 
-          options={{ 
-            title: 'Company Name',
-            headerShown: true,
-            headerBackTitle: 'Back',
-          }} 
-        />
       </Stack>
       <StatusBar style="dark" />
     </ThemeProvider>

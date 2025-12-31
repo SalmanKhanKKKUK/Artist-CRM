@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DimensionValue, Image, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 interface CustomCardProps {
@@ -24,14 +24,25 @@ const CustomCard: React.FC<CustomCardProps> = ({
   containerStyle,
   onPress,
 }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   return (
     <TouchableOpacity onPress={onPress} style={[styles.card, { backgroundColor, width, padding }, containerStyle]}>
       <View style={styles.contentContainer}>
         
         <Image 
-          source={{ uri: profileImageUri || 'https://via.placeholder.com/50' }} 
+          source={
+            imageError || !profileImageUri 
+              ? require('../../../assets/images/android-icon-foreground.png')
+              : { uri: profileImageUri }
+          } 
           style={styles.profileImage}
           accessibilityLabel={`${name}'s profile picture`}
+          onError={handleImageError}
         />
 
         <View style={styles.textContainer}>

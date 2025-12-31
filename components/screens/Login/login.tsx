@@ -2,26 +2,28 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
-import Signup from '../Signup/Signup';
 
-const Login = ({ onBack }: { onBack: () => void }) => {
+const Login = ({ onBack, onNavigateToSignup, onNavigateToHome }: { 
+  onBack: () => void;
+  onNavigateToSignup?: () => void;
+  onNavigateToHome?: () => void;
+}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [showSignup, setShowSignup] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -90,20 +92,17 @@ const Login = ({ onBack }: { onBack: () => void }) => {
   };
 
   const handleCancel = () => {
-    onBack();
+    console.log('Cancel button pressed - going to Home page');
+    if (onNavigateToHome) {
+      onNavigateToHome();
+    }
   };
 
   const handleSignupClick = () => {
-    setShowSignup(true);
+    if (onNavigateToSignup) {
+      onNavigateToSignup();
+    }
   };
-
-  const handleSignupBack = () => {
-    setShowSignup(false);
-  };
-
-  if (showSignup) {
-    return <Signup onBack={handleSignupBack} />;
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

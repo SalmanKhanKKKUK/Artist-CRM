@@ -111,3 +111,8 @@ const styles = StyleSheet.create({
 });
 
 export default ToggleButton;
+
+// ye reusable component hai
+// s ko hum ne button k liye reusbale bana ya hai
+// ye project k andar setting page k andar toggle button k liye used hoi hai 
+

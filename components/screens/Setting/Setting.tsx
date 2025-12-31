@@ -28,16 +28,6 @@ const Setting = ({ onBack }: SettingProps) => {
   // Settings Data Structure
   const settingsData = useMemo(() => [
     {
-      id: 1,
-      title: 'Business Profile',
-      subtitle: 'Name, Logo, Desc, set Weekly Schedule',
-      icon: 'cog',
-      category: 'General',
-      hasRightIcon: true,
-      rightIcon: 'chevron-right',
-      hasPlusButton: false
-    },
-    {
       id: 2,
       title: 'Operating Hours',
       subtitle: 'Notice, Buffer, Add Weekly Notice',

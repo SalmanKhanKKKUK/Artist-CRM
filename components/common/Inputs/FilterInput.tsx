@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
   Modal,
-  SafeAreaView,
-  ViewStyle,
-  TextStyle,
   Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
 
 // Interfaces for strict type checking
@@ -227,3 +227,8 @@ const styles = StyleSheet.create({
 });
 
 export default FilterInput;
+
+// ye reusable component hai
+// s ko hum ne filter k reusable banaya hai
+// ye project k andar search k sath ane wali filter k liye used hoga
+// s ko project k andar home page k searching, and setting page k searching k liye used kia hoa hai.
