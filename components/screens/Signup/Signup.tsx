@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
@@ -18,154 +18,76 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
-  // Remove unused validation code to fix TypeScript warnings
 
   const handleImageUpload = async () => {
     try {
-      // Request permission
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
       if (permissionResult.status !== 'granted') {
         Alert.alert('Permission Denied', 'Permission to access camera roll is required!');
         return;
       }
 
-      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: [1, 1],
         quality: 1,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const selectedImage = result.assets[0];
-        setProfileImage(selectedImage.uri);
-        Alert.alert('Success', 'Profile image uploaded successfully!');
+        setProfileImage(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Image picker error:', error);
-      Alert.alert('Error', 'Failed to upload image. Please try again.');
     }
   };
-
-  const handleSignup = () => {
-    if (onNavigateToCompanyName) {
-      onNavigateToCompanyName();
-    }
-  };
-
-  const handleCancel = () => {
-    console.log('Cancel button pressed - going to Login page');
-    if (onNavigateToLogin) {
-      onNavigateToLogin();
-    }
-  };
-
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Sign Up</Text>
-      </View>
-      <View style={styles.cameraContainer}>
-        <TouchableOpacity onPress={handleImageUpload} style={styles.cameraButton}>
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
-          ) : (
-            <View style={styles.cameraPlaceholder}>
-              <MaterialCommunityIcons name="camera" size={50} color="#FFD700" />
-              <Text style={styles.cameraText}>Upload Photo</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-
-          {/* Signup Form */}
-          <View style={styles.formContainer}>
-            {/* Full Name Input */}
-            <Input
-              label="Full Name"
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Enter your full name"
-              leftIcon="account"
-              error={undefined} 
-            />
-
-            {/* Email Input */}
-            <Input
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email address"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              leftIcon="email"
-              error={undefined} 
-            />
-
-            {/* Password Input */}
-            <Input
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              secureTextEntry
-              leftIcon="lock"
-              error={undefined} 
-            />
-
-            {/* Confirm Password Input */}
-            <Input
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirm your password"
-              secureTextEntry
-              leftIcon="lock"
-              error={undefined} 
-            />
-
-            {/* Signup Buttons */}
-            <View style={styles.buttonContainer}>
-              <DynamicButton
-                text="Sign Up"
-                onPress={handleSignup}
-                backgroundColor="#FFD700"
-                textColor="#000"
-                borderRadius={10}
-                paddingVertical={15}
-                paddingHorizontal={20}
-                fontSize={18}
-                fontWeight="bold"
-                width="48%"
-              />
-              
-              <DynamicButton
-                text="Cancel"
-                onPress={handleCancel}
-                backgroundColor="#333"
-                textColor="#fff"
-                borderRadius={10}
-                paddingVertical={15}
-                paddingHorizontal={20}
-                fontSize={18}
-                fontWeight="600"
-                borderWidth={1}
-                borderColor="#666"
-                width="48%"
-              />
-            </View>
+    // 1. SafeAreaView ko Black background diya taake status bar area black ho jaye
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {/* 2. StatusBar ko translucent false aur light-content rakha taake icons white hon */}
+      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
+      
+      {/* Main Content wrapper */}
+      <View style={styles.mainWrapper}>
+        
+        {/* Black Header Section */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Sign Up</Text>
+          <View style={styles.cameraContainer}>
+            <TouchableOpacity onPress={handleImageUpload} style={styles.cameraButton}>
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              ) : (
+                <View style={styles.cameraPlaceholder}>
+                  <MaterialCommunityIcons name="camera" size={50} color="#FFD700" />
+                  <Text style={styles.cameraText}>Upload Photo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+
+        {/* White Form Section */}
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.formSection}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+            <View style={styles.formContainer}>
+              <Input label="Full Name" value={fullName} onChangeText={setFullName} placeholder="Enter your full name" leftIcon="account" />
+              <Input label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" keyboardType="email-address" autoCapitalize="none" leftIcon="email" />
+              <Input label="Password" value={password} onChangeText={setPassword} placeholder="Enter password" secureTextEntry leftIcon="lock" />
+              <Input label="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Confirm password" secureTextEntry leftIcon="lock" />
+
+              <View style={styles.buttonContainer}>
+                <DynamicButton text="Sign Up" onPress={() => onNavigateToCompanyName?.()} backgroundColor="#FFD700" textColor="#000" width="48%" />
+                <DynamicButton text="Cancel" onPress={() => onNavigateToLogin?.()} backgroundColor="#333" textColor="#fff" width="48%" />
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -173,21 +95,17 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000000', // Yeh status bar area ko black rakhega
+  },
+  mainWrapper: {
+    flex: 1,
+    backgroundColor: '#FFFFFF', // Body white rahegi
   },
   titleContainer: {
     backgroundColor: '#000',
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 20,
     alignItems: 'center',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 50,
   },
   title: {
     fontSize: 32,
@@ -198,7 +116,7 @@ const styles = StyleSheet.create({
   cameraContainer: {
     alignItems: 'center',
     backgroundColor: '#000',
-    paddingTop: 20,
+    paddingTop: 10,
     paddingBottom: 30,
   },
   cameraButton: {
@@ -212,9 +130,9 @@ const styles = StyleSheet.create({
     borderColor: '#FFD700',
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 116,
+    height: 116,
+    borderRadius: 58,
   },
   cameraPlaceholder: {
     justifyContent: 'center',
@@ -225,10 +143,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 5,
   },
-  formContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
+  formSection: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    marginTop: -20, // Rounded top overlap
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: 25,
+    paddingBottom: 50,
+  },
+  formContainer: {
     width: '100%',
   },
   buttonContainer: {
@@ -236,20 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 20,
     gap: 15,
-  },
-  authLinksContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  linkButton: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#FFD700',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });
 

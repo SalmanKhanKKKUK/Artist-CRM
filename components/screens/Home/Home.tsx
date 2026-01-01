@@ -21,26 +21,42 @@ import Login from "../Login/login";
 import Profile from "../Profile/Profile";
 import Signup from "../Signup/Signup";
 
+// TypeScript interfaces
+interface Client {
+  id: number;
+  name: string;
+  phone: string;
+  lastVisit: string;
+  image: string;
+  status: string;
+  category: string;
+}
+
+// Interface for filter selections
+interface FilterSelections {
+  category?: string;
+  service?: string;
+  date?: string;
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // White background
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // White background
+    backgroundColor: '#FFFFFF',
   },
   headerSection: {
-    backgroundColor: '#000000', // Black header only
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    backgroundColor: '#000000',
     paddingTop: Platform.OS === 'ios' ? 20 : 40,
     paddingBottom: 25,
   },
   liveDate: {
     textAlign: 'center',
     fontSize: 13,
-    color: '#FFFFFF', // White text for black background
+    color: '#FFFFFF',
     marginBottom: 15,
     fontWeight: '500',
   },
@@ -55,7 +71,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 22.5,
-    backgroundColor: '#FFD700', // Gold color for logo
+    backgroundColor: '#FFD700',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -64,39 +80,29 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFFFFF', // White text for black background
-    marginLeft: 12,
+    color: '#FFFFFF',
+    marginLeft: 40,
     letterSpacing: 1,
     textTransform: 'uppercase',
-    flex: 1, // Take available space
+    flex: 1,
   },
   userIconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 10, // Space from text
+    marginLeft: 10,
   },
   searchWrapper: {
     paddingHorizontal: 20,
   },
   searchInputStyle: {
-    backgroundColor: '#FFFFFF', // White search input
+    backgroundColor: '#FFFFFF',
     borderRadius: 25,
     height: 50,
     paddingLeft: 15,
   },
-  filterButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FFD700',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
   listContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // White background for list area
+    backgroundColor: '#FFFFFF',
     marginTop: -10,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -107,24 +113,11 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
     alignItems: 'center',
   },
-  cardWrapper: {
-    backgroundColor: '#F8F8F8', // Light card for white theme
-    borderRadius: 15,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
   buttonContainer: {
     position: 'absolute',
     bottom: 40,
     left: '50%',
-    marginLeft: -35, // Half of button width (70/2)
+    marginLeft: -35,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -133,21 +126,25 @@ const styles = StyleSheet.create({
   },
 });
 
-const Home = () => {
-  const [searchText, setSearchText] = useState("");
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("name");
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
-  const [showCompanyName, setShowCompanyName] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+const Home: React.FC = () => {
+  const [searchText, setSearchText] = useState<string>("");
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('all');
+  const [selectedServiceFilter, setSelectedServiceFilter] = useState<string>('all');
+  const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
+  const [showLogin, setShowLogin] = useState<boolean>(false);
+  const [showSignup, setShowSignup] = useState<boolean>(false);
+  const [showCompanyName, setShowCompanyName] = useState<boolean>(false);
+  const [showAbout, setShowAbout] = useState<boolean>(false);
+  const [showProfile, setShowProfile] = useState<boolean>(false);
 
-  const displayDate = "December 30, 2025";
+  const displayDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
 
-  const clientData = useMemo(() => [
+  const clientData: Client[] = useMemo(() => [
     { id: 1, name: "Anya Sharma", phone: "+91 98765 43210", lastVisit: "Dec 1, 2025", image: "https://randomuser.me/api/portraits/women/10.jpg", status: "active", category: "Regular" },
     { id: 2, name: "Ben Carter", phone: "+1 555-123-4567", lastVisit: "Dec 28, 2025", image: "https://randomuser.me/api/portraits/men/10.jpg", status: "active", category: "VIP" },
     { id: 3, name: "Chloe Lee", phone: "+44 20 7946 0958", lastVisit: "Nov 20, 2025", image: "https://randomuser.me/api/portraits/women/11.jpg", status: "inactive", category: "Regular" },
@@ -155,89 +152,99 @@ const Home = () => {
     { id: 5, name: "David Chen", phone: "+86 138 0013 8000", lastVisit: "Nov 15, 2025", image: "https://randomuser.me/api/portraits/men/11.jpg", status: "active", category: "Regular" },
   ], []);
 
-  // Filter Sections for FilterInput Component (like Setting page)
   const filterSections = [
     {
-      id: "status",
-      title: "Status",
+      id: "category",
+      title: "Category",
       options: [
         { label: "All", value: "all" },
-        { label: "Active", value: "active" },
-        { label: "Inactive", value: "inactive" },
-      ],
+        { label: "General", value: "general" },
+        { label: "Financial", value: "financial" },
+        { label: "Appointment", value: "appointment" },
+        { label: "Policy", value: "policy" },
+        { label: "Notification", value: "notification" },
+        { label: "Staff", value: "staff" },
+        { label: "Security", value: "security" },
+        { label: "Appearance", value: "appearance" }
+      ]
     },
     {
-      id: "category",
-      title: "Client Category",
+      id: "service",
+      title: "Service Type",
       options: [
-        { label: "All Clients", value: "all" },
-        { label: "Regular", value: "regular" },
-        { label: "VIP", value: "vip" },
-      ],
+        { label: "All Services", value: "all" },
+        { label: "General", value: "general" },
+        { label: "Financial", value: "financial" },
+        { label: "Appointment", value: "appointment" },
+        { label: "Security", value: "security" },
+        { label: "Staff", value: "staff" },
+        { label: "Appearance", value: "appearance" }
+      ]
     },
     {
-      id: "sort",
-      title: "Sort By",
+      id: "date",
+      title: "Date Range",
       options: [
-        { label: "Name", value: "name" },
-        { label: "Last Visit", value: "lastVisit" },
-        { label: "Date Added", value: "dateAdded" },
-      ],
-    },
+        { label: "All Dates", value: "all" },
+        { label: "Today", value: "today" },
+        { label: "Yesterday", value: "yesterday" },
+        { label: "This Week", value: "thisweek" },
+        { label: "Last Week", value: "lastweek" },
+        { label: "This Month", value: "thismonth" },
+        { label: "Last Month", value: "lastmonth" },
+        { label: "Last 3 Months", value: "last3months" }
+      ]
+    }
   ];
 
-  // Filter, Search, and Sort Logic (like Setting page)
   const filteredAndSortedClients = useMemo(() => {
-    let filtered = clientData;
+    let filtered = [...clientData];
 
-    // Apply Status Filter
-    if (statusFilter !== 'all') {
+    if (selectedServiceFilter !== 'all') {
       filtered = filtered.filter(client => 
-        client.status.toLowerCase() === statusFilter.toLowerCase()
+        client.category.toLowerCase().includes(selectedServiceFilter.toLowerCase())
       );
     }
 
-    // Apply Category Filter
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(client => 
-        client.category.toLowerCase() === categoryFilter.toLowerCase()
-      );
-    }
-
-    // Apply Search (supports search by name and phone like Setting page)
-    if (searchText) {
-      const searchLower = searchText.toLowerCase();
-      const cleanSearch = searchText.replace(/\D/g, ''); // Remove non-digits for phone search
-      
+    if (selectedDateFilter !== 'all') {
       filtered = filtered.filter(client => {
-        // Search by name
-        if (client.name.toLowerCase().includes(searchLower)) {
-          return true;
-        }
+        const clientDate = new Date(client.lastVisit);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         
-        // Search by phone number
-        if (client.phone.replace(/\D/g, '').includes(cleanSearch)) {
-          return true;
+        switch (selectedDateFilter) {
+          case 'today':
+            return clientDate.toDateString() === new Date().toDateString();
+          case 'yesterday':
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            return clientDate.toDateString() === yesterday.toDateString();
+          case 'thisweek':
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            return clientDate >= weekStart;
+          case 'thismonth':
+            return clientDate.getMonth() === today.getMonth() && clientDate.getFullYear() === today.getFullYear();
+          default:
+            return true;
         }
-        
-        return false;
       });
     }
 
-    // Sort the filtered results
-    return filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "lastVisit":
-          return new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime();
-        case "dateAdded":
-          return a.id - b.id;
-        default:
-          return 0;
-      }
-    });
-  }, [clientData, searchText, statusFilter, categoryFilter, sortBy]);
+    if (selectedFilter !== 'all') {
+      filtered = filtered.filter(client => client.category.toLowerCase() === selectedFilter.toLowerCase());
+    }
+
+    if (searchText) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter(client => 
+        client.name.toLowerCase().includes(searchLower) || 
+        client.phone.includes(searchLower)
+      );
+    }
+
+    return filtered.sort((a, b) => a.name.localeCompare(b.name));
+  }, [clientData, selectedFilter, selectedDateFilter, selectedServiceFilter, searchText]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -247,57 +254,19 @@ const Home = () => {
         style={styles.container}
       >
         {showLogin ? (
-          <Login 
-            onBack={() => setShowLogin(false)} 
-            onNavigateToSignup={() => {
-              setShowLogin(false);
-              setShowSignup(true);
-            }}
-            onNavigateToHome={() => setShowLogin(false)}
-          />
+          <Login onBack={() => setShowLogin(false)} onNavigateToSignup={() => { setShowLogin(false); setShowSignup(true); }} onNavigateToHome={() => setShowLogin(false)} />
         ) : showSignup ? (
-          <Signup 
-            onBack={() => {
-              setShowSignup(false);
-              setShowLogin(true);
-            }}
-            onNavigateToCompanyName={() => {
-              setShowSignup(false);
-              setShowCompanyName(true);
-            }}
-            onNavigateToLogin={() => {
-              setShowSignup(false);
-              setShowLogin(true);
-            }}
-          />
+          <Signup onBack={() => { setShowSignup(false); setShowLogin(true); }} onNavigateToCompanyName={() => { setShowSignup(false); setShowCompanyName(true); }} onNavigateToLogin={() => { setShowSignup(false); setShowLogin(true); }} />
         ) : showCompanyName ? (
-          <CompanyName 
-            onBack={() => {
-              setShowCompanyName(false);
-              setShowSignup(true);
-            }}
-            onNavigateToProfile={() => {
-              setShowCompanyName(false);
-              setShowProfile(true);
-            }}
-            onNavigateToSignup={() => {
-              setShowCompanyName(false);
-              setShowSignup(true);
-            }}
-          />
+          <CompanyName onBack={() => { setShowCompanyName(false); setShowSignup(true); }} onNavigateToProfile={() => { setShowCompanyName(false); setShowProfile(true); }} onNavigateToSignup={() => { setShowCompanyName(false); setShowSignup(true); }} />
         ) : showAbout ? (
-          <About 
-            onBack={() => setShowAbout(false)}
-          />
+          <About onBack={() => setShowAbout(false)} />
         ) : showProfile ? (
-          <Profile 
-            onBack={() => setShowProfile(false)}
-          />
+          <Profile onBack={() => setShowProfile(false)} />
         ) : (
           <>
             <View style={styles.headerSection}>
               <Text style={styles.liveDate}>{displayDate}</Text>
-              
               <View style={styles.logoRow}>
                 <View style={styles.logoIconContainer}>
                   <MaterialCommunityIcons name="wrench-outline" size={24} color="#000" />
@@ -309,73 +278,43 @@ const Home = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-
               <View style={styles.searchWrapper}>
-                <SearchInput
-                  value={searchText}
-                  onChangeText={setSearchText}
-                  placeholder="Search by Name or Phone..."
-                  style={styles.searchInputStyle}
-                  showFilterIcon={true}
-                  onFilterIconPress={() => setShowFilterModal(true)}
-                />
-                <FilterInput
-                  title="Client Filters"
-                  sections={filterSections}
-                  isVisible={showFilterModal}
-                  onClose={() => setShowFilterModal(false)}
-                  onApply={(filters) => {
-                    console.log('Filters applied:', filters);
-                    setStatusFilter(filters.status || 'all');
-                    setCategoryFilter(filters.category || 'all');
-                    setSortBy(filters.sort || 'name');
+                <SearchInput value={searchText} onChangeText={setSearchText} placeholder="Search..." showFilterIcon={true} onFilterIconPress={() => setShowFilterModal(true)} />
+                <FilterInput 
+                  title="Filters" 
+                  sections={filterSections} 
+                  isVisible={showFilterModal} 
+                  onClose={() => setShowFilterModal(false)} 
+                  onApply={(selections: FilterSelections) => {
+                    if (selections.category) setSelectedFilter(selections.category);
+                    if (selections.service) setSelectedServiceFilter(selections.service);
+                    if (selections.date) setSelectedDateFilter(selections.date);
                     setShowFilterModal(false);
-                  }}
+                  }} 
                   onReset={() => {
-                    console.log('Filters reset');
-                    setStatusFilter('all');
-                    setCategoryFilter('all');
-                    setSortBy('name');
+                    setSelectedFilter("all");
+                    setSelectedServiceFilter("all");
+                    setSelectedDateFilter("all");
                     setShowFilterModal(false);
-                  }}
+                  }} 
                 />
               </View>
             </View>
-
             <ScrollView style={styles.listContainer}>
               <View style={styles.listContent}>
                 {filteredAndSortedClients.map((client) => (
-                  <CustomCard
-                    key={client.id}
-                    name={client.name}
-                    profileImageUri={client.image}
-                    lastVisit={`Last Visit: ${client.lastVisit}`}
-                    appIcon={<MaterialCommunityIcons name="whatsapp" size={26} color="#25D366" />}
-                    backgroundColor="#F8F8F8"
-                    onPress={() => {
-                      setShowAbout(true);
-                    }}
-                  />
+                  <CustomCard key={client.id} name={client.name} profileImageUri={client.image} lastVisit={`Last Visit: ${client.lastVisit}`} appIcon={<MaterialCommunityIcons name="whatsapp" size={26} color="#25D366" />} backgroundColor="#F8F8F8" onPress={() => setShowAbout(true)} />
                 ))}
               </View>
             </ScrollView>
           </>
         )}
       </KeyboardAvoidingView>
-
-      {/* ================= PLUS BUTTON SECTION ================= */}
-      {/* Only show plus button on home page */}
       {!showLogin && !showSignup && !showCompanyName && !showAbout && !showProfile && (
         <View style={styles.buttonContainer}>
-          <PlusButton
-            onPress={() => setShowLogin(true)}
-            size={70}
-            backgroundColor="#FFD700"
-            iconSize={35}
-          />
+          <PlusButton onPress={() => setShowLogin(true)} size={70} backgroundColor="#FFD700" iconSize={35} />
         </View>
       )}
-      {/* ======================================================= */}
     </SafeAreaView>
   );
 };

@@ -1,35 +1,30 @@
 import React, { useState } from 'react';
-import { Dimensions, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
 
 const { height: screenHeight } = Dimensions.get('window');
 
-const CompanyName = ({ 
-  onBack, 
-  onNavigateToProfile, 
-  onNavigateToSignup 
-}: { 
+// TypeScript interface define ki taake props error na aayein
+interface CompanyNameProps {
   onBack?: () => void;
   onNavigateToProfile?: () => void;
   onNavigateToSignup?: () => void;
+}
+
+const CompanyName: React.FC<CompanyNameProps> = ({ 
+  onBack, 
+  onNavigateToProfile, 
+  onNavigateToSignup 
 }) => {
-  const [companyName, setCompanyName] = useState('');
-  const [website, setWebsite] = useState('');
-  console.log('CompanyName component rendered');
+  const [companyName, setCompanyName] = useState<string>('');
+  const [website, setWebsite] = useState<string>('');
 
   const handleSubmit = () => {
-    console.log('CompanyName: Submit button pressed');
-    console.log('Company Name:', companyName);
-    console.log('Website:', website);
-    console.log('onNavigateToProfile function:', !!onNavigateToProfile);
-    
+    console.log('Company Details submitted');
     if (onNavigateToProfile) {
-      console.log('Calling onNavigateToProfile...');
       onNavigateToProfile();
-    } else {
-      console.log('onNavigateToProfile is not available');
     }
   };
 
@@ -40,72 +35,75 @@ const CompanyName = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Company Details</Text>
-      </View>
+    // 1. SafeAreaView ka background black kiya taake status bar area black rahe
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {/* 2. StatusBar configuration */}
+      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
+      
+      {/* Main content wrapper */}
+      <View style={styles.mainWrapper}>
+        
+        {/* Black Header Section */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Company Details</Text>
+        </View>
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          {/* Company Form */}
-          <View style={styles.formContainer}>
-            {/* Company Name Input */}
-            <Input
-              label="Company Name"
-              value={companyName}
-              onChangeText={setCompanyName}
-              placeholder="Enter your company name"
-              leftIcon="office-building"
-            />
-
-            {/* Website Input */}
-            <Input
-              label="Website"
-              value={website}
-              onChangeText={setWebsite}
-              placeholder="Enter your website (optional)"
-              keyboardType="url"
-              autoCapitalize="none"
-              autoCorrect={false}
-              leftIcon="web"
-            />
-
-            {/* Submit Buttons */}
-            <View style={styles.buttonContainer}>
-              <DynamicButton
-                text="Submit"
-                onPress={handleSubmit}
-                backgroundColor="#FFD700"
-                textColor="#000"
-                borderRadius={10}
-                paddingVertical={15}
-                paddingHorizontal={20}
-                fontSize={18}
-                fontWeight="bold"
-                width="48%"
+        {/* White Form Section */}
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.formSection}
+        >
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent} 
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.formContainer}>
+              {/* Company Name Input */}
+              <Input
+                label="Company Name"
+                value={companyName}
+                onChangeText={setCompanyName}
+                placeholder="Enter your company name"
+                leftIcon="office-building"
               />
-              
-              <DynamicButton
-                text="Cancel"
-                onPress={handleCancel}
-                backgroundColor="#333"
-                textColor="#fff"
-                borderRadius={10}
-                paddingVertical={15}
-                paddingHorizontal={20}
-                fontSize={18}
-                fontWeight="600"
-                borderWidth={1}
-                borderColor="#666"
-                width="48%"
+
+              {/* Website Input */}
+              <Input
+                label="Website"
+                value={website}
+                onChangeText={setWebsite}
+                placeholder="Enter your website (optional)"
+                keyboardType="url"
+                autoCapitalize="none"
+                autoCorrect={false}
+                leftIcon="web"
               />
+
+              {/* Submit Buttons */}
+              <View style={styles.buttonContainer}>
+                <DynamicButton
+                  text="Submit"
+                  onPress={handleSubmit}
+                  backgroundColor="#FFD700"
+                  textColor="#000"
+                  borderRadius={10}
+                  width="48%"
+                />
+                
+                <DynamicButton
+                  text="Cancel"
+                  onPress={handleCancel}
+                  backgroundColor="#333"
+                  textColor="#fff"
+                  borderRadius={10}
+                  width="48%"
+                />
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -113,21 +111,17 @@ const CompanyName = ({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000000', // Status bar area black
+  },
+  mainWrapper: {
+    flex: 1,
+    backgroundColor: '#FFFFFF', // Body white
   },
   titleContainer: {
     backgroundColor: '#000',
-    height: screenHeight * 0.2, // 20vh height
+    height: screenHeight * 0.2, // 20% of screen height
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 50,
   },
   title: {
     fontSize: 32,
@@ -135,10 +129,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
   },
-  formContainer: {
+  formSection: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+    marginTop: -20, // Overlap curve effect
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 30,
+    paddingBottom: 50,
+  },
+  formContainer: {
+    width: '100%',
   },
   buttonContainer: {
     flexDirection: 'row',

@@ -1,5 +1,6 @@
+import React from 'react';
+import { View } from 'react-native';
 import Home from '../../components/screens/Home/Home';
-import {View} from 'react-native';
 
 const HomeScreen = () => {
   return (
@@ -8,6 +9,5 @@ const HomeScreen = () => {
     </View>
   );
 };
-
 
 export default HomeScreen;

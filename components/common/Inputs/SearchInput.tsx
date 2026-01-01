@@ -157,15 +157,17 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      <Feather name="search" size={20} color="#888" style={styles.icon} />
-      <TextInput
-        style={styles.input}
-        placeholder={getPlaceholder()}
-        placeholderTextColor="#888"
-        {...rest}
-      />
+      <View style={styles.inputContainer}>
+        <Feather name="search" size={20} color="#888" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder={getPlaceholder()}
+          placeholderTextColor="#888"
+          {...rest}
+        />
+      </View>
       
-      {/* Filter Icon */}
+      {/* Filter Icon - Fixed position outside input container */}
       {showFilterIcon && (
         <TouchableOpacity 
           style={styles.filterIconButton} 
@@ -444,6 +446,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+  },
+  inputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   icon: {
     marginRight: 10,

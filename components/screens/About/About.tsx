@@ -1,6 +1,16 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { 
+  Image, 
+  ScrollView, 
+  StatusBar, 
+  Text, 
+  TouchableOpacity, 
+  View, 
+  Platform, 
+  KeyboardAvoidingView 
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import DetailCard from '../../common/Cards/DetailCard';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
@@ -8,596 +18,273 @@ import InfoCard from '../../common/Cards/InfoCard';
 import PreferCard from '../../common/Cards/PreferCard';
 import NewVisit from '../NewVisit/NewVisit';
 
-interface AboutProps {
-  onBack?: () => void;
-  clientName?: string;
-  showHistory?: boolean;
-}
-
-const About: React.FC<AboutProps> = ({ onBack, clientName = "Client", showHistory = false }) => {
-  const [activeSection, setActiveSection] = useState<'default' | 'history' | 'info'>('history');
+const About = ({ onBack, clientName = "Salman Khan" }: any) => {
+  const [activeSection, setActiveSection] = useState('history');
   const [showNewVisit, setShowNewVisit] = useState(false);
 
-  const handleHistoryPress = () => {
-    setActiveSection('history');
-    console.log('History button pressed');
-  };
+  if (showNewVisit) {
+    return <NewVisit onBack={() => setShowNewVisit(false)} clientName={clientName} />;
+  }
 
-  const handleInfoPress = () => {
-    setActiveSection('info');
-    console.log('Info button pressed');
-  };
-
-  const handleNewVisitPress = () => {
-    setShowNewVisit(true);
-    console.log('New Visit button pressed - navigating to NewVisit');
-  };
-
-  const handleNewVisitBack = () => {
-    setShowNewVisit(false);
-  };
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {showNewVisit ? (
-        <NewVisit 
-          onBack={handleNewVisitBack}
-          clientName="Salman Khan"
-        />
-      ) : (
-        <View style={styles.container}>
-          {/* Black Header Section - 30vh */}
-          <View style={styles.blackHeader}>
-            {/* Back Arrow */}
-            <TouchableOpacity onPress={onBack} style={styles.backButton}>
-              <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
+      
+      <View style={styles.mainWrapper}>
+        
+        {/* ================= FIXED BLACK HEADER SECTION ================= */}
+        <View style={styles.blackHeader}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={onBack}>
+              <MaterialCommunityIcons name="arrow-left" size={28} color="#fff" />
             </TouchableOpacity>
-            
-            {/* Content Row with Image and Text */}
+            <View style={{ width: 28 }} /> 
+          </View>
+          
+          <View style={styles.profileHeaderContent}>
             <View style={styles.contentRow}>
-              {/* Profile Image on left */}
               <Image 
-                source={{ uri: 'https://picsum.photos/50/50' }} 
+                source={{ uri: 'https://picsum.photos/80/80' }} 
                 style={styles.profileImage}
-                defaultSource={require("../../../assets/homeimages/logo.png")}
               />
-              
-              {/* Title and Info with Button */}
-              <View style={styles.textColumnWithButton}>
-                {/* Title */}
-                <Text style={styles.whiteTitle}>Salman Khan</Text>
-                
-                {/* Last Visit Date with 5px gap */}
-                <Text style={styles.whiteSubText}>Last visited: 2 hours ago</Text>
+              <View style={styles.headerTextColumn}>
+                <Text style={styles.clientNameText}>{clientName}</Text>
+                <Text style={styles.lastVisitText}>Last visited: 2 hours ago</Text>
               </View>
-              
-              {/* New Visit Button */}
               <DynamicButton
                 text="New Visit"
-                onPress={handleNewVisitPress}
-                backgroundColor="#FFFFFF"
+                onPress={() => setShowNewVisit(true)}
+                backgroundColor="#FFFFFF" 
                 textColor="#000000"
-                borderRadius={5}
+                borderRadius={8}
                 paddingVertical={8}
-                paddingHorizontal={12}
+                paddingHorizontal={15}
                 fontSize={12}
+                fontWeight="bold"
               />
             </View>
-            
-            {/* History and Info Buttons in Black Section */}
-            <View style={styles.headerButtons}>
-              <View style={styles.buttonRow}>
-                <DynamicButton
-                  text="History"
-                  onPress={handleHistoryPress}
-                  backgroundColor="#FFFFFF"
-                  textColor="#000000"
-                  borderRadius={5}
-                  paddingVertical={8}
-                  paddingHorizontal={16}
-                  fontSize={14}
-                  containerStyle={{ flex: 1, marginRight: 8 }}
-                />
-                
-                <DynamicButton
-                  text="Info"
-                  onPress={handleInfoPress}
-                  backgroundColor="#FFFFFF"
-                  textColor="#000000"
-                  borderRadius={5}
-                  paddingVertical={8}
-                  paddingHorizontal={16}
-                  fontSize={14}
-                  containerStyle={{ flex: 1 }}
-                />
-              </View>
+
+            {/* Adjusted Tabs - Both White Background */}
+            <View style={styles.tabContainer}>
+              <TouchableOpacity 
+                style={styles.tabButton} 
+                onPress={() => setActiveSection('history')}
+              >
+                <Text style={styles.tabText}>History</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.tabButton} 
+                onPress={() => setActiveSection('info')}
+              >
+                <Text style={styles.tabText}>Info</Text>
+              </TouchableOpacity>
             </View>
           </View>
-
-          {/* Content */}
-          <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-            {/* Conditional Rendering Based on Active Section */}
-            {activeSection === 'default' && (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No content available</Text>
-              </View>
-            )}
-
-            {activeSection === 'history' && (
-              <View style={styles.sectionContent}>
-                <InfoCard
-                  title="Service: Full Color"
-                  description="Price: 500PKR"
-                  backgroundColor="#F8F8F8"
-                  titleSize={16}
-                  descriptionSize={14}
-                  titleWeight="600"
-                  descriptionWeight="400"
-                  margin={0}
-                  containerStyle={{
-                    alignSelf: 'center',
-                    width: '100%',
-                    marginHorizontal: 0,
-                    marginBottom: 15,
-                  }}
-                />
-                
-                {/* Two Images Below History Card */}
-                <View style={[styles.imageContainer, { marginBottom: 15 }]}>
-                  <View style={styles.imageWrapper}>
-                    <Image 
-                      source={{ uri: 'https://picsum.photos/100/100' }} 
-                      style={styles.historyImage}
-                    />
-                    <View style={styles.imageOverlay}>
-                      <Text style={styles.overlayText}>Before</Text>
-                    </View>
-                  </View>
-                  <View style={styles.imageWrapper}>
-                    <Image 
-                      source={{ uri: 'https://picsum.photos/100/101' }} 
-                      style={styles.historyImage}
-                    />
-                    <View style={styles.imageOverlay}>
-                      <Text style={styles.overlayText}>After</Text>
-                    </View>
-                  </View>
-                </View>
-                
-                {/* Service Details Div Below Images */}
-                <InfoCard
-                  title="Dec, 1, 2025"
-                  description="[bleech root] [s toner] [violet ash] [vio deeper]"
-                  backgroundColor="#F8F8F8"
-                  titleSize={16}
-                  descriptionSize={14}
-                  titleWeight="bold"
-                  descriptionWeight="normal"
-                  margin={4}
-                  containerStyle={{
-                    alignSelf: 'center',
-                    width: '100%',
-                    marginHorizontal: 0,
-                    marginBottom: 15,
-                  }}
-                />
-                
-                {/* New Grid Section with Image and Content */}
-                <ImageDesCard
-                  imageSource={{ uri: 'https://picsum.photos/80/80' }}
-                  title="Service Title"
-                  description="This is a detailed description of the service provided to the client with all relevant."
-                  cardMargin={0}
-                  cardMarginTop={5}
-                  cardPadding={15}
-                  imageSize={80}
-                  backgroundColor="#F8F8F8"
-                />
-                
-              </View>
-            )}
-
-            {activeSection === 'info' && (
-              <View style={styles.sectionContent}>
-                {/* Personal Information Container */}
-                <DetailCard
-                  title="PERSONAL Details"
-                  name="Salman Khan"
-                  phone="+92 300 1234567"
-                  email="Exam@gamil.com"
-                  birthday="Jan 15, 1990"
-                />
-                
-                {/* Preferences Section */}
-                <PreferCard
-                  title="Preferences"
-                  allergies="No allergies"
-                  favoriteStyle="Modern Classic"
-                  notes="Regular customer, prefers appointments on weekends. Sensitive to strong chemical smells."
-                />
-                
-                {/* Same ImageDesCard from History Section */}
-                <ImageDesCard
-                  imageSource={{ uri: 'https://picsum.photos/80/80' }}
-                  title="Service Title"
-                  description="This is a detailed description of the service provided to the client with all relevant."
-                  cardMargin={0}
-                  cardMarginTop={5}
-                  cardPadding={15}
-                  imageSize={80}
-                  backgroundColor="#F8F8F8"
-                />
-              </View>
-            )}
-          </ScrollView>
         </View>
-      )}
+
+        {/* ================= WHITE FORM SECTION (Signup Rounded Style) ================= */}
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
+          {/* formSection holds the Rounded Corners Design */}
+          <View style={styles.formSection}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false} 
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.sectionPadding}>
+                {activeSection === 'history' ? (
+                  <View>
+                    <InfoCard
+                      title="Service: Full Color"
+                      description="Price: 500PKR"
+                      backgroundColor="#F8F8F8"
+                      containerStyle={{ marginBottom: 15, marginTop: 10 }}
+                    />
+                    
+                    <View style={styles.historyImagesRow}>
+                      <View style={styles.imageWrapper}>
+                        <Image source={{ uri: 'https://picsum.photos/150/150' }} style={styles.historyImg} />
+                        <View style={styles.imageOverlay}><Text style={styles.overlayText}>Before</Text></View>
+                      </View>
+                      <View style={styles.imageWrapper}>
+                        <Image source={{ uri: 'https://picsum.photos/151/151' }} style={styles.historyImg} />
+                        <View style={styles.imageOverlay}><Text style={styles.overlayText}>After</Text></View>
+                      </View>
+                    </View>
+
+                    <InfoCard
+                      title="Dec, 1, 2025"
+                      description="[bleech root] [s toner] [violet ash] [vio deeper]"
+                      backgroundColor="#F8F8F8"
+                      containerStyle={{ marginBottom: 15 }}
+                    />
+
+                    <ImageDesCard
+                      imageSource={{ uri: 'https://picsum.photos/80/80' }}
+                      title="Service Summary"
+                      description="Detailed description of the service provided to the client."
+                      backgroundColor="#F8F8F8"
+                    />
+                  </View>
+                ) : (
+                  <View>
+                    <DetailCard
+                      title="PERSONAL DETAILS"
+                      name={clientName}
+                      phone="+92 300 1234567"
+                      email="Exam@gmail.com"
+                      birthday="Jan 15, 1990"
+                      containerStyle={{ marginTop: 10 }}
+                    />
+                    
+                    <PreferCard
+                      title="Preferences"
+                      allergies="No allergies"
+                      favoriteStyle="Modern Classic"
+                      notes="Regular customer, prefers appointments on weekends."
+                    />
+
+                    <ImageDesCard
+                      imageSource={{ uri: 'https://picsum.photos/81/81' }}
+                      title="Consultation Notes"
+                      description="Detailed notes about client preferences and skin sensitivity."
+                      backgroundColor="#F8F8F8"
+                    />
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+// Styles as plain object to avoid TS check
+const styles: any = {
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#000000',
   },
-  container: {
+  mainWrapper: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
   blackHeader: {
-    height: '25%',
     backgroundColor: '#000',
-    paddingTop: 35,
+    paddingBottom: 45, // Enough space for rounded section to overlap
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    width: '100%',
   },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginLeft: 20,
-    marginBottom: 10,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    width: '100%',
+    paddingTop: 10,
   },
-  backText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '500',
+  profileHeaderContent: {
+    paddingHorizontal: 20,
+    width: '100%',
+    marginTop: 10,
   },
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    width: '100%',
-    paddingHorizontal: 20,
+    justifyContent: 'space-between',
   },
   profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 40,
-    marginRight: 15,
+    width: 65,
+    height: 65,
+    borderRadius: 33,
+    borderWidth: 1,
+    borderColor: '#333',
   },
-  textColumn: {
+  headerTextColumn: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginLeft: 15,
   },
-  textColumnWithButton: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  whiteTitle: {
+  clientNameText: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 5,
-    marginLeft: 0,
   },
-  whiteSubText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    opacity: 0.8,
-    marginLeft: 0,
+  lastVisitText: {
+    color: '#999',
+    fontSize: 12,
   },
-  content: {
+  tabContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    gap: 12,
+  },
+  tabButton: {
     flex: 1,
-    padding: 20,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  tabText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#000',
+  },
+  formSection: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    marginTop: -35, // Overlap design like Signup
+    borderTopLeftRadius: 35, // Rounded corners
+    borderTopRightRadius: 35, // Rounded corners
+    overflow: 'hidden',
   },
   scrollContent: {
-    paddingBottom: 30,
+    flexGrow: 1,
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  infoSection: {
-    backgroundColor: '#F8F8F8',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  headerButtons: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    width: '100%',
+  sectionPadding: {
     paddingHorizontal: 20,
+    paddingTop: 20, // Adjusted margin top so content looks proper
+    paddingBottom: 40,
   },
-  sectionContent: {
-    padding: 20,
-    marginTop: 0,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  historyItem: {
-    backgroundColor: '#F8F8F8',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  historyCard: {
-    height: 60,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 8,
-    marginBottom: 8,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    width: '100%',
-    alignSelf: 'stretch',
-    marginHorizontal: 0,
-  },
-  serviceTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  priceText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  imageContainer: {
+  historyImagesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: 8,
-    gap: 0,
-    marginLeft: 0,
-    width: '100%',
+    marginBottom: 15,
   },
   imageWrapper: {
-    position: 'relative',
     width: '48%',
-  },
-  historyImage: {
-    width: '100%',
     height: 120,
-    borderRadius: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  historyImg: {
+    width: '100%',
+    height: '100%',
   },
   imageOverlay: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-    alignItems: 'center',
+    width: '100%',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     paddingVertical: 4,
+    alignItems: 'center',
   },
   overlayText: {
-    color: '#FFFFFF',
+    color: '#FFF',
     fontSize: 12,
     fontWeight: 'bold',
   },
-  serviceDetailsCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 8,
-    padding: 15,
-    marginTop: 8,
-    width: '100%',
-    alignSelf: 'stretch',
-  },
-  serviceDate: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  bracketList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  bracketItem: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'normal',
-  },
-  historyDate: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  historyDetail: {
-    fontSize: 14,
-    color: '#666',
-  },
-  infoContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 5,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  personalInfoTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-  },
-  infoGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 3,
-  },
-  infoItem: {
-    width: '48%',
-    padding: 5,
-    borderRadius: 8,
-    alignItems: 'flex-start',
-    flexShrink: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-    textAlign: 'left',
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'left',
-    flexWrap: 'wrap',
-  },
-  preferencesContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 10,
-    marginTop: 10,
-    alignItems: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  preferencesTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  preferencesGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 8,
-  },
-  preferenceItem: {
-    width: '48%',
-    backgroundColor: '#F8F8F8',
-    padding: 8,
-    borderRadius: 8,
-    alignItems: 'flex-start',
-  },
-  preferenceLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-    textAlign: 'left',
-  },
-  preferenceValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'left',
-  },
-  notesSection: {
-    width: '100%',
-    backgroundColor: '#F8F8F8',
-    padding: 8,
-    borderRadius: 8,
-    alignItems: 'flex-start',
-  },
-  notesLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-    textAlign: 'left',
-  },
-  notesValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'left',
-  },
-  buttonSection: {
-    marginTop: 20,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-  },
-  infoText: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 10,
-  },
-  gridContentCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 8,
-    padding: 15,
-    marginTop: 8,
-    width: '100%',
-    alignSelf: 'stretch',
-  },
-  gridRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 15,
-  },
-  gridImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  textContent: {
-    flex: 1,
-    justifyContent: 'flex-start',
-  },
-  gridTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  gridDescription: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 16,
-  },
-  });
+};
 
 export default About;
