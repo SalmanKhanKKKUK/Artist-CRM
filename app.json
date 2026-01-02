@@ -1,12 +1,17 @@
 {
   "expo": {
-    "name": "artist-crm",
+    "name": "Artist CRM",
     "slug": "artist-crm",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "artistcrm",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/homeimages/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#300D38"
+    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -27,19 +32,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/homeimages/logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#300D38",
-          "dark": {
-            "backgroundColor": "#300D38"
-          }
-        }
-      ]
+      "expo-router"
     ],
     "experiments": {
       "typedRoutes": true,

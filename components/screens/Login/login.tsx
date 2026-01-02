@@ -1,263 +1,237 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+import { 
+  Image, 
+  StyleSheet, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  View, 
+  ScrollView, 
+  KeyboardAvoidingView, 
+  Platform,
+  Dimensions 
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
-import Input from '../../common/Inputs/Input';
 
-// 1. Props interface define kiya taake TS error na aaye
+const { width } = Dimensions.get('window');
+
 interface LoginProps {
   onBack: () => void;
   onNavigateToSignup?: () => void;
   onNavigateToHome?: () => void;
 }
 
-// 2. State ke liye error interface
-interface LoginErrors {
-  email?: string;
-  password?: string;
-}
-
-const Login: React.FC<LoginProps> = ({ onBack, onNavigateToSignup, onNavigateToHome }) => {
+const Login: React.FC<LoginProps> = ({ onNavigateToHome }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [errors, setErrors] = useState<LoginErrors>({});
-
-  const validateEmail = (text: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(text);
-  };
-
-  const handleImageUpload = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (permissionResult.status !== 'granted') {
-        Alert.alert('Permission Denied', 'Permission to access camera roll is required!');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setProfileImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Image picker error:', error);
-    }
-  };
-
-  const handleLogin = () => {
-    const newErrors: LoginErrors = {};
-    
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    if (!password.trim()) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    
-    setErrors({});
-    Alert.alert('Success', 'Login successful!');
-  };
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
-      
-      <View style={styles.mainWrapper}>
-        <View style={styles.titleContainer}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.innerContainer}>
+          
+          {/* 1. Title stays at top */}
           <Text style={styles.title}>Login</Text>
-          <View style={styles.cameraContainer}>
-            <TouchableOpacity onPress={handleImageUpload} style={styles.cameraButton}>
-              {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
-              ) : (
-                <View style={styles.cameraPlaceholder}>
-                  <MaterialCommunityIcons name="camera" size={50} color="#FFD700" />
-                  <Text style={styles.cameraText}>Upload Photo</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.formSection}
-        >
-          <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-            <View style={styles.formContainer}>
-              <Input
-                label="Enter Email"
+          
+          {/* 2. Image Width increased to match Welcome Page feel */}
+          <Image 
+            source={require('../../../assets/homeimages/welcomepagepic.png')}
+            style={styles.topImage}
+            resizeMode="contain"
+          />
+          
+          <View style={styles.formContainer}>
+            
+            {/* 3. Inputs are now wider because of reduced side padding */}
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons name="email" size={20} color="#999" />
+              <TextInput
+                style={styles.textInput}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Enter your email address"
                 keyboardType="email-address"
                 autoCapitalize="none"
-                leftIcon="email"
-                error={errors.email}
+                placeholderTextColor="#666"
               />
+            </View>
 
-              <Input
-                label="Password"
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons name="lock" size={20} color="#999" />
+              <TextInput
+                style={styles.textInput}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter your password"
                 secureTextEntry
-                leftIcon="lock"
-                error={errors.password}
+                placeholderTextColor="#666"
               />
+            </View>
 
-              <View style={styles.authLinksContainer}>
-                <TouchableOpacity style={styles.linkButton}>
-                  <Text style={styles.linkText}>Forgot Password?</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.linkButton} onPress={onNavigateToSignup}>
-                  <Text style={styles.linkText}>Sign Up</Text>
-                </TouchableOpacity>
-              </View>
+            <View style={styles.optionsRow}>
+              <TouchableOpacity 
+                style={styles.rememberMe}
+                onPress={() => setRememberMe(!rememberMe)}
+              >
+                <MaterialCommunityIcons 
+                  name={rememberMe ? "checkbox-marked" : "checkbox-blank-outline"} 
+                  size={22} 
+                  color="#5152B3" 
+                />
+                <Text style={styles.optionText}>Remember me</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity>
+                <Text style={styles.forgotText}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
 
-              <View style={styles.buttonContainer}>
+            {/* 4. Buttons also widened to match layout */}
+            <View style={styles.buttonRow}>
+              <View style={styles.buttonFlex}>
                 <DynamicButton
                   text="Login"
-                  onPress={handleLogin}
-                  backgroundColor="#FFD700"
-                  textColor="#000"
-                  borderRadius={10}
-                  width="48%"
+                  onPress={() => console.log('Login')}
+                  backgroundColor="#5152B3"
+                  textColor="#fff"
+                  borderRadius={25}
                 />
-                
+              </View>
+              <View style={styles.buttonFlex}>
                 <DynamicButton
                   text="Cancel"
                   onPress={() => onNavigateToHome?.()}
-                  backgroundColor="#333"
+                  backgroundColor="#5152B3"
                   textColor="#fff"
-                  borderRadius={10}
-                  width="48%"
+                  borderRadius={25}
                 />
               </View>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-    </SafeAreaView>
+
+            <Text style={styles.socialText}>Login using</Text>
+            
+            <View style={styles.socialRow}>
+              <TouchableOpacity style={styles.socialCircle}>
+                <MaterialCommunityIcons name="google" size={24} color="#DB4437" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialCircle}>
+                <MaterialCommunityIcons name="facebook" size={24} color="#4267B2" />
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  mainWrapper: {
+  container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  titleContainer: {
-    backgroundColor: '#000',
-    paddingTop: 20,
-    paddingBottom: 20,
+  scrollContent: {
+    flexGrow: 1,
+  },
+  innerContainer: {
     alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 20,
+    // Reduced paddingHorizontal to 12 to make everything wider
+    paddingHorizontal: 12, 
+    width: '100%',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
+    color: '#333',
+    marginBottom: 5,
   },
-  cameraContainer: {
-    alignItems: 'center',
-    backgroundColor: '#000',
-    paddingTop: 10,
-    paddingBottom: 30,
-  },
-  cameraButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#2a2a2a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FFD700',
-  },
-  profileImage: {
-    width: 116,
-    height: 116,
-    borderRadius: 58,
-  },
-  cameraPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cameraText: {
-    color: '#FFD700',
-    fontSize: 12,
-    marginTop: 5,
-  },
-  formSection: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    marginTop: -20,
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 25,
-    paddingBottom: 50,
+  topImage: {
+    // Increased from 0.7 to 0.85 for a much wider look like Welcome Page
+    width: width * 0.85, 
+    height: 180, 
+    marginBottom: 15,
   },
   formContainer: {
     width: '100%',
+    alignItems: 'center',
   },
-  buttonContainer: {
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    height: 60, // Slightly taller for more presence
+    borderWidth: 1.5,
+    borderColor: '#F0F0F0',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    marginBottom: 15, 
+    backgroundColor: '#FAFAFA',
+  },
+  textInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 15,
+    width: '98%', // Stretching options to edges
+    marginBottom: 25,
   },
-  authLinksContainer: {
+  rememberMe: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    marginBottom: 20,
+    alignItems: 'center',
   },
-  linkButton: {
-    padding: 5,
-  },
-  linkText: {
-    color: '#FFD700',
+  optionText: {
     fontSize: 14,
-    fontWeight: '600',
+    color: '#666',
+    marginLeft: 6,
+  },
+  forgotText: {
+    fontSize: 14,
+    color: '#5152B3',
+    fontWeight: 'bold',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  buttonFlex: {
+    flex: 1,
+  },
+  socialText: {
+    marginVertical: 15,
+    color: '#888',
+    fontSize: 15,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    gap: 30,
+  },
+  socialCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EEE',
   },
 });
 
