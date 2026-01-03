@@ -1,30 +1,34 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { 
-  Image, 
-  StyleSheet, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  View, 
-  ScrollView, 
-  KeyboardAvoidingView, 
+import {
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
   Platform,
-  Dimensions 
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
+import PlusButton from '../../common/Buttons/PlusButton';
+import Input from '../../common/Inputs/Input';
 
 const { width } = Dimensions.get('window');
 
 interface LoginProps {
   onBack: () => void;
+  
   onNavigateToSignup?: () => void;
   onNavigateToHome?: () => void;
+  onNavigateToMainHome?: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onNavigateToHome }) => {
+const Login: React.FC<LoginProps> = ({ onNavigateToHome, onNavigateToMainHome }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   return (
@@ -52,30 +56,32 @@ const Login: React.FC<LoginProps> = ({ onNavigateToHome }) => {
           <View style={styles.formContainer}>
             
             {/* 3. Inputs are now wider because of reduced side padding */}
-            <View style={styles.inputWrapper}>
-              <MaterialCommunityIcons name="email" size={20} color="#999" />
-              <TextInput
-                style={styles.textInput}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email address"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#666"
-              />
-            </View>
+            <Input
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email Address"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon="email"
+              containerStyle={[styles.inputContainer, styles.fullWidthInput]}
+              size="large"
+              variant="outlined"
+            />
 
-            <View style={styles.inputWrapper}>
-              <MaterialCommunityIcons name="lock" size={20} color="#999" />
-              <TextInput
-                style={styles.textInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                secureTextEntry
-                placeholderTextColor="#666"
-              />
-            </View>
+            {/* Gap between inputs */}
+            <View style={styles.inputGap} />
+
+            <Input
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter Password"
+              secureTextEntry={true}
+              leftIcon="lock"
+              onToggleSecure={() => setShowPassword(!showPassword)}
+              containerStyle={[styles.inputContainer, styles.fullWidthInput]}
+              size="large"
+              variant="outlined"
+            />
 
             <View style={styles.optionsRow}>
               <TouchableOpacity 
@@ -95,37 +101,40 @@ const Login: React.FC<LoginProps> = ({ onNavigateToHome }) => {
               </TouchableOpacity>
             </View>
 
-            {/* 4. Buttons also widened to match layout */}
-            <View style={styles.buttonRow}>
-              <View style={styles.buttonFlex}>
-                <DynamicButton
-                  text="Login"
-                  onPress={() => console.log('Login')}
-                  backgroundColor="#5152B3"
-                  textColor="#fff"
-                  borderRadius={25}
-                />
-              </View>
-              <View style={styles.buttonFlex}>
-                <DynamicButton
-                  text="Cancel"
-                  onPress={() => onNavigateToHome?.()}
-                  backgroundColor="#5152B3"
-                  textColor="#fff"
-                  borderRadius={25}
-                />
-              </View>
+            {/* 4. Login button only */}
+            <View style={styles.buttonContainer}>
+              <DynamicButton
+                text="Login"
+                onPress={() => onNavigateToHome?.()}
+                backgroundColor="#5152B3"
+                textColor="#fff"
+                borderRadius={25}
+                width="100%"
+              />
             </View>
 
             <Text style={styles.socialText}>Login using</Text>
             
-            <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialCircle}>
-                <MaterialCommunityIcons name="google" size={24} color="#DB4437" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialCircle}>
-                <MaterialCommunityIcons name="facebook" size={24} color="#4267B2" />
-              </TouchableOpacity>
+            <View style={styles.socialContainer}>
+              <PlusButton 
+                onPress={() => console.log('Google button clicked')}
+                size={50}
+                backgroundColor="#DB4437"
+                iconSize={24}
+                iconName="google"
+                iconColor="white"
+              />
+              
+              <View style={styles.socialGap} />
+              
+              <PlusButton 
+                onPress={() => console.log('Facebook button clicked')}
+                size={50}
+                backgroundColor="#4267B2"
+                iconSize={24}
+                iconName="facebook"
+                iconColor="white"
+              />
             </View>
 
           </View>
@@ -145,7 +154,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     alignItems: 'center',
-    paddingTop: 10,
+    paddingTop: 20,
     paddingBottom: 20,
     // Reduced paddingHorizontal to 12 to make everything wider
     paddingHorizontal: 12, 
@@ -167,23 +176,34 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  inputWrapper: {
+  inputContainer: {
+    marginBottom: 15,
+  },
+  fullWidthInput: {
+    width: '100%',
+  },
+  inputGap: {
+    height: 5,
+  },
+  customInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    height: 60, // Slightly taller for more presence
+    height: 60,
     borderWidth: 1.5,
     borderColor: '#F0F0F0',
     borderRadius: 12,
     paddingHorizontal: 15,
-    marginBottom: 15, 
     backgroundColor: '#FAFAFA',
   },
-  textInput: {
+  customTextInput: {
     flex: 1,
     marginLeft: 10,
     fontSize: 16,
     color: '#333',
+  },
+  eyeIconContainer: {
+    padding: 5,
   },
   optionsRow: {
     flexDirection: 'row',
@@ -205,17 +225,12 @@ const styles = StyleSheet.create({
     color: '#5152B3',
     fontWeight: 'bold',
   },
-  buttonRow: {
-    flexDirection: 'row',
+  buttonContainer: { 
     width: '100%',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  buttonFlex: {
-    flex: 1,
+    marginBottom: 10,
   },
   socialText: {
-    marginVertical: 15,
+    marginVertical: 2,
     color: '#888',
     fontSize: 15,
   },
@@ -232,6 +247,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#EEE',
+  },
+  socialGap: {
+    width: 20,
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '60%',
+    marginTop: 10,
   },
 });
 

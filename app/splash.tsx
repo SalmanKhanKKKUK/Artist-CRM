@@ -25,7 +25,7 @@ export default function Splash() {
     // Navigation timer - 10 seconds to home page
     const timer = setTimeout(() => {
       router.replace('/');
-    }, 10000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [router, fadeAnim, scaleAnim]);

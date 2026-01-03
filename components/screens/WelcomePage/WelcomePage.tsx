@@ -1,58 +1,23 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons'
 import React, { useState } from 'react'
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+
+import DynamicButton from '../../common/Buttons/DynamicButton'
+import PlusButton from '../../common/Buttons/PlusButton'
 
 import Login from '../Login/login'
 import Signup from '../Signup/Signup'
 
-// TypeScript interfaces
-interface CustomButtonProps {
-  title: string
-  onPress: () => void
-  backgroundColor: string
-  borderColor: string
-  textColor: string
-}
-
-interface SocialButtonProps {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap
-  onPress: () => void
-  backgroundColor: string
-}
-
-// Reusable Button Component
-const CustomButton = ({ title, onPress, backgroundColor, borderColor, textColor }: CustomButtonProps) => {
-  return (
-    <TouchableOpacity 
-      style={[styles.button, { backgroundColor, borderColor }]}
-      onPress={onPress}
-    >
-      <Text style={[styles.buttonText, { color: textColor }]}>{title}</Text>
-    </TouchableOpacity>
-  )
-}
-
-// Reusable Social Button Component
-const SocialButton = ({ icon, onPress, backgroundColor }: SocialButtonProps) => {
-  return (
-    <TouchableOpacity 
-      style={[styles.socialButton, { backgroundColor }]}
-      onPress={onPress}
-    >
-      <MaterialCommunityIcons name={icon} size={24} color="white" />
-    </TouchableOpacity>
-  )
-}
-
-const WelcomePage = () => {
-  const [currentPage, setCurrentPage] = useState<'welcome' | 'login' | 'signup'>('welcome')
+const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
+  const [currentPage, setCurrentPage] = useState<'welcome' | 'login' | 'signup' | 'home'>('welcome')
 
   const renderPage = () => {
     switch(currentPage) {
       case 'login':
-        return <Login onBack={() => setCurrentPage('welcome')} onNavigateToHome={() => setCurrentPage('welcome')} />
+        return <Login onBack={() => setCurrentPage('welcome')} onNavigateToHome={() => onLoginSuccess?.()} onNavigateToMainHome={() => onLoginSuccess?.()} />
       case 'signup':
-        return <Signup onBack={() => setCurrentPage('welcome')} onNavigateToLogin={() => setCurrentPage('welcome')} />
+        return <Signup onBack={() => setCurrentPage('welcome')} onNavigateToLogin={() => setCurrentPage('welcome')} onNavigateToHome={() => onLoginSuccess?.()} onNavigateToMainHome={() => onLoginSuccess?.()} />
+      case 'home':
+        return 
       default:
         return (
           <>
@@ -72,42 +37,55 @@ const WelcomePage = () => {
             </Text>
             
             {/* Login Button */}
-            <CustomButton 
-              title="Login"
+            <DynamicButton 
+              text="Login"
               onPress={() => setCurrentPage('login')}
               backgroundColor="#5152B3"
-              borderColor="transparent"
               textColor="white"
+              borderRadius={25}
+              width="100%"
+              height={50}
             />
             
+            {/* Gap between buttons */}
+            <View style={styles.buttonGap} />
+            
             {/* Signup Button */}
-            <CustomButton 
-              title="Signup"
+            <DynamicButton 
+              text="Signup"
               onPress={() => setCurrentPage('signup')}
               backgroundColor="transparent"
-              borderColor="#5152B3"
               textColor="#5152B3"
+              borderRadius={25}
+              width="100%"
+              borderWidth={2}
+              borderColor="#5152B3"
+              height={50}
             />
             
             {/* Signin text */}
-            <Text style={styles.signinText}>Sign in using</Text>
+            <Text style={styles.signinText}>Login using</Text>
             
             {/* Social Buttons */}
             <View style={styles.socialContainer}>
-              <SocialButton 
-                icon="google"
+              <PlusButton 
                 onPress={() => console.log('Google button clicked')}
+                size={50}
                 backgroundColor="#DB4437"
+                iconSize={24}
+                iconName="google"
+                iconColor="white"
               />
-              <SocialButton 
-                icon="facebook"
+              
+              <View style={styles.socialGap} />
+              
+              <PlusButton 
                 onPress={() => console.log('Facebook button clicked')}
+                size={50}
                 backgroundColor="#4267B2"
-              />
-              <SocialButton 
-                icon="linkedin"
-                onPress={() => console.log('LinkedIn button clicked')}
-                backgroundColor="#0077B5"
+                iconSize={24}
+                iconName="facebook"
+                iconColor="white"
               />
             </View>
           </>
@@ -173,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '60%',
-    marginTop: 30,
+    marginTop: 10,
   },
   socialButton: {
     width: 50,
@@ -182,12 +160,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 10,
+   
   },
   signinText: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
+    marginBottom: 5,
+    marginTop: 10,
+  },
+  buttonGap: {
+    height: 10,
+  },
+  socialGap: {
+    width: 20,
+  },
+  homeContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  homeTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#5152B3',
     marginBottom: 15,
+    textAlign: 'center',
+  },
+  homeSubtitle: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 })
 

@@ -1,12 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TextInputProps,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export interface InputProps extends Omit<TextInputProps, 'style'> {
@@ -58,6 +58,7 @@ const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleFocus = (e: any) => {
     setIsFocused(true);
@@ -67,6 +68,11 @@ const Input: React.FC<InputProps> = ({
   const handleBlur = (e: any) => {
     setIsFocused(false);
     onBlur?.(e);
+  };
+
+  const handleToggleSecure = () => {
+    setShowPassword(!showPassword);
+    onToggleSecure?.();
   };
 
   const getSizeStyles = () => {
@@ -100,7 +106,7 @@ const Input: React.FC<InputProps> = ({
       case 'outlined':
         return {
           borderWidth: 2,
-          borderColor: error ? '#ff4444' : isFocused ? '#FFD700' : '#333',
+          borderColor: error ? '#ff4444' : isFocused ? '#5152B3' : '#333',
           backgroundColor: '#fff',
         };
       case 'filled':
@@ -111,7 +117,7 @@ const Input: React.FC<InputProps> = ({
       default:
         return {
           borderWidth: 1,
-          borderColor: error ? '#ff4444' : isFocused ? '#FFD700' : '#333',
+          borderColor: error ? '#ff4444' : isFocused ? '#5152B3' : '#333',
           backgroundColor: '#fff',
         };
     }
@@ -146,7 +152,7 @@ const Input: React.FC<InputProps> = ({
             <MaterialCommunityIcons
               name={leftIcon}
               size={iconSize}
-              color={error ? '#ff4444' : isFocused ? '#FFD700' : '#999'}
+              color={error ? '#ff4444' : isFocused ? '#5152B3' : '#999'}
             />
           </TouchableOpacity>
         )}
@@ -164,7 +170,7 @@ const Input: React.FC<InputProps> = ({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           autoCorrect={autoCorrect}
-          secureTextEntry={secureTextEntry}
+          secureTextEntry={secureTextEntry && !showPassword}
           editable={editable}
           multiline={multiline}
           numberOfLines={numberOfLines}
@@ -176,14 +182,14 @@ const Input: React.FC<InputProps> = ({
 
         {(rightIcon || secureTextEntry) && (
           <TouchableOpacity
-            onPress={secureTextEntry ? onToggleSecure : onRightIconPress}
+            onPress={secureTextEntry ? handleToggleSecure : onRightIconPress}
             style={[styles.iconContainer, styles.rightIcon]}
             disabled={!onRightIconPress && !secureTextEntry}
           >
             <MaterialCommunityIcons
-              name={secureTextEntry ? (value ? 'eye-off' : 'eye') : rightIcon}
+              name={secureTextEntry ? (showPassword ? 'eye-off' : 'eye') : rightIcon}
               size={iconSize}
-              color={error ? '#ff4444' : isFocused ? '#FFD700' : '#999'}
+              color={error ? '#ff4444' : isFocused ? '#5152B3' : '#999'}
             />
           </TouchableOpacity>
         )}

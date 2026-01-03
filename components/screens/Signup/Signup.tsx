@@ -1,168 +1,283 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
-import Input from '../../common/Inputs/Input';
+import PlusButton from '../../common/Buttons/PlusButton';
+
+const { width } = Dimensions.get('window');
 
 type SignupProps = {
   onBack: () => void;
   onNavigateToCompanyName?: () => void;
   onNavigateToLogin?: () => void;
+  onNavigateToHome?: () => void;
+  onNavigateToMainHome?: () => void;
 };
 
-const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupProps) => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
-
-  const handleImageUpload = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.status !== 'granted') {
-        Alert.alert('Permission Denied', 'Permission to access camera roll is required!');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setProfileImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Image picker error:', error);
-    }
-  };
+const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin, onNavigateToHome, onNavigateToMainHome }: SignupProps) => {
+  // const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [agreeTerms, setAgreeTerms] = useState<boolean>(false);
 
   return (
-    // 1. SafeAreaView ko Black background diya taake status bar area black ho jaye
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* 2. StatusBar ko translucent false aur light-content rakha taake icons white hon */}
-      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
-      
-      {/* Main Content wrapper */}
-      <View style={styles.mainWrapper}>
-        
-        {/* Black Header Section */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Sign Up</Text>
-          <View style={styles.cameraContainer}>
-            <TouchableOpacity onPress={handleImageUpload} style={styles.cameraButton}>
-              {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
-              ) : (
-                <View style={styles.cameraPlaceholder}>
-                  <MaterialCommunityIcons name="camera" size={50} color="#FFD700" />
-                  <Text style={styles.cameraText}>Upload Photo</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.innerContainer}>
+          
+          {/* 1. Title stays at top */}
+          <Text style={styles.title}>Signup</Text>
+          
+          {/* 2. Image Width increased to match Welcome Page feel */}
+          <Image 
+            source={require('../../../assets/homeimages/welcomepagepic.png')}
+            style={styles.topImage}
+            resizeMode="contain"
+          />
+          
+          <View style={styles.formContainer}>
+            
+            {/* 3. Inputs are now wider because of reduced side padding */}
+            {/* <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons name="account" size={20} color="#999" />
+              <TextInput
+                style={styles.textInput}
+                value={name}
+                onChangeText={setName}
+                placeholder="Enter your name"
+                autoCapitalize="words"
+                placeholderTextColor="#666"
+              />
+            </View> */}
+
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons name="email" size={20} color="#999" />
+              <TextInput
+                style={styles.textInput}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email address"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor="#666"
+              />
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons name="lock" size={20} color="#999" />
+              <TextInput
+                style={styles.textInput}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                secureTextEntry
+                placeholderTextColor="#666"
+              />
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons name="lock" size={20} color="#999" />
+              <TextInput
+                style={styles.textInput}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirm your password"
+                secureTextEntry
+                placeholderTextColor="#666"
+              />
+            </View>
+
+            <View style={styles.optionsRow}>
+              <TouchableOpacity 
+                style={styles.rememberMe}
+                onPress={() => setAgreeTerms(!agreeTerms)}
+              >
+                <MaterialCommunityIcons 
+                  name={agreeTerms ? "checkbox-marked" : "checkbox-blank-outline"} 
+                  size={22} 
+                  color="#5152B3" 
+                />
+                <Text style={styles.optionText}>I agree to terms</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity>
+                <Text style={styles.forgotText}>Already account?</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 4. Signup button only */}
+            <View style={styles.buttonContainer}>
+              <DynamicButton
+                text="Signup"
+                onPress={() => onNavigateToMainHome?.()}
+                backgroundColor="#5152B3"
+                textColor="#fff"
+                borderRadius={25}
+                width="100%"
+              />
+            </View>
+
+            <Text style={styles.socialText}>Signup using</Text>
+            
+            <View style={styles.socialContainer}>
+              <PlusButton 
+                onPress={() => console.log('Google button clicked')}
+                size={50}
+                backgroundColor="#DB4437"
+                iconSize={24}
+                iconName="google"
+                iconColor="white"
+              />
+              
+              <View style={styles.socialGap} />
+              
+              <PlusButton 
+                onPress={() => console.log('Facebook button clicked')}
+                size={50}
+                backgroundColor="#4267B2"
+                iconSize={24}
+                iconName="facebook"
+                iconColor="white"
+              />
+            </View>
+
           </View>
         </View>
-
-        {/* White Form Section */}
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.formSection}
-        >
-          <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-            <View style={styles.formContainer}>
-              <Input label="Full Name" value={fullName} onChangeText={setFullName} placeholder="Enter your full name" leftIcon="account" />
-              <Input label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" keyboardType="email-address" autoCapitalize="none" leftIcon="email" />
-              <Input label="Password" value={password} onChangeText={setPassword} placeholder="Enter password" secureTextEntry leftIcon="lock" />
-              <Input label="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Confirm password" secureTextEntry leftIcon="lock" />
-
-              <View style={styles.buttonContainer}>
-                <DynamicButton text="Sign Up" onPress={() => onNavigateToCompanyName?.()} backgroundColor="#FFD700" textColor="#000" width="48%" />
-                <DynamicButton text="Cancel" onPress={() => onNavigateToLogin?.()} backgroundColor="#333" textColor="#fff" width="48%" />
-              </View>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#000000', // Yeh status bar area ko black rakhega
+    backgroundColor: '#FFFFFF',
   },
-  mainWrapper: {
-    flex: 1,
-    backgroundColor: '#FFFFFF', // Body white rahegi
+  scrollContent: {
+    flexGrow: 1,
   },
-  titleContainer: {
-    backgroundColor: '#000',
-    paddingTop: 20,
-    paddingBottom: 20,
+  innerContainer: {
     alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 20,
+    // Reduced paddingHorizontal to 12 to make everything wider
+    paddingHorizontal: 12, 
+    width: '100%',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
+    color: '#333',
+    marginBottom: 5,
   },
-  cameraContainer: {
-    alignItems: 'center',
-    backgroundColor: '#000',
-    paddingTop: 10,
-    paddingBottom: 30,
-  },
-  cameraButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#2a2a2a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FFD700',
-  },
-  profileImage: {
-    width: 116,
-    height: 116,
-    borderRadius: 58,
-  },
-  cameraPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cameraText: {
-    color: '#FFD700',
-    fontSize: 12,
-    marginTop: 5,
-  },
-  formSection: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    marginTop: -20, // Rounded top overlap
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 25,
-    paddingBottom: 50,
+  topImage: {
+    // Increased from 0.7 to 0.85 for a much wider look like Welcome Page
+    width: width * 0.85, 
+    height: 180, 
+    marginBottom: 15,
   },
   formContainer: {
     width: '100%',
+    alignItems: 'center',
   },
-  buttonContainer: {
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    height: 60, // Slightly taller for more presence
+    borderWidth: 1.5,
+    borderColor: '#F0F0F0',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    marginBottom: 15, 
+    backgroundColor: '#FAFAFA',
+  },
+  textInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 15,
+    width: '98%', // Stretching options to edges
+    marginBottom: 25,
+  },
+  rememberMe: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 6,
+  },
+  forgotText: {
+    fontSize: 14,
+    color: '#5152B3',
+    fontWeight: 'bold',
+  },
+  buttonContainer: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  buttonFlex: {
+    flex: 1,
+  },
+  socialText: {
+    marginVertical: 5,
+    color: '#888',
+    fontSize: 15,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    gap: 30,
+  },
+  socialCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EEE',
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '60%',
+    marginTop: 10,
+  },
+  socialGap: {
+    width: 20,
   },
 });
 
