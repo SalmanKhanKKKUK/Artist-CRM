@@ -32,7 +32,7 @@ export default function Splash() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" hidden={false} backgroundColor="#5152B3" />
+      <StatusBar barStyle="light-content" hidden={false} backgroundColor="#FFFFFF" />
       
       <Animated.View
         style={[
@@ -57,7 +57,7 @@ export default function Splash() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#5152B3',
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     height: 150,
   },
   artistName: {
-    color: 'white',
+    color: 'black',
     fontSize: 32,
     fontWeight: 'bold',
     marginTop: 10,

@@ -8,12 +8,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import PlusButton from '../../common/Buttons/PlusButton';
+import Input from '../../common/Inputs/Input';
 
 const { width } = Dimensions.get('window');
 
@@ -57,54 +57,45 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin, onNavigate
           <View style={styles.formContainer}>
             
             {/* 3. Inputs are now wider because of reduced side padding */}
-            {/* <View style={styles.inputWrapper}>
-              <MaterialCommunityIcons name="account" size={20} color="#999" />
-              <TextInput
-                style={styles.textInput}
-                value={name}
-                onChangeText={setName}
-                placeholder="Enter your name"
-                autoCapitalize="words"
-                placeholderTextColor="#666"
-              />
-            </View> */}
+            <Input
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email address"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon="email"
+              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+              size="large"
+              variant="outlined"
+            />
 
-            <View style={styles.inputWrapper}>
-              <MaterialCommunityIcons name="email" size={20} color="#999" />
-              <TextInput
-                style={styles.textInput}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email address"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#666"
-              />
-            </View>
+            {/* Gap between inputs */}
+            <View style={styles.inputGap} />
 
-            <View style={styles.inputWrapper}>
-              <MaterialCommunityIcons name="lock" size={20} color="#999" />
-              <TextInput
-                style={styles.textInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                secureTextEntry
-                placeholderTextColor="#666"
-              />
-            </View>
+            <Input
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry={true}
+              leftIcon="lock"
+              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+              size="large"
+              variant="outlined"
+            />
 
-            <View style={styles.inputWrapper}>
-              <MaterialCommunityIcons name="lock" size={20} color="#999" />
-              <TextInput
-                style={styles.textInput}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm your password"
-                secureTextEntry
-                placeholderTextColor="#666"
-              />
-            </View>
+            {/* Gap between inputs */}
+            <View style={styles.inputGap} />
+
+            <Input
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm your password"
+              secureTextEntry={true}
+              leftIcon="lock"
+              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+              size="large"
+              variant="outlined"
+            />
 
             <View style={styles.optionsRow}>
               <TouchableOpacity 
@@ -198,6 +189,19 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
     alignItems: 'center',
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 15,
+  },
+  fullWidthInput: {
+    width: '100%',
+  },
+  inputGap: {
+    height: 10,
+  },
+  roundedInput: {
+    borderRadius: 25,
   },
   inputWrapper: {
     flexDirection: 'row',

@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
-import Home from '../components/screens/Home/Home'
+import Dashboard from '../components/screens/Dashboard/Dashboard'
 import WelcomePage from '../components/screens/WelcomePage/WelcomePage'
 
 const Index = () => {
-  const [showHome, setShowHome] = useState(false)
+  const [showDashboard, setShowDashboard] = useState(false)
 
   return (
     <>
-      {showHome ? <Home /> : <WelcomePage onLoginSuccess={() => setShowHome(true)} />}
+      {showDashboard ? <Dashboard onBack={() => setShowDashboard(false)} /> : <WelcomePage onLoginSuccess={() => setShowDashboard(true)} />}
     </>
   )
 }

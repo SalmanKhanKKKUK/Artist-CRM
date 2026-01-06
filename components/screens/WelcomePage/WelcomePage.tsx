@@ -13,7 +13,7 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
   const renderPage = () => {
     switch(currentPage) {
       case 'login':
-        return <Login onBack={() => setCurrentPage('welcome')} onNavigateToHome={() => onLoginSuccess?.()} onNavigateToMainHome={() => onLoginSuccess?.()} />
+        return <Login onBack={() => setCurrentPage('welcome')} onNavigateToHome={() => onLoginSuccess?.()} onNavigateToMainHome={() => onLoginSuccess?.()} onNavigateToDashboard={() => onLoginSuccess?.()} />
       case 'signup':
         return <Signup onBack={() => setCurrentPage('welcome')} onNavigateToLogin={() => setCurrentPage('welcome')} onNavigateToHome={() => onLoginSuccess?.()} onNavigateToMainHome={() => onLoginSuccess?.()} />
       case 'home':

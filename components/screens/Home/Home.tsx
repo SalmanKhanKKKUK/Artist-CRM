@@ -1,14 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PlusButton from "../../common/Buttons/PlusButton";
@@ -17,6 +17,7 @@ import FilterInput from "../../common/Inputs/FilterInput";
 import SearchInput from "../../common/Inputs/SearchInput";
 import About from "../About/About";
 import CompanyName from "../CompanyName/CompanyName";
+import Dashboard from "../Dashboard/Dashboard";
 import Login from "../Login/login";
 import Profile from "../Profile/Profile";
 import Signup from "../Signup/Signup";
@@ -137,9 +138,10 @@ const Home: React.FC = () => {
   const [showCompanyName, setShowCompanyName] = useState<boolean>(false);
   const [showAbout, setShowAbout] = useState<boolean>(false);
   const [showProfile, setShowProfile] = useState<boolean>(false);
+  const [showDashboard, setShowDashboard] = useState<boolean>(false);
 
   // Force show main content by default
-  const showMainContent = !showLogin && !showSignup && !showCompanyName && !showAbout && !showProfile;
+  const showMainContent = !showLogin && !showSignup && !showCompanyName && !showAbout && !showProfile && !showDashboard;
 
   const displayDate = new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -257,7 +259,7 @@ const Home: React.FC = () => {
         style={styles.container}
       >
         {showLogin ? (
-          <Login onBack={() => setShowLogin(false)} onNavigateToSignup={() => { setShowLogin(false); setShowSignup(true); }} onNavigateToHome={() => setShowLogin(false)} onNavigateToMainHome={() => { setShowLogin(false); }} />
+          <Login onBack={() => setShowLogin(false)} onNavigateToSignup={() => { setShowLogin(false); setShowSignup(true); }} onNavigateToHome={() => setShowLogin(false)} onNavigateToMainHome={() => { setShowLogin(false); }} onNavigateToDashboard={() => { setShowLogin(false); setShowDashboard(true); }} />
         ) : showSignup ? (
           <Signup onBack={() => { setShowSignup(false); setShowLogin(true); }} onNavigateToCompanyName={() => { setShowSignup(false); setShowCompanyName(true); }} onNavigateToLogin={() => { setShowSignup(false); setShowLogin(true); }} />
         ) : showCompanyName ? (
@@ -266,6 +268,8 @@ const Home: React.FC = () => {
           <About onBack={() => setShowAbout(false)} />
         ) : showProfile ? (
           <Profile onBack={() => setShowProfile(false)} />
+        ) : showDashboard ? (
+          <Dashboard onBack={() => setShowDashboard(false)} />
         ) : (
           <>
             <View style={styles.headerSection}>

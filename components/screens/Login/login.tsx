@@ -23,9 +23,10 @@ interface LoginProps {
   onNavigateToSignup?: () => void;
   onNavigateToHome?: () => void;
   onNavigateToMainHome?: () => void;
+  onNavigateToDashboard?: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onNavigateToHome, onNavigateToMainHome }) => {
+const Login: React.FC<LoginProps> = ({ onNavigateToHome, onNavigateToMainHome, onNavigateToDashboard }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -105,7 +106,7 @@ const Login: React.FC<LoginProps> = ({ onNavigateToHome, onNavigateToMainHome })
             <View style={styles.buttonContainer}>
               <DynamicButton
                 text="Login"
-                onPress={() => onNavigateToHome?.()}
+                onPress={() => onNavigateToDashboard?.()}
                 backgroundColor="#5152B3"
                 textColor="#fff"
                 borderRadius={25}
