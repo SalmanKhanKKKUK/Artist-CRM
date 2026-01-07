@@ -70,12 +70,13 @@ const styles = StyleSheet.create({
     height: 150,
   },
   artistName: {
-    color: 'black',
+    color: '#5152B3',
     fontSize: 32,
     fontWeight: 'bold',
-    marginTop: 10,
+    marginTop: 0,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
+    
   },
 });

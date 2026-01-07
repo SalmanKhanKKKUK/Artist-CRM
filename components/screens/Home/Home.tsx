@@ -261,7 +261,20 @@ const Home: React.FC = () => {
         {showLogin ? (
           <Login onBack={() => setShowLogin(false)} onNavigateToSignup={() => { setShowLogin(false); setShowSignup(true); }} onNavigateToHome={() => setShowLogin(false)} onNavigateToMainHome={() => { setShowLogin(false); }} onNavigateToDashboard={() => { setShowLogin(false); setShowDashboard(true); }} />
         ) : showSignup ? (
-          <Signup onBack={() => { setShowSignup(false); setShowLogin(true); }} onNavigateToCompanyName={() => { setShowSignup(false); setShowCompanyName(true); }} onNavigateToLogin={() => { setShowSignup(false); setShowLogin(true); }} />
+          <Signup 
+            onBack={() => { setShowSignup(false); setShowLogin(true); }} 
+            onNavigateToCompanyName={() => { 
+              console.log('Home.tsx: Navigation called - FIXED'); 
+              console.log('Before state change:', { showSignup, showCompanyName });
+              setShowSignup(false); 
+              setShowCompanyName(true); 
+              console.log('After state change:', { showSignup: false, showCompanyName: true });
+              console.log('Home.tsx: State changed - FIXED'); 
+            }} 
+            onNavigateToLogin={() => { setShowSignup(false); setShowLogin(true); }} 
+            onNavigateToHome={() => { setShowSignup(false); }} 
+            onNavigateToMainHome={() => { setShowSignup(false); }} 
+          />
         ) : showCompanyName ? (
           <CompanyName onBack={() => { setShowCompanyName(false); setShowSignup(true); }} onNavigateToProfile={() => { setShowCompanyName(false); setShowProfile(true); }} onNavigateToSignup={() => { setShowCompanyName(false); setShowSignup(true); }} />
         ) : showAbout ? (

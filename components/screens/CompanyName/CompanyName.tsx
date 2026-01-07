@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
-import { Dimensions, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
 
-const { height: screenHeight } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-// TypeScript interface define ki taake props error na aayein
 interface CompanyNameProps {
   onBack?: () => void;
   onNavigateToProfile?: () => void;
@@ -14,9 +22,7 @@ interface CompanyNameProps {
 }
 
 const CompanyName: React.FC<CompanyNameProps> = ({ 
-  onBack, 
-  onNavigateToProfile, 
-  onNavigateToSignup 
+  onNavigateToProfile 
 }) => {
   const [companyName, setCompanyName] = useState<string>('');
   const [website, setWebsite] = useState<string>('');
@@ -28,130 +34,138 @@ const CompanyName: React.FC<CompanyNameProps> = ({
     }
   };
 
-  const handleCancel = () => {
-    if (onNavigateToSignup) {
-      onNavigateToSignup();
-    }
-  };
-
   return (
-    // 1. SafeAreaView ka background black kiya taake status bar area black rahe
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* 2. StatusBar configuration */}
-      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
-      
-      {/* Main content wrapper */}
-      <View style={styles.mainWrapper}>
-        
-        {/* Black Header Section */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Company Details</Text>
-        </View>
+    <View style={styles.container}>
+      {/* StatusBar configuration */}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        {/* White Form Section */}
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.formSection}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        style={{ flex: 1 }}
+      >
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="never"
+          bounces={false}
         >
-          <ScrollView 
-            contentContainerStyle={styles.scrollContent} 
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+          <View style={styles.innerContainer}>
+            
+            {/* Title - Mazeed upar shift kiya gaya hai */}
+            <Text style={styles.title}>Company Details</Text>
+            
+            <Image 
+              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              style={styles.topImage}
+              resizeMode="contain"
+            />
+            
             <View style={styles.formContainer}>
-              {/* Company Name Input */}
+              
               <Input
-                label="Company Name"
                 value={companyName}
                 onChangeText={setCompanyName}
-                placeholder="Enter your company name"
-                leftIcon="office-building"
+                placeholder="Company Name"
+                leftIcon={"domain" as any} 
+                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                size="large"
+                variant="outlined"
               />
 
-              {/* Website Input */}
+              <View style={styles.inputGap} />
+
               <Input
-                label="Website"
                 value={website}
                 onChangeText={setWebsite}
-                placeholder="Enter your website (optional)"
+                placeholder="Website (Optional)"
                 keyboardType="url"
                 autoCapitalize="none"
                 autoCorrect={false}
-                leftIcon="web"
+                leftIcon={"web" as any} 
+                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                size="large"
+                variant="outlined"
               />
 
-              {/* Submit Buttons */}
+              <View style={styles.buttonGap} />
+
               <View style={styles.buttonContainer}>
                 <DynamicButton
                   text="Submit"
                   onPress={handleSubmit}
-                  backgroundColor="#FFD700"
-                  textColor="#000"
-                  borderRadius={10}
-                  width="48%"
-                />
-                
-                <DynamicButton
-                  text="Cancel"
-                  onPress={handleCancel}
-                  backgroundColor="#333"
+                  backgroundColor="#5152B3"
                   textColor="#fff"
-                  borderRadius={10}
-                  width="48%"
+                  borderRadius={25}
+                  width="100%"
                 />
               </View>
+
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-    </SafeAreaView>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#000000', // Status bar area black
+     // backgroundColor: '#FFFFFF',
+    marginTop: 50,
   },
-  mainWrapper: {
+  scrollView: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // Body white
   },
-  titleContainer: {
-    backgroundColor: '#000',
-    height: screenHeight * 0.2, // 20% of screen height
-    justifyContent: 'center',
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  innerContainer: {
     alignItems: 'center',
+    // Padding mazeed kam kar di (Android par sirf 5 units StatusBar ke upar)
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 5 : 40, 
+    paddingBottom: 20,
+    paddingHorizontal: 20, 
+    width: '100%',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
+    color: '#333',
+    marginBottom: 5,
+    marginTop: 0, 
   },
-  formSection: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    marginTop: -20, // Overlap curve effect
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 50,
+  topImage: {
+    width: width * 0.85, 
+    height: 180, 
+    marginBottom: 15,
   },
   formContainer: {
     width: '100%',
+    alignItems: 'center',
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 30,
-    gap: 15,
+  inputContainer: {
+    width: '100%',
+    marginBottom: 0,
+  },
+  fullWidthInput: {
+    width: '100%',
+  },
+  roundedInput: {
+    borderRadius: 25,
+  },
+  inputGap: {
+    height: 5,
+  },
+  buttonGap: {
+    height: 15,
+  },
+  buttonContainer: { 
+    width: '100%',
+    marginBottom: 10,
   },
 });
 
 export default CompanyName;
-

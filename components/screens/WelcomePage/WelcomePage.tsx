@@ -1,42 +1,74 @@
-import React, { useState } from 'react'
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import React, { useState } from 'react';
+import { 
+  Image, 
+  ScrollView, 
+  StyleSheet, 
+  Text, 
+  View, 
+  StatusBar,
+  Dimensions 
+} from 'react-native';
 
-import DynamicButton from '../../common/Buttons/DynamicButton'
-import PlusButton from '../../common/Buttons/PlusButton'
+import DynamicButton from '../../common/Buttons/DynamicButton';
+import PlusButton from '../../common/Buttons/PlusButton';
 
-import Login from '../Login/login'
-import Signup from '../Signup/Signup'
+import CompanyName from '../CompanyName/CompanyName';
+import Login from '../Login/login';
+import Signup from '../Signup/Signup';
+
+const { width } = Dimensions.get('window');
 
 const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
-  const [currentPage, setCurrentPage] = useState<'welcome' | 'login' | 'signup' | 'home'>('welcome')
+  const [currentPage, setCurrentPage] = useState<'welcome' | 'login' | 'signup' | 'companyname' | 'home'>('welcome');
 
-  const renderPage = () => {
+  const handleArtistCRMPress = () => {
+    console.log('Artist-CRM link pressed');
+  };
+
+  const renderPageContent = () => {
     switch(currentPage) {
       case 'login':
-        return <Login onBack={() => setCurrentPage('welcome')} onNavigateToHome={() => onLoginSuccess?.()} onNavigateToMainHome={() => onLoginSuccess?.()} onNavigateToDashboard={() => onLoginSuccess?.()} />
+        return (
+          <Login 
+            onBack={() => setCurrentPage('welcome')} 
+            onNavigateToDashboard={() => onLoginSuccess?.()} 
+          />
+        );
       case 'signup':
-        return <Signup onBack={() => setCurrentPage('welcome')} onNavigateToLogin={() => setCurrentPage('welcome')} onNavigateToHome={() => onLoginSuccess?.()} onNavigateToMainHome={() => onLoginSuccess?.()} />
-      case 'home':
-        return 
+        return (
+          <Signup 
+            onBack={() => setCurrentPage('welcome')} 
+            onNavigateToLogin={() => setCurrentPage('login')} 
+            onNavigateToCompanyName={() => setCurrentPage('companyname')} 
+          />
+        );
+      case 'companyname':
+        return (
+          <CompanyName 
+            onNavigateToProfile={() => onLoginSuccess?.()} 
+          />
+        );
       default:
         return (
-          <>
-            {/* Top Image */}
+          <View style={styles.content}>
             <Image 
               source={require('../../../assets/homeimages/welcomepagepic.png')}
               style={styles.topImage}
               resizeMode="contain"
             />
             
-            {/* Welcome Title */}
             <Text style={styles.welcomeTitle}>Welcome Back!</Text>
             
-            {/* Description */}
-            <Text style={styles.description}>
-              Welcome to &quot;Artist-CRM&quot; where you can manage your client data
-            </Text>
+            <View style={styles.descriptionContainer}>
+                <Text style={styles.description}>
+                  Welcome to{' '}
+                  <Text style={styles.artistCRMText} onPress={handleArtistCRMPress}>
+                    ARTIST-CRM
+                  </Text>
+                  {' '}where you can manage your client data
+                </Text>
+            </View>
             
-            {/* Login Button */}
             <DynamicButton 
               text="Login"
               onPress={() => setCurrentPage('login')}
@@ -47,10 +79,8 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
               height={50}
             />
             
-            {/* Gap between buttons */}
             <View style={styles.buttonGap} />
             
-            {/* Signup Button */}
             <DynamicButton 
               text="Signup"
               onPress={() => setCurrentPage('signup')}
@@ -63,137 +93,119 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
               height={50}
             />
             
-            {/* Signin text */}
             <Text style={styles.signinText}>Login using</Text>
             
-            {/* Social Buttons */}
             <View style={styles.socialContainer}>
               <PlusButton 
-                onPress={() => console.log('Google button clicked')}
+                onPress={() => {}}
                 size={50}
                 backgroundColor="#DB4437"
-                iconSize={24}
                 iconName="google"
                 iconColor="white"
               />
-              
               <View style={styles.socialGap} />
-              
               <PlusButton 
-                onPress={() => console.log('Facebook button clicked')}
+                onPress={() => {}}
                 size={50}
                 backgroundColor="#4267B2"
-                iconSize={24}
                 iconName="facebook"
                 iconColor="white"
               />
             </View>
-          </>
-        )
+          </View>
+        );
     }
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        {renderPage()}
-      </View>
-    </ScrollView>
-  )
+    <View style={styles.container}>
+      {/* StatusBar ab transparent hai aur koi gap nahi aayega */}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      
+      {currentPage === 'welcome' ? (
+        <ScrollView 
+          style={styles.container} 
+          contentContainerStyle={styles.welcomeScrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {renderPageContent()}
+        </ScrollView>
+      ) : (
+        // Login/Signup/CompanyName pages
+        <View style={styles.pageWrapper}>
+          {renderPageContent()}
+        </View>
+      )}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    marginTop: 30,
+  },
+  pageWrapper: {
+    flex: 1,
+  },
+  welcomeScrollContent: {
+    // Welcome page ki padding kam kar di taake image top ke qareeb ho
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   content: {
-    flex: 1,
-    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 30,
-    paddingTop: 120,
+    width: '100%',
   },
   topImage: {
-    width: 200,
-    height: 200,
-    marginBottom: 30,
+    width: width * 0.6,
+    height: 180,
+    marginBottom: 20,
   },
   welcomeTitle: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 15,
+    marginBottom: 10,
     textAlign: 'center',
+  },
+  descriptionContainer: {
+    marginBottom: 30,
   },
   description: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    marginBottom: 40,
     lineHeight: 24,
   },
-  button: {
-    width: '100%',
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-    borderWidth: 2,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  artistCRMText: {
+    fontWeight: 'bold',
+    color: '#5152B3',
+    textDecorationLine: 'underline',
   },
   socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '60%',
+    width: '100%',
     marginTop: 10,
-  },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 10,
-   
   },
   signinText: {
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
     marginBottom: 5,
-    marginTop: 10,
+    marginTop: 20,
   },
   buttonGap: {
-    height: 10,
+    height: 15,
   },
   socialGap: {
     width: 20,
   },
-  homeContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
-  },
-  homeTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#5152B3',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  homeSubtitle: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-})
+});
 
-export default WelcomePage
+export default WelcomePage;

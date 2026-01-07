@@ -1,12 +1,12 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  TouchableOpacity,
-  View,
+    StyleSheet,
+    Text,
+    TextInput,
+    TextInputProps,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 export interface InputProps extends Omit<TextInputProps, 'style'> {
@@ -102,11 +102,14 @@ const Input: React.FC<InputProps> = ({
   };
 
   const getVariantStyles = () => {
+    // Gray color jab focus na ho, aur purple jab focus ho
+    const borderColor = error ? '#ff4444' : isFocused ? '#5152B3' : '#CCCCCC';
+
     switch (variant) {
       case 'outlined':
         return {
           borderWidth: 2,
-          borderColor: error ? '#ff4444' : isFocused ? '#5152B3' : '#333',
+          borderColor: borderColor,
           backgroundColor: '#fff',
         };
       case 'filled':
@@ -117,7 +120,7 @@ const Input: React.FC<InputProps> = ({
       default:
         return {
           borderWidth: 1,
-          borderColor: error ? '#ff4444' : isFocused ? '#5152B3' : '#333',
+          borderColor: borderColor,
           backgroundColor: '#fff',
         };
     }
@@ -207,6 +210,7 @@ const Input: React.FC<InputProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    width: '100%',
   },
   labelContainer: {
     marginBottom: 6,
@@ -222,7 +226,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: 25,
     overflow: 'hidden',
   },
   input: {
@@ -256,7 +260,6 @@ const styles = StyleSheet.create({
 });
 
 export default Input;
-
 // ye reusable component hai
 // s ko hum ne Inputs k liye reusbale bana ya hai
 // ye project k andar jitne b inputs fields hogy os k liye banaye hai ye sirf aik individual inputs ko get karienga phir used karienga.
