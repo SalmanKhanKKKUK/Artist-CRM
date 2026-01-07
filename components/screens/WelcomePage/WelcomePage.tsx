@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonGap: {
-    height: 15,
+    height: 5,
   },
   socialGap: {
     width: 20,

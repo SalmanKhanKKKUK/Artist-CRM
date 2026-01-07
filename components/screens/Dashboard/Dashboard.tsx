@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import React from 'react'
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StatusBar, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PlusButton from '../../common/Buttons/PlusButton'
 import ImageDesCard from '../../common/Cards/ImageDesCard'
@@ -9,218 +9,143 @@ import InfoCard from '../../common/Cards/InfoCard'
 const Dashboard = ({ onBack }: { onBack?: () => void }) => {
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#313867" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Top Navigation / Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Artist-Crm</Text>
-        <TouchableOpacity style={styles.userIcon}>
-          <Ionicons name="person" size={24} color="#FFFFFF" />
+        <View style={styles.brandWrapper}>
+          <Text style={styles.brandTitle}>ARTIST-CRM</Text>
+          {/* Status Dot Removed */}
+        </View>
+        <TouchableOpacity style={styles.profileButton}>
+          {/* Notification Icon Removed */}
+          <View style={styles.avatarMini}>
+            <Ionicons name="person" size={18} color="#5152B3" />
+          </View>
         </TouchableOpacity>
       </View>
-      
-      <View style={styles.content}>
-        <Text style={styles.welcomeTitle}>WELCOME!</Text>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainScroll}>
+        <Text style={styles.mainGreeting}>Welcome!</Text>
         
-        <View style={styles.cardsGrid}>
+        {/* Stats Section - Clean Cards */}
+        <View style={styles.statsContainer}>
           <InfoCard 
             title="56" 
-            description="Clients"
-            backgroundColor="#2D2F50"
-            titleColor="#FFFFFF"
-            descriptionColor="#FFFFFF"
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              minHeight: 80,
-            }}
+            description="Total Clients"
+            backgroundColor="#FFFFFF"
+            titleColor="#1E293B"
+            descriptionColor="#94A3B8"
+            titleSize={26}
+            margin={0}
+            elevation={0} // Shadow removed
+            shadowOpacity={0} // Shadow removed
+            containerStyle={styles.premiumInfoCard}
           />
           <InfoCard 
             title="10" 
-            description="Active Clients"
-            backgroundColor="#2D2F50"
-            titleColor="#FFFFFF"
-            descriptionColor="#FFFFFF"
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              minHeight: 80,
-            }}
+            description="Active Now"
+            backgroundColor="#FFFFFF"
+            titleColor="#313867"
+            descriptionColor="#94A3B8"
+            titleSize={26}
+            margin={0}
+            elevation={0} // Shadow removed
+            shadowOpacity={0} // Shadow removed
+            containerStyle={styles.premiumInfoCard}
           />
         </View>
 
-        <Text style={styles.sectionTitle}>Recent Visits</Text>
-        
-        <View style={styles.cardsGrid}>
-          <ImageDesCard 
-            imageSource={require('../../../assets/images/icon.png')}
-            title="John"
-            description="Last visit: 2 days ago"
-            backgroundColor="#2D2F50"
-            titleStyle={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 2 }}
-            descriptionStyle={{ color: '#FFFFFF', fontSize: 12, fontWeight: '400', lineHeight: 14 }}
-            cardMargin={0}
-            cardPadding={15}
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              height: 85,
-              minHeight: 85,
-            }}
-            imageSize={30}
-            imageBorderRadius={15}
-          />
-          <ImageDesCard 
-            imageSource={require('../../../assets/images/favicon.png')}
-            title="Smith"
-            description="Last visit: 3 days ago"
-            backgroundColor="#2D2F50"
-            titleStyle={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 2 }}
-            descriptionStyle={{ color: '#FFFFFF', fontSize: 12, fontWeight: '400', lineHeight: 14 }}
-            cardMargin={0}
-            cardPadding={15}
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              height: 85,
-              minHeight: 85,
-            }}
-            imageSize={30}
-            imageBorderRadius={15}
-          />
+        {/* Recent Visits Section */}
+        <View style={styles.sectionHeadingWrapper}>
+          <Text style={styles.sectionTitle}>Recent Visits</Text>
+          <TouchableOpacity><Text style={styles.seeAllText}>View History</Text></TouchableOpacity>
         </View>
         
-        <View style={[styles.cardsGrid, { marginTop: 10 }]}>
-          <ImageDesCard 
-            imageSource={require('../../../assets/images/splash-icon.png')}
-            title="Mike"
-            description="Last visit: 5 days ago"
-            backgroundColor="#2D2F50"
-            titleStyle={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 2 }}
-            descriptionStyle={{ color: '#FFFFFF', fontSize: 12, fontWeight: '400', lineHeight: 14 }}
-            cardMargin={0}
-            cardPadding={15}
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              height: 85,
-              minHeight: 85,
-            }}
-            imageSize={30}
-            imageBorderRadius={15}
-          />
-          <ImageDesCard 
-            imageSource={require('../../../assets/images/react-logo.png')}
-            title="Wilson"
-            description="Last visit: 1 week ago"
-            backgroundColor="#2D2F50"
-            titleStyle={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 2 }}
-            descriptionStyle={{ color: '#FFFFFF', fontSize: 12, fontWeight: '400', lineHeight: 14 }}
-            cardMargin={0}
-            cardPadding={15}
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              height: 85,
-              minHeight: 85,
-            }}
-            imageSize={30}
-            imageBorderRadius={15}
-          />
+        {/* Grid with 4 ImageDesCards */}
+        <View style={styles.visitGrid}>
+          <View style={styles.row}>
+            <ImageDesCard 
+              imageSource={require('../../../assets/images/icon.png')}
+              title="John Doe"
+              description="Last visit: 2 days ago"
+              backgroundColor="#FFFFFF"
+              titleStyle={styles.visitTitle}
+              descriptionStyle={styles.visitDesc}
+              cardMargin={0}
+              cardPadding={12}
+              imageSize={35}
+              elevation={0} // Shadow removed
+              containerStyle={styles.visitCardBorder}
+            />
+            <ImageDesCard 
+              imageSource={require('../../../assets/images/favicon.png')}
+              title="Smith Alex"
+              description="Last visit: 3 days ago"
+              backgroundColor="#FFFFFF"
+              titleStyle={styles.visitTitle}
+              descriptionStyle={styles.visitDesc}
+              cardMargin={0}
+              cardPadding={12}
+              imageSize={35}
+              elevation={0} // Shadow removed
+              containerStyle={styles.visitCardBorder}
+            />
+          </View>
+
+          <View style={styles.row}>
+            <ImageDesCard 
+              imageSource={require('../../../assets/images/splash-icon.png')}
+              title="Mike Ross"
+              description="Last visit: 5 days ago"
+              backgroundColor="#FFFFFF"
+              titleStyle={styles.visitTitle}
+              descriptionStyle={styles.visitDesc}
+              cardMargin={0}
+              cardPadding={12}
+              imageSize={35}
+              elevation={0} // Shadow removed
+              containerStyle={styles.visitCardBorder}
+            />
+            <ImageDesCard 
+              imageSource={require('../../../assets/images/react-logo.png')}
+              title="Wilson King"
+              description="Last visit: 1 week ago"
+              backgroundColor="#FFFFFF"
+              titleStyle={styles.visitTitle}
+              descriptionStyle={styles.visitDesc}
+              cardMargin={0}
+              cardPadding={12}
+              imageSize={35}
+              elevation={0} // Shadow removed
+              containerStyle={styles.visitCardBorder}
+            />
+          </View>
         </View>
 
-        <View style={[styles.cardsGrid, { marginTop: 10 }]}>
-          <ImageDesCard 
-            imageSource={require('../../../assets/images/android-icon-foreground.png')}
-            title="Alex"
-            description="Last visit: 2 weeks ago"
-            backgroundColor="#2D2F50"
-            titleStyle={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 2 }}
-            descriptionStyle={{ color: '#FFFFFF', fontSize: 12, fontWeight: '400', lineHeight: 14 }}
-            cardMargin={0}
-            cardPadding={15}
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              height: 85,
-              minHeight: 85,
-            }}
-            imageSize={30}
-            imageBorderRadius={15}
-          />
-          <ImageDesCard 
-            imageSource={require('../../../assets/images/android-icon-background.png')}
-            title="Emma"
-            description="Last visit: 3 weeks ago"
-            backgroundColor="#2D2F50"
-            titleStyle={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600', marginBottom: 2 }}
-            descriptionStyle={{ color: '#FFFFFF', fontSize: 12, fontWeight: '400', lineHeight: 14 }}
-            cardMargin={0}
-            cardPadding={15}
-            containerStyle={{
-              borderWidth: 1,
-              borderColor: '#808080',
-              width: '48%',
-              height: 85,
-              minHeight: 85,
-            }}
-            imageSize={30}
-            imageBorderRadius={15}
-          />
-        </View>
-      </View>
+      </ScrollView>
 
-      <View style={styles.menuSection}>
-        <View style={styles.menuButtonsContainer}>
-          <PlusButton 
-            onPress={() => console.log('Home pressed')}
-            iconName="home"
-            iconColor="#808080"
-            backgroundColor="transparent"
-            size={50}
-            iconSize={25}
-            style={styles.transparentButton}
-          />
-          <PlusButton 
-            onPress={() => console.log('Settings pressed')}
-            iconName="cog"
-            iconColor="#808080"
-            backgroundColor="transparent"
-            size={50}
-            iconSize={25}
-            style={styles.transparentButton}
-          />
-          <PlusButton 
-            onPress={() => console.log('Plus pressed')}
-            iconName="plus"
-            iconColor="#FFFFFF"
-            backgroundColor="#313867"
-            size={70}
-            iconSize={35}
-          />
-          <PlusButton 
-            onPress={() => console.log('History pressed')}
-            iconName="history"
-            iconColor="#808080"
-            backgroundColor="transparent"
-            size={50}
-            iconSize={25}
-            style={styles.transparentButton}
-          />
-          <PlusButton 
-            onPress={() => console.log('Team pressed')}
-            iconName="account-group"
-            iconColor="#808080"
-            backgroundColor="transparent"
-            size={50}
-            iconSize={25}
-            style={styles.transparentButton}
-          />
+      {/* Ultra-Clean Bottom Tab Bar (No Shadow) */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.navBar}>
+          <TouchableOpacity style={styles.navIcon}><Ionicons name="home-sharp" size={24} color="#CBD5E1" /></TouchableOpacity>
+          <TouchableOpacity style={styles.navIcon}><Ionicons name="settings-outline" size={24} color="#CBD5E1" /></TouchableOpacity>
+          
+          <View style={styles.plusActionWrapper}>
+            <PlusButton 
+              onPress={() => console.log('Plus pressed')}
+              iconName="plus"
+              iconColor="#FFFFFF"
+              backgroundColor="#5152B3"
+              size={58}
+              iconSize={28}
+              // elevation={0} // Internal Shadow removed
+              style={styles.plusShadowFree} 
+            />
+          </View>
+
+          <TouchableOpacity style={styles.navIcon}><Ionicons name="time-outline" size={24} color="#CBD5E1" /></TouchableOpacity>
+          <TouchableOpacity style={styles.navIcon}><Ionicons name="people-outline" size={24} color="#CBD5E1" /></TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -230,89 +155,135 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: '#5152B3',
-    backgroundColor:"#2C3E50",
-    marginTop: 0,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingTop: 50,
-    paddingBottom: 20,
+    paddingHorizontal: 25,
+    height: 70,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  userIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  userIconText: {
-    fontSize: 20,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 30,
-  },
-  welcomeTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 10,
-  },
-  cardsGrid: {
+  brandWrapper: {
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  brandTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#5152B3',
+    letterSpacing: -0.5,
+  },
+  profileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarMini: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    gap: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  mainScroll: {
+    paddingHorizontal: 25,
+    paddingBottom: 120,
+  },
+  mainGreeting: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#5152B3',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 15,
+  },
+  premiumInfoCard: {
+    width: '47.5%',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    paddingVertical: 20,
+  },
+  sectionHeadingWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 35,
+    marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 30,
-    marginBottom: 15,
+    fontWeight: '700',
+    color: '#5152B3',
   },
-  imageCardsContainer: {
-    backgroundColor: '#000000',
-    padding: 5,
-    borderRadius: 8,
+  seeAllText: {
+    fontSize: 14,
+    color: '#5152B3',
+    fontWeight: '500',
   },
-  menuSection: {
-    marginTop: 20,
-    paddingHorizontal: 30,
+  visitGrid: {
+    gap: 12,
   },
-  menuButtonsContainer: {
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  visitCardBorder: {
+    width: '48.2%',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  visitTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  visitDesc: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingBottom: 25,
+    height: 90,
+  },
+  navBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 20,
+    height: '100%',
   },
-  transparentButton: {
-    borderRadius: 0,
+  navIcon: {
+    padding: 10,
+  },
+  plusActionWrapper: {
+    marginTop: -50,
+    backgroundColor: '#FFFFFF',
+    padding: 6,
+    borderRadius: 35,
+    // Shadow properties removed to make it flat
+  },
+  plusShadowFree: {
     shadowOpacity: 0,
     elevation: 0,
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 0,
-  },
-  imageCcardsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    gap: 10,
-    marginBottom: 10,
-  },
+  }
 })
 
 export default Dashboard

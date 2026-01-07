@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   socialGap: {
-    width: 20,
+    width: 10,
   },
 });
 
