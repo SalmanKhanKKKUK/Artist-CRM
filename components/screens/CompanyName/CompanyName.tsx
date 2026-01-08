@@ -4,12 +4,15 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   View
 } from 'react-native';
+
+// Imported SafeAreaView from library
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
 
@@ -35,112 +38,99 @@ const CompanyName: React.FC<CompanyNameProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      {/* StatusBar configuration */}
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={styles.mainContainer}
       >
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentInsetAdjustmentBehavior="never"
-          bounces={false}
-        >
-          <View style={styles.innerContainer}>
+        {/* Fixed View instead of ScrollView to stop unnecessary scrolling and gaps */}
+        <View style={styles.innerContainer}>
+          
+          <Text style={styles.title}>Company Name</Text>
+          
+          <Image 
+            source={require('../../../assets/homeimages/welcomepagepic.png')}
+            style={styles.topImage}
+            resizeMode="contain"
+          />
+          
+          <View style={styles.formContainer}>
             
-            {/* Title - Mazeed upar shift kiya gaya hai */}
-            <Text style={styles.title}>Company Details</Text>
-            
-            <Image 
-              source={require('../../../assets/homeimages/welcomepagepic.png')}
-              style={styles.topImage}
-              resizeMode="contain"
+            <Input
+              value={companyName}
+              onChangeText={setCompanyName}
+              placeholder="Company Name"
+              leftIcon={"domain" as any} 
+              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+              size="large"
+              variant="outlined"
             />
-            
-            <View style={styles.formContainer}>
-              
-              <Input
-                value={companyName}
-                onChangeText={setCompanyName}
-                placeholder="Company Name"
-                leftIcon={"domain" as any} 
-                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-                size="large"
-                variant="outlined"
+
+            {/* Gap ko 10 se kam karke 5 kar diya */}
+            <View style={styles.inputGap} />
+
+            <Input
+              value={website}
+              onChangeText={setWebsite}
+              placeholder="Website (Optional)"
+              keyboardType="url"
+              autoCapitalize="none"
+              autoCorrect={false}
+              leftIcon={"web" as any} 
+              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+              size="large"
+              variant="outlined"
+            />
+
+            <View style={styles.buttonGap} />
+
+            <View style={styles.buttonContainer}>
+              <DynamicButton
+                text="Submit"
+                onPress={handleSubmit}
+                backgroundColor="#5152B3"
+                textColor="#fff"
+                borderRadius={25}
+                width="100%"
               />
-
-              <View style={styles.inputGap} />
-
-              <Input
-                value={website}
-                onChangeText={setWebsite}
-                placeholder="Website (Optional)"
-                keyboardType="url"
-                autoCapitalize="none"
-                autoCorrect={false}
-                leftIcon={"web" as any} 
-                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-                size="large"
-                variant="outlined"
-              />
-
-              <View style={styles.buttonGap} />
-
-              <View style={styles.buttonContainer}>
-                <DynamicButton
-                  text="Submit"
-                  onPress={handleSubmit}
-                  backgroundColor="#5152B3"
-                  textColor="#fff"
-                  borderRadius={25}
-                  width="100%"
-                />
-              </View>
-
             </View>
+
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-     // backgroundColor: '#FFFFFF',
-    marginTop: 50,
+    backgroundColor: '#FFFFFF',
   },
-  scrollView: {
+  mainContainer: {
     flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
   },
   innerContainer: {
+    flex: 1,
     alignItems: 'center',
-    // Padding mazeed kam kar di (Android par sirf 5 units StatusBar ke upar)
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 5 : 40, 
+    paddingTop: 10, 
     paddingBottom: 20,
     paddingHorizontal: 20, 
     width: '100%',
   },
   title: {
-    fontSize: 32,
+    fontSize: 28, // Font size thora compact kiya
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
-    marginTop: 0, 
+    marginTop: Platform.OS === 'android' ? 0 : 5, 
   },
   topImage: {
-    width: width * 0.85, 
-    height: 180, 
-    marginBottom: 15,
+    width: width * 0.75, 
+    height: 150, // Image height kam ki taake gap kam ho
+    marginBottom: 10,
   },
   formContainer: {
     width: '100%',
@@ -157,7 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   inputGap: {
-    height: 5,
+    height: 5, 
   },
   buttonGap: {
     height: 15,

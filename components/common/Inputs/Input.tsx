@@ -209,7 +209,7 @@ const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 8,
     width: '100%',
   },
   labelContainer: {
@@ -260,6 +260,8 @@ const styles = StyleSheet.create({
 });
 
 export default Input;
+
+
 // ye reusable component hai
 // s ko hum ne Inputs k liye reusbale bana ya hai
 // ye project k andar jitne b inputs fields hogy os k liye banaye hai ye sirf aik individual inputs ko get karienga phir used karienga.

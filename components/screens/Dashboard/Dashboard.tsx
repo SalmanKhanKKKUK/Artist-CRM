@@ -1,24 +1,47 @@
-import { Ionicons } from '@expo/vector-icons'
-import React from 'react'
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import PlusButton from '../../common/Buttons/PlusButton'
-import ImageDesCard from '../../common/Cards/ImageDesCard'
-import InfoCard from '../../common/Cards/InfoCard'
+import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSmartBackHandler } from '../../../hooks/useSmartBackHandler';
+import PlusButton from '../../common/Buttons/PlusButton';
+import ImageDesCard from '../../common/Cards/ImageDesCard';
+import InfoCard from '../../common/Cards/InfoCard';
 
 const Dashboard = ({ onBack }: { onBack?: () => void }) => {
+  useSmartBackHandler(onBack);
+  const [activeTab, setActiveTab] = useState('home');
+
+  const renderNavItem = (id: string, iconName: any, label: string) => {
+    const isActive = activeTab === id;
+    const activeColor = "#5152B3";
+    const inactiveColor = "#CBD5E1";
+
+    return (
+      <TouchableOpacity 
+        style={styles.navIconContainer} 
+        onPress={() => setActiveTab(id)}
+      >
+        <Ionicons 
+          name={isActive ? iconName.replace('-outline', '') : iconName} 
+          size={24} 
+          color={isActive ? activeColor : inactiveColor} 
+        />
+        <Text style={[styles.navLabel, { color: isActive ? activeColor : inactiveColor }]}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      {/* Top Navigation / Header */}
       <View style={styles.header}>
         <View style={styles.brandWrapper}>
           <Text style={styles.brandTitle}>ARTIST-CRM</Text>
-          {/* Status Dot Removed */}
         </View>
         <TouchableOpacity style={styles.profileButton}>
-          {/* Notification Icon Removed */}
           <View style={styles.avatarMini}>
             <Ionicons name="person" size={18} color="#5152B3" />
           </View>
@@ -26,9 +49,8 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainScroll}>
-        <Text style={styles.mainGreeting}>Welcome!</Text>
+        <Text style={styles.mainGreeting}>Dashboard !</Text>
         
-        {/* Stats Section - Clean Cards */}
         <View style={styles.statsContainer}>
           <InfoCard 
             title="56" 
@@ -38,8 +60,7 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
             descriptionColor="#94A3B8"
             titleSize={26}
             margin={0}
-            elevation={0} // Shadow removed
-            shadowOpacity={0} // Shadow removed
+            elevation={0}
             containerStyle={styles.premiumInfoCard}
           />
           <InfoCard 
@@ -50,19 +71,16 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
             descriptionColor="#94A3B8"
             titleSize={26}
             margin={0}
-            elevation={0} // Shadow removed
-            shadowOpacity={0} // Shadow removed
+            elevation={0}
             containerStyle={styles.premiumInfoCard}
           />
         </View>
 
-        {/* Recent Visits Section */}
         <View style={styles.sectionHeadingWrapper}>
           <Text style={styles.sectionTitle}>Recent Visits</Text>
           <TouchableOpacity><Text style={styles.seeAllText}>View History</Text></TouchableOpacity>
         </View>
         
-        {/* Grid with 4 ImageDesCards */}
         <View style={styles.visitGrid}>
           <View style={styles.row}>
             <ImageDesCard 
@@ -74,8 +92,8 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
               descriptionStyle={styles.visitDesc}
               cardMargin={0}
               cardPadding={12}
-              imageSize={35}
-              elevation={0} // Shadow removed
+              imageSize={40}
+              elevation={0}
               containerStyle={styles.visitCardBorder}
             />
             <ImageDesCard 
@@ -87,8 +105,8 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
               descriptionStyle={styles.visitDesc}
               cardMargin={0}
               cardPadding={12}
-              imageSize={35}
-              elevation={0} // Shadow removed
+              imageSize={40}
+              elevation={0}
               containerStyle={styles.visitCardBorder}
             />
           </View>
@@ -103,33 +121,31 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
               descriptionStyle={styles.visitDesc}
               cardMargin={0}
               cardPadding={12}
-              imageSize={35}
-              elevation={0} // Shadow removed
+              imageSize={40}
+              elevation={0}
               containerStyle={styles.visitCardBorder}
             />
             <ImageDesCard 
               imageSource={require('../../../assets/images/react-logo.png')}
-              title="Wilson King"
+              title="Wilson tel"
               description="Last visit: 1 week ago"
               backgroundColor="#FFFFFF"
               titleStyle={styles.visitTitle}
               descriptionStyle={styles.visitDesc}
               cardMargin={0}
               cardPadding={12}
-              imageSize={35}
-              elevation={0} // Shadow removed
+              imageSize={40}
+              elevation={0}
               containerStyle={styles.visitCardBorder}
             />
           </View>
         </View>
-
       </ScrollView>
 
-      {/* Ultra-Clean Bottom Tab Bar (No Shadow) */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.navBar}>
-          <TouchableOpacity style={styles.navIcon}><Ionicons name="home-sharp" size={24} color="#CBD5E1" /></TouchableOpacity>
-          <TouchableOpacity style={styles.navIcon}><Ionicons name="settings-outline" size={24} color="#CBD5E1" /></TouchableOpacity>
+          {renderNavItem('home', 'home-outline', 'Home')}
+          {renderNavItem('settings', 'settings-outline', 'Setting')}
           
           <View style={styles.plusActionWrapper}>
             <PlusButton 
@@ -139,13 +155,12 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
               backgroundColor="#5152B3"
               size={58}
               iconSize={28}
-              // elevation={0} // Internal Shadow removed
               style={styles.plusShadowFree} 
             />
           </View>
 
-          <TouchableOpacity style={styles.navIcon}><Ionicons name="time-outline" size={24} color="#CBD5E1" /></TouchableOpacity>
-          <TouchableOpacity style={styles.navIcon}><Ionicons name="people-outline" size={24} color="#CBD5E1" /></TouchableOpacity>
+          {renderNavItem('history', 'time-outline', 'History')}
+          {renderNavItem('team', 'people-outline', 'Teams')}
         </View>
       </View>
     </SafeAreaView>
@@ -155,7 +170,7 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1F3F5',
   },
   header: {
     flexDirection: 'row',
@@ -229,29 +244,37 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   visitGrid: {
-    gap: 12,
+    gap: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 5,
   },
   visitCardBorder: {
     width: '48.2%',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F1F5F9',
+    // Logic for vertical stacking
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   visitTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1E293B',
+    color: 'black',
+    textTransform: "uppercase",
+    marginTop: 8, // Space below image
+    textAlign: 'center',
   },
   visitDesc: {
     fontSize: 10,
     color: '#94A3B8',
-    marginTop: 2,
+    marginTop: 2, // Space below title
+    textAlign: 'center',
   },
   bottomNavContainer: {
     position: 'absolute',
@@ -261,8 +284,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
-    paddingBottom: 25,
-    height: 90,
+    paddingBottom: 10,
+    height: 120,
   },
   navBar: {
     flexDirection: 'row',
@@ -270,15 +293,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: '100%',
   },
-  navIcon: {
-    padding: 10,
+  navIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  navLabel: {
+    fontSize: 10,
+    marginTop: 4,
+    fontWeight: '600',
   },
   plusActionWrapper: {
-    marginTop: -50,
+    marginTop: -45,
     backgroundColor: '#FFFFFF',
     padding: 6,
     borderRadius: 35,
-    // Shadow properties removed to make it flat
   },
   plusShadowFree: {
     shadowOpacity: 0,
@@ -286,4 +315,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default Dashboard
+export default Dashboard;

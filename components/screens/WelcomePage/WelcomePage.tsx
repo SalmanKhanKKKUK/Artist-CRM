@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { 
-  Image, 
-  ScrollView, 
-  StyleSheet, 
-  Text, 
-  View, 
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  BackHandler,
+  Dimensions,
+  Image,
+  ScrollView,
   StatusBar,
-  Dimensions 
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
+
+// Added SafeAreaView from the library as requested
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import PlusButton from '../../common/Buttons/PlusButton';
@@ -19,7 +23,42 @@ import Signup from '../Signup/Signup';
 const { width } = Dimensions.get('window');
 
 const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
-  const [currentPage, setCurrentPage] = useState<'welcome' | 'login' | 'signup' | 'companyname' | 'home'>('welcome');
+  const [navigationStack, setNavigationStack] = useState<string[]>(['welcome']);
+  
+  const stackRef = useRef(navigationStack);
+
+  useEffect(() => {
+    stackRef.current = navigationStack;
+  }, [navigationStack]);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      if (stackRef.current.length > 1) {
+        const newStack = [...stackRef.current];
+        newStack.pop();
+        setNavigationStack(newStack);
+        return true;
+      }
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, []);
+
+  const currentPage = navigationStack[navigationStack.length - 1];
+
+  const handleManualBack = () => {
+    if (navigationStack.length > 1) {
+      const newStack = [...navigationStack];
+      newStack.pop();
+      setNavigationStack(newStack);
+    }
+  };
+
+  const navigateToPage = (page: 'welcome' | 'login' | 'signup' | 'companyname' | 'home') => {
+    setNavigationStack(prev => [...prev, page]);
+  };
 
   const handleArtistCRMPress = () => {
     console.log('Artist-CRM link pressed');
@@ -30,21 +69,22 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
       case 'login':
         return (
           <Login 
-            onBack={() => setCurrentPage('welcome')} 
+            onBack={handleManualBack} 
             onNavigateToDashboard={() => onLoginSuccess?.()} 
           />
         );
       case 'signup':
         return (
           <Signup 
-            onBack={() => setCurrentPage('welcome')} 
-            onNavigateToLogin={() => setCurrentPage('login')} 
-            onNavigateToCompanyName={() => setCurrentPage('companyname')} 
+            onBack={handleManualBack} 
+            onNavigateToLogin={() => navigateToPage('login')} 
+            onNavigateToCompanyName={() => navigateToPage('companyname')} 
           />
         );
       case 'companyname':
         return (
           <CompanyName 
+            onBack={handleManualBack}
             onNavigateToProfile={() => onLoginSuccess?.()} 
           />
         );
@@ -71,7 +111,7 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
             
             <DynamicButton 
               text="Login"
-              onPress={() => setCurrentPage('login')}
+              onPress={() => navigateToPage('login')}
               backgroundColor="#5152B3"
               textColor="white"
               borderRadius={25}
@@ -83,7 +123,7 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
             
             <DynamicButton 
               text="Signup"
-              onPress={() => setCurrentPage('signup')}
+              onPress={() => navigateToPage('signup')}
               backgroundColor="transparent"
               textColor="#5152B3"
               borderRadius={25}
@@ -118,13 +158,12 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
   }
 
   return (
-    <View style={styles.container}>
-      {/* StatusBar ab transparent hai aur koi gap nahi aayega */}
+    <SafeAreaView style={styles.safeAreaContainer}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       
       {currentPage === 'welcome' ? (
         <ScrollView 
-          style={styles.container} 
+          style={styles.innerContainer} 
           contentContainerStyle={styles.welcomeScrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -132,27 +171,28 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
           {renderPageContent()}
         </ScrollView>
       ) : (
-        // Login/Signup/CompanyName pages
         <View style={styles.pageWrapper}>
           {renderPageContent()}
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeAreaContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    marginTop: 30,
+  },
+  innerContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   pageWrapper: {
     flex: 1,
   },
   welcomeScrollContent: {
-    // Welcome page ki padding kam kar di taake image top ke qareeb ho
-    paddingTop: 60,
+    paddingTop: 30, // Adjusted for safe area spacing
     paddingBottom: 40,
   },
   content: {
@@ -201,10 +241,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonGap: {
-    height: 5,
+    height: 10,
   },
   socialGap: {
-    width: 20,
+    width: 10,
   },
 });
 
