@@ -1,15 +1,47 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { BackHandler, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSmartBackHandler } from '../../../hooks/useSmartBackHandler';
 import PlusButton from '../../common/Buttons/PlusButton';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import InfoCard from '../../common/Cards/InfoCard';
+import History from '../History/History';
+import NewVisit from '../NewVisit/NewVisit';
+import Teams from '../Teams/Teams';
 
-const Dashboard = ({ onBack }: { onBack?: () => void }) => {
-  useSmartBackHandler(onBack);
+const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBack?: () => void; onNavigateToNewVisit?: () => void; onNavigateToWelcome?: () => void }) => {
   const [activeTab, setActiveTab] = useState('home');
+  const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | null>(null);
+
+  // Proper BackHandler logic to prevent exiting to Welcome page from sub-screens
+  useEffect(() => {
+    const backAction = () => {
+      if (currentScreen !== null) {
+        setCurrentScreen(null); // Back to Dashboard
+        return true;
+      }
+      if (onBack) {
+        onBack(); // Back to Welcome
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [currentScreen, onBack]);
+
+  const handleNewVisitPress = () => {
+    setCurrentScreen('newVisit');
+  };
+
+  const handleHistoryPress = () => {
+    setCurrentScreen('history');
+  };
+
+  const handleTeamsPress = () => {
+    setCurrentScreen('teams');
+  };
 
   const renderNavItem = (id: string, iconName: any, label: string) => {
     const isActive = activeTab === id;
@@ -19,7 +51,17 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
     return (
       <TouchableOpacity 
         style={styles.navIconContainer} 
-        onPress={() => setActiveTab(id)}
+        onPress={() => {
+          if (id === 'add-visit') {
+            handleNewVisitPress();
+          } else if (id === 'history') {
+            handleHistoryPress();
+          } else if (id === 'team') {
+            handleTeamsPress();
+          } else {
+            setActiveTab(id);
+          }
+        }}
       >
         <Ionicons 
           name={isActive ? iconName.replace('-outline', '') : iconName} 
@@ -35,134 +77,146 @@ const Dashboard = ({ onBack }: { onBack?: () => void }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
-      <View style={styles.header}>
-        <View style={styles.brandWrapper}>
-          <Text style={styles.brandTitle}>ARTIST-CRM</Text>
-        </View>
-        <TouchableOpacity style={styles.profileButton}>
-          <View style={styles.avatarMini}>
-            <Ionicons name="person" size={18} color="#5152B3" />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainScroll}>
-        <Text style={styles.mainGreeting}>Dashboard !</Text>
-        
-        <View style={styles.statsContainer}>
-          <InfoCard 
-            title="56" 
-            description="Total Clients"
-            backgroundColor="#FFFFFF"
-            titleColor="#1E293B"
-            descriptionColor="#94A3B8"
-            titleSize={26}
-            margin={0}
-            elevation={0}
-            containerStyle={styles.premiumInfoCard}
-          />
-          <InfoCard 
-            title="10" 
-            description="Active Now"
-            backgroundColor="#FFFFFF"
-            titleColor="#313867"
-            descriptionColor="#94A3B8"
-            titleSize={26}
-            margin={0}
-            elevation={0}
-            containerStyle={styles.premiumInfoCard}
-          />
-        </View>
-
-        <View style={styles.sectionHeadingWrapper}>
-          <Text style={styles.sectionTitle}>Recent Visits</Text>
-          <TouchableOpacity><Text style={styles.seeAllText}>View History</Text></TouchableOpacity>
-        </View>
-        
-        <View style={styles.visitGrid}>
-          <View style={styles.row}>
-            <ImageDesCard 
-              imageSource={require('../../../assets/images/icon.png')}
-              title="John Doe"
-              description="Last visit: 2 days ago"
-              backgroundColor="#FFFFFF"
-              titleStyle={styles.visitTitle}
-              descriptionStyle={styles.visitDesc}
-              cardMargin={0}
-              cardPadding={12}
-              imageSize={40}
-              elevation={0}
-              containerStyle={styles.visitCardBorder}
-            />
-            <ImageDesCard 
-              imageSource={require('../../../assets/images/favicon.png')}
-              title="Smith Alex"
-              description="Last visit: 3 days ago"
-              backgroundColor="#FFFFFF"
-              titleStyle={styles.visitTitle}
-              descriptionStyle={styles.visitDesc}
-              cardMargin={0}
-              cardPadding={12}
-              imageSize={40}
-              elevation={0}
-              containerStyle={styles.visitCardBorder}
-            />
-          </View>
-
-          <View style={styles.row}>
-            <ImageDesCard 
-              imageSource={require('../../../assets/images/splash-icon.png')}
-              title="Mike Ross"
-              description="Last visit: 5 days ago"
-              backgroundColor="#FFFFFF"
-              titleStyle={styles.visitTitle}
-              descriptionStyle={styles.visitDesc}
-              cardMargin={0}
-              cardPadding={12}
-              imageSize={40}
-              elevation={0}
-              containerStyle={styles.visitCardBorder}
-            />
-            <ImageDesCard 
-              imageSource={require('../../../assets/images/react-logo.png')}
-              title="Wilson tel"
-              description="Last visit: 1 week ago"
-              backgroundColor="#FFFFFF"
-              titleStyle={styles.visitTitle}
-              descriptionStyle={styles.visitDesc}
-              cardMargin={0}
-              cardPadding={12}
-              imageSize={40}
-              elevation={0}
-              containerStyle={styles.visitCardBorder}
-            />
-          </View>
-        </View>
-      </ScrollView>
-
-      <View style={styles.bottomNavContainer}>
-        <View style={styles.navBar}>
-          {renderNavItem('home', 'home-outline', 'Home')}
-          {renderNavItem('settings', 'settings-outline', 'Setting')}
+      {currentScreen === 'newVisit' ? (
+        <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+      ) : currentScreen === 'history' ? (
+        <History onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+      ) : currentScreen === 'teams' ? (
+        <Teams onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+      ) : (
+        <>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
           
-          <View style={styles.plusActionWrapper}>
-            <PlusButton 
-              onPress={() => console.log('Plus pressed')}
-              iconName="plus"
-              iconColor="#FFFFFF"
-              backgroundColor="#5152B3"
-              size={58}
-              iconSize={28}
-              style={styles.plusShadowFree} 
-            />
+          <View style={styles.header}>
+            <View style={styles.brandWrapper}>
+              <Text style={styles.brandTitle}>ARTIST-CRM</Text>
+            </View>
+            <TouchableOpacity style={styles.profileButton}>
+              <View style={styles.avatarMini}>
+                <Ionicons name="person" size={18} color="#5152B3" />
+              </View>
+            </TouchableOpacity>
           </View>
 
-          {renderNavItem('history', 'time-outline', 'History')}
-          {renderNavItem('team', 'people-outline', 'Teams')}
-        </View>
-      </View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainScroll}>
+            <Text style={styles.mainGreeting}>Dashboard !</Text>
+            
+            <View style={styles.statsContainer}>
+              <InfoCard 
+                title="56" 
+                description="Total Clients"
+                backgroundColor="#FFFFFF"
+                titleColor="#1E293B"
+                descriptionColor="#94A3B8"
+                titleSize={26}
+                margin={0}
+                elevation={0}
+                containerStyle={styles.premiumInfoCard}
+              />
+              <InfoCard 
+                title="10" 
+                description="Active Clients"
+                backgroundColor="#FFFFFF"
+                titleColor="#313867"
+                descriptionColor="#94A3B8"
+                titleSize={26}
+                margin={0}
+                elevation={0}
+                containerStyle={styles.premiumInfoCard}
+              />
+            </View>
+
+            <View style={styles.sectionHeadingWrapper}>
+              <Text style={styles.sectionTitle}>Recent Visits</Text>
+              <TouchableOpacity onPress={handleHistoryPress}>
+                <Text style={styles.seeAllText}>View History</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.visitGrid}>
+              <View style={styles.row}>
+                <ImageDesCard 
+                  imageSource={require('../../../assets/images/icon.png')}
+                  title="John Doe"
+                  description="Last visit: 2 days ago"
+                  backgroundColor="#FFFFFF"
+                  titleStyle={styles.visitTitle}
+                  descriptionStyle={styles.visitDesc}
+                  cardMargin={0}
+                  cardPadding={12}
+                  imageSize={40}
+                  elevation={0}
+                  containerStyle={styles.visitCardBorder}
+                />
+                <ImageDesCard 
+                  imageSource={require('../../../assets/images/favicon.png')}
+                  title="Smith Alex"
+                  description="Last visit: 3 days ago"
+                  backgroundColor="#FFFFFF"
+                  titleStyle={styles.visitTitle}
+                  descriptionStyle={styles.visitDesc}
+                  cardMargin={0}
+                  cardPadding={12}
+                  imageSize={40}
+                  elevation={0}
+                  containerStyle={styles.visitCardBorder}
+                />
+              </View>
+
+              <View style={styles.row}>
+                <ImageDesCard 
+                  imageSource={require('../../../assets/images/splash-icon.png')}
+                  title="Mike Ross"
+                  description="Last visit: 5 days ago"
+                  backgroundColor="#FFFFFF"
+                  titleStyle={styles.visitTitle}
+                  descriptionStyle={styles.visitDesc}
+                  cardMargin={0}
+                  cardPadding={12}
+                  imageSize={40}
+                  elevation={0}
+                  containerStyle={styles.visitCardBorder}
+                />
+                <ImageDesCard 
+                  imageSource={require('../../../assets/images/react-logo.png')}
+                  title="Wilson tel"
+                  description="Last visit: 1 week ago"
+                  backgroundColor="#FFFFFF"
+                  titleStyle={styles.visitTitle}
+                  descriptionStyle={styles.visitDesc}
+                  cardMargin={0}
+                  cardPadding={12}
+                  imageSize={40}
+                  elevation={0}
+                  containerStyle={styles.visitCardBorder}
+                />
+              </View>
+            </View>
+          </ScrollView>
+
+          <View style={styles.bottomNavContainer}>
+            <View style={styles.navBar}>
+              {renderNavItem('home', 'home-outline', 'Home')}
+              {renderNavItem('add-visit', 'location-outline', 'New Visit')}
+              
+              <View style={styles.plusActionWrapper}>
+                <PlusButton 
+                  onPress={() => console.log('Plus pressed')}
+                  iconName="plus"
+                  iconColor="#FFFFFF"
+                  backgroundColor="#5152B3"
+                  size={58}
+                  iconSize={28}
+                  style={styles.plusShadowFree} 
+                />
+              </View>
+
+              {renderNavItem('history', 'time-outline', 'History')}
+              {renderNavItem('team', 'people-outline', 'Teams')}
+            </View>
+          </View>
+        </>
+      )}
     </SafeAreaView>
   )
 }
@@ -257,7 +311,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F1F5F9',
-    // Logic for vertical stacking
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
@@ -267,13 +320,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'black',
     textTransform: "uppercase",
-    marginTop: 8, // Space below image
+    marginTop: 8,
     textAlign: 'center',
   },
   visitDesc: {
     fontSize: 10,
     color: '#94A3B8',
-    marginTop: 2, // Space below title
+    marginTop: 2,
     textAlign: 'center',
   },
   bottomNavContainer: {
@@ -284,7 +337,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
-    paddingBottom: 10,
+    paddingBottom: 20,
     height: 120,
   },
   navBar: {
@@ -304,7 +357,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   plusActionWrapper: {
-    marginTop: -45,
+    marginTop: -55,
     backgroundColor: '#FFFFFF',
     padding: 6,
     borderRadius: 35,
@@ -313,6 +366,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   }
-})
+});
 
 export default Dashboard;

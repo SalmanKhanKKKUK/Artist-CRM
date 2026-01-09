@@ -129,8 +129,8 @@ const styles = StyleSheet.create({
   },
   topImage: {
     width: width * 0.75, 
-    height: 150, // Image height kam ki taake gap kam ho
-    marginBottom: 10,
+    height: 300, // Image height kam ki taake gap kam ho
+    marginBottom: 5,
   },
   formContainer: {
     width: '100%',
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   inputGap: {
-    height: 5, 
+    height: 10, 
   },
   buttonGap: {
     height: 15,

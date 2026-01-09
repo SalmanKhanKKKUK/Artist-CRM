@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PlusButton from '../../common/Buttons/PlusButton';
+import DynamicButton from '../../common/Buttons/DynamicButton'; // DynamicButton Import kiya
 import Input from '../../common/Inputs/Input';
 
 const { width } = Dimensions.get('window');
@@ -63,7 +64,6 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
               variant="outlined"
             />
 
-            {/* Gap kam kar diya gaya hai */}
             <View style={styles.inputGap} />
 
             <Input
@@ -104,17 +104,23 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
               </TouchableOpacity>
               
               <TouchableOpacity onPress={onNavigateToLogin}>
-                <Text style={styles.forgotText}>Already an Account?</Text>
+                <Text style={styles.forgotText}>Already have an Account?</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity
+              {/* DynamicButton used with exact original styling */}
+              <DynamicButton
+                text="Signup"
                 onPress={() => onNavigateToCompanyName?.()}
-                style={styles.signupButton}
-              >
-                <Text style={styles.signupButtonText}>Signup</Text>
-              </TouchableOpacity>
+                backgroundColor="#5152B3"
+                textColor="#fff"
+                paddingVertical={12}
+                borderRadius={25}
+                fontSize={16}
+                fontWeight="bold"
+                width="100%"
+              />
             </View>
 
             <Text style={styles.socialText}>Signup using</Text>
@@ -122,18 +128,18 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
             <View style={styles.socialContainer}>
               <PlusButton 
                 onPress={() => {}}
-                size={45} // Size thora kam kiya taake space bache
+                size={50}
                 backgroundColor="#DB4437"
-                iconSize={20}
+                iconSize={24}
                 iconName="google"
                 iconColor="white"
               />
               <View style={styles.socialGap} />
               <PlusButton 
                 onPress={() => {}}
-                size={45}
+                size={50}
                 backgroundColor="#4267B2"
-                iconSize={20}
+                iconSize={24}
                 iconName="facebook"
                 iconColor="white"
               />
@@ -162,15 +168,15 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   title: {
-    fontSize: 28, // Font size thora kam kiya
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
     marginTop: Platform.OS === 'android' ? 0 : 5,
   },
   topImage: {
-    width: width * 0.75, // Image width kam ki
-    height: 150, // Image height kam ki
+    width: width * 0.75,
+    height: 150,
     marginBottom: 10,
   },
   formContainer: {
@@ -194,8 +200,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '98%', 
     marginBottom: 15,
-    marginTop: 0,
-    
+    marginTop: 5,
   },
   rememberMe: {
     flexDirection: 'row',
@@ -214,19 +219,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     marginBottom: 15,
-  },
-  signupButton: {
-    backgroundColor: '#5152B3',
-    paddingVertical: 12, // Vertical padding kam ki
-    borderRadius: 25,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  signupButtonText: {
-    color: '#fff', 
-    fontSize: 16, 
-    fontWeight: 'bold'
   },
   socialText: {
     marginVertical: 3,

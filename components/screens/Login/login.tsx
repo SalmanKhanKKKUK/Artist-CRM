@@ -12,7 +12,6 @@ import {
   View,
 } from 'react-native';
 
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import DynamicButton from '../../common/Buttons/DynamicButton';
@@ -31,6 +30,7 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ 
   onNavigateToDashboard, 
+  onNavigateToSignup,
   onBack 
 }) => {
   const [email, setEmail] = useState<string>('');
@@ -139,6 +139,16 @@ const Login: React.FC<LoginProps> = ({
                   iconColor="white"
                 />
               </View>
+
+              {/* Fixed using double quotes to avoid "Don't" error */}
+              <TouchableOpacity 
+                style={styles.signupContainer} 
+                onPress={() => onNavigateToSignup?.()}
+              >
+                <Text style={styles.optionText}>{"Don't have an account? "}</Text>
+                <Text style={styles.forgotText}>Sign Up</Text>
+              </TouchableOpacity>
+
             </View>
           </View>
         </ScrollView>
@@ -201,7 +211,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '98%', 
     marginBottom: 15,
-    marginTop: 0,
+    marginTop: 5,
   },
   rememberMe: {
     flexDirection: 'row',
@@ -235,6 +245,11 @@ const styles = StyleSheet.create({
   },
   socialGap: {
     width: 10,
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    alignItems: 'center',
   },
 });
 

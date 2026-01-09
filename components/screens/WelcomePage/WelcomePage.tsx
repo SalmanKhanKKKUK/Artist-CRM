@@ -71,6 +71,7 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
           <Login 
             onBack={handleManualBack} 
             onNavigateToDashboard={() => onLoginSuccess?.()} 
+            onNavigateToSignup={() => navigateToPage('signup')}
           />
         );
       case 'signup':
@@ -140,6 +141,7 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
                 onPress={() => {}}
                 size={50}
                 backgroundColor="#DB4437"
+                iconSize={24}
                 iconName="google"
                 iconColor="white"
               />
@@ -148,6 +150,7 @@ const WelcomePage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
                 onPress={() => {}}
                 size={50}
                 backgroundColor="#4267B2"
+                iconSize={24}
                 iconName="facebook"
                 iconColor="white"
               />
