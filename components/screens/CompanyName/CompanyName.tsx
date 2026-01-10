@@ -7,16 +7,15 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View
+  View,
+  ScrollView 
 } from 'react-native';
 
-// Imported SafeAreaView from library
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface CompanyNameProps {
   onBack?: () => void;
@@ -31,7 +30,6 @@ const CompanyName: React.FC<CompanyNameProps> = ({
   const [website, setWebsite] = useState<string>('');
 
   const handleSubmit = () => {
-    console.log('Company Details submitted');
     if (onNavigateToProfile) {
       onNavigateToProfile();
     }
@@ -45,60 +43,67 @@ const CompanyName: React.FC<CompanyNameProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={styles.mainContainer}
       >
-        {/* Fixed View instead of ScrollView to stop unnecessary scrolling and gaps */}
-        <View style={styles.innerContainer}>
-          
-          <Text style={styles.title}>Company Name</Text>
-          
-          <Image 
-            source={require('../../../assets/homeimages/welcomepagepic.png')}
-            style={styles.topImage}
-            resizeMode="contain"
-          />
-          
-          <View style={styles.formContainer}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <View style={styles.innerContainer}>
             
-            <Input
-              value={companyName}
-              onChangeText={setCompanyName}
-              placeholder="Company Name"
-              leftIcon={"domain" as any} 
-              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-              size="large"
-              variant="outlined"
-            />
-
-            {/* Gap ko 10 se kam karke 5 kar diya */}
-            <View style={styles.inputGap} />
-
-            <Input
-              value={website}
-              onChangeText={setWebsite}
-              placeholder="Website (Optional)"
-              keyboardType="url"
-              autoCapitalize="none"
-              autoCorrect={false}
-              leftIcon={"web" as any} 
-              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-              size="large"
-              variant="outlined"
-            />
-
-            <View style={styles.buttonGap} />
-
-            <View style={styles.buttonContainer}>
-              <DynamicButton
-                text="Submit"
-                onPress={handleSubmit}
-                backgroundColor="#5152B3"
-                textColor="#fff"
-                borderRadius={25}
-                width="100%"
+            {/* Top Section: Title and Image */}
+            <View style={styles.topSection}>
+              <Text style={styles.title}>Company Name</Text>
+              <Image 
+                source={require('../../../assets/homeimages/welcomepagepic.png')}
+                style={styles.topImage}
+                resizeMode="contain"
               />
+            </View>
+            
+            {/* Bottom Section: Inputs and Button */}
+            <View style={styles.bottomSection}>
+              <Input
+                value={companyName}
+                onChangeText={setCompanyName}
+                placeholder="Company Name"
+                leftIcon={"domain" as any} 
+                containerStyle={styles.fullWidthInput}
+                size="large"
+                variant="outlined"
+              />
+
+              <View style={styles.inputGap} />
+
+              <Input
+                value={website}
+                onChangeText={setWebsite}
+                placeholder="Website (Optional)"
+                keyboardType="url"
+                autoCapitalize="none"
+                autoCorrect={false}
+                leftIcon={"web" as any} 
+                containerStyle={styles.fullWidthInput}
+                size="large"
+                variant="outlined"
+              />
+
+              <View style={styles.buttonGap} />
+
+              <View style={styles.buttonWrapper}>
+                <DynamicButton
+                  text="Submit"
+                  onPress={handleSubmit}
+                  backgroundColor="#5152B3"
+                  textColor="#fff"
+                  borderRadius={25}
+                  width="100%"
+                />
+              </View>
             </View>
 
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -112,49 +117,49 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1, // ScrollView ko height resize karne deta hai
+  },
   innerContainer: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: 10, 
-    paddingBottom: 20,
     paddingHorizontal: 20, 
+    paddingTop: 10,
+    paddingBottom: 20, // Bottom se minimal space
+    justifyContent: 'space-between', // Elements ko top aur bottom mein divide karta hai
+  },
+  topSection: {
+    alignItems: 'center',
     width: '100%',
   },
   title: {
-    fontSize: 28, // Font size thora compact kiya
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
-    marginTop: Platform.OS === 'android' ? 0 : 5, 
+    marginTop: Platform.OS === 'android' ? 10 : 5, 
   },
   topImage: {
-    width: width * 0.75, 
-    height: 300, // Image height kam ki taake gap kam ho
-    marginBottom: 5,
+    width: width * 0.95, 
+    height: height * 0.45, // Image ki height ko bara rakha gaya hai
   },
-  formContainer: {
+  bottomSection: {
     width: '100%',
     alignItems: 'center',
-  },
-  inputContainer: {
-    width: '100%',
-    marginBottom: 0,
+    marginTop: 20, // Image aur inputs ke beech thora gap
   },
   fullWidthInput: {
     width: '100%',
-  },
-  roundedInput: {
     borderRadius: 25,
   },
   inputGap: {
-    height: 10, 
+    height: 12, 
   },
   buttonGap: {
-    height: 15,
+    height: 20,
   },
-  buttonContainer: { 
+  buttonWrapper: { 
     width: '100%',
-    marginBottom: 10,
+    marginBottom: 5, // Button ko bilkul bottom ke qareeb rakhne ke liye
   },
 });
 

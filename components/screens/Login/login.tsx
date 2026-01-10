@@ -204,14 +204,14 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   inputGap: {
-    height: 0,
+    height: 10,
   },
   optionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '98%', 
     marginBottom: 15,
-    marginTop: 5,
+    marginTop: 25,
   },
   rememberMe: {
     flexDirection: 'row',
@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#5152B3',
     fontWeight: 'bold',
+    marginBottom:5,
   },
   buttonContainer: { 
     width: '100%',

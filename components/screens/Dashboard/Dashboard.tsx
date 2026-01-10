@@ -1,82 +1,48 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { BackHandler, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { BackHandler, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
+
+// SafeAreaView handle karne ke liye
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import PlusButton from '../../common/Buttons/PlusButton';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import InfoCard from '../../common/Cards/InfoCard';
 import History from '../History/History';
 import NewVisit from '../NewVisit/NewVisit';
 import Teams from '../Teams/Teams';
+import NavButton from '../../common/Buttons/NavButton'; 
 
 const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBack?: () => void; onNavigateToNewVisit?: () => void; onNavigateToWelcome?: () => void }) => {
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | null>(null);
+  
+  // Insets use karne se humein har mobile ki exact safe area space mil jati hai
+  const insets = useSafeAreaInsets();
 
-  // Proper BackHandler logic to prevent exiting to Welcome page from sub-screens
   useEffect(() => {
     const backAction = () => {
       if (currentScreen !== null) {
-        setCurrentScreen(null); // Back to Dashboard
+        setCurrentScreen(null);
         return true;
       }
       if (onBack) {
-        onBack(); // Back to Welcome
+        onBack();
         return true;
       }
       return false;
     };
-
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, [currentScreen, onBack]);
 
-  const handleNewVisitPress = () => {
-    setCurrentScreen('newVisit');
-  };
-
-  const handleHistoryPress = () => {
-    setCurrentScreen('history');
-  };
-
-  const handleTeamsPress = () => {
-    setCurrentScreen('teams');
-  };
-
-  const renderNavItem = (id: string, iconName: any, label: string) => {
-    const isActive = activeTab === id;
-    const activeColor = "#5152B3";
-    const inactiveColor = "#CBD5E1";
-
-    return (
-      <TouchableOpacity 
-        style={styles.navIconContainer} 
-        onPress={() => {
-          if (id === 'add-visit') {
-            handleNewVisitPress();
-          } else if (id === 'history') {
-            handleHistoryPress();
-          } else if (id === 'team') {
-            handleTeamsPress();
-          } else {
-            setActiveTab(id);
-          }
-        }}
-      >
-        <Ionicons 
-          name={isActive ? iconName.replace('-outline', '') : iconName} 
-          size={24} 
-          color={isActive ? activeColor : inactiveColor} 
-        />
-        <Text style={[styles.navLabel, { color: isActive ? activeColor : inactiveColor }]}>
-          {label}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+  const handleNewVisitPress = () => setCurrentScreen('newVisit');
+  const handleHistoryPress = () => setCurrentScreen('history');
+  const handleTeamsPress = () => setCurrentScreen('teams');
 
   return (
-    <SafeAreaView style={styles.container}>
+    // edges top aur bottom dono ke liye set hain
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {currentScreen === 'newVisit' ? (
         <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
       ) : currentScreen === 'history' ? (
@@ -98,7 +64,14 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainScroll}>
+          <ScrollView 
+            showsVerticalScrollIndicator={false} 
+            contentContainerStyle={[
+              styles.mainScroll, 
+              // Padding bottom ko nav bar ki height ke mutabiq adjust kiya gaya hai
+              { paddingBottom: 100 + insets.bottom } 
+            ]}
+          >
             <Text style={styles.mainGreeting}>Dashboard !</Text>
             
             <View style={styles.statsContainer}>
@@ -148,6 +121,7 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
                   elevation={0}
                   containerStyle={styles.visitCardBorder}
                 />
+                
                 <ImageDesCard 
                   imageSource={require('../../../assets/images/favicon.png')}
                   title="Smith Alex"
@@ -194,11 +168,24 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
             </View>
           </ScrollView>
 
-          <View style={styles.bottomNavContainer}>
+          {/* Bottom Nav: Iski height aur padding mobile ke mutabiq auto-adjust hogi */}
+          <View style={[
+            styles.bottomNavContainer, 
+            { paddingBottom: Platform.OS === 'ios' ? insets.bottom : 15, height: 65 + insets.bottom }
+          ]}>
             <View style={styles.navBar}>
-              {renderNavItem('home', 'home-outline', 'Home')}
-              {renderNavItem('add-visit', 'location-outline', 'New Visit')}
-              
+              <NavButton 
+                label="Home"
+                icon={<Ionicons name={activeTab === 'home' ? "home" : "home-outline"} />}
+                isActive={activeTab === 'home'}
+                onClick={() => setActiveTab('home')}
+              />
+              <NavButton 
+                label="New Visit"
+                icon={<Ionicons name={activeTab === 'add-visit' ? "location" : "location-outline"} />}
+                isActive={activeTab === 'add-visit'}
+                onClick={handleNewVisitPress}
+              />
               <View style={styles.plusActionWrapper}>
                 <PlusButton 
                   onPress={() => console.log('Plus pressed')}
@@ -210,16 +197,25 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
                   style={styles.plusShadowFree} 
                 />
               </View>
-
-              {renderNavItem('history', 'time-outline', 'History')}
-              {renderNavItem('team', 'people-outline', 'Teams')}
+              <NavButton 
+                label="History"
+                icon={<Ionicons name={activeTab === 'history' ? "time" : "time-outline"} />}
+                isActive={activeTab === 'history'}
+                onClick={handleHistoryPress}
+              />
+              <NavButton 
+                label="Teams"
+                icon={<Ionicons name={activeTab === 'team' ? "people" : "people-outline"} />}
+                isActive={activeTab === 'team'}
+                onClick={handleTeamsPress}
+              />
             </View>
           </View>
         </>
       )}
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -259,7 +255,6 @@ const styles = StyleSheet.create({
   },
   mainScroll: {
     paddingHorizontal: 25,
-    paddingBottom: 120,
   },
   mainGreeting: {
     fontSize: 28,
@@ -337,24 +332,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
-    paddingBottom: 20,
-    height: 120,
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: '100%',
-  },
-  navIconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-  },
-  navLabel: {
-    fontSize: 10,
-    marginTop: 4,
-    fontWeight: '600',
+    height: 50,
   },
   plusActionWrapper: {
     marginTop: -55,

@@ -14,8 +14,8 @@ import {
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import PlusButton from '../../common/Buttons/PlusButton';
 import DynamicButton from '../../common/Buttons/DynamicButton'; // DynamicButton Import kiya
+import PlusButton from '../../common/Buttons/PlusButton';
 import Input from '../../common/Inputs/Input';
 
 const { width } = Dimensions.get('window');
@@ -43,14 +43,17 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
         style={styles.mainContainer}
       >
         <View style={styles.innerContainer}>
+          {/* Title at top */}
           <Text style={styles.title}>Signup</Text>
           
+          {/* Image in middle */}
           <Image 
             source={require('../../../assets/homeimages/welcomepagepic.png')}
-            style={styles.topImage}
+            style={styles.middleImage}
             resizeMode="contain"
           />
           
+          {/* Form view at bottom */}
           <View style={styles.formContainer}>
             <Input
               value={email}
@@ -100,12 +103,10 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   size={22} 
                   color="#5152B3" 
                 />
-                <Text style={styles.optionText}>I agree to terms</Text>
+                <Text style={styles.optionText}>I agree to Term & Services</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity onPress={onNavigateToLogin}>
-                <Text style={styles.forgotText}>Already have an Account?</Text>
-              </TouchableOpacity>
+              
             </View>
 
             <View style={styles.buttonContainer}>
@@ -144,6 +145,9 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                 iconColor="white"
               />
             </View>
+            <TouchableOpacity onPress={onNavigateToLogin}>
+                <Text style={styles.forgotText}>Already have an Account?</Text>
+              </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -161,27 +165,31 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: 5, 
-    paddingBottom: 20,
-    paddingHorizontal: 20, 
+    flexDirection: 'column',
     width: '100%',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,
-    marginTop: Platform.OS === 'android' ? 0 : 5,
+    textAlign: 'center',
+    paddingTop: 20,
+    paddingBottom: 10,
   },
-  topImage: {
+  middleImage: {
+    flex: 1,
     width: width * 0.75,
-    height: 150,
-    marginBottom: 10,
+    height: undefined,
+    aspectRatio: 1,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginVertical: 20,
   },
   formContainer: {
     width: '100%',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   inputContainer: {
     width: '100%',
@@ -190,7 +198,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputGap: {
-    height: 0, 
+    height: 10, 
   },
   roundedInput: {
     borderRadius: 25,
@@ -200,7 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '98%', 
     marginBottom: 15,
-    marginTop: 5,
+    marginTop: 15,
   },
   rememberMe: {
     flexDirection: 'row',
@@ -215,10 +223,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#5152B3',
     fontWeight: 'bold',
+    marginTop: 10,
   },
   buttonContainer: {
     width: '100%',
-    marginBottom: 15,
+    marginBottom: 5,
   },
   socialText: {
     marginVertical: 3,
