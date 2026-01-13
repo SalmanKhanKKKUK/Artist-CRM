@@ -184,7 +184,6 @@ const Setting: React.FC<SettingProps> = ({ onBack }) => {
   );
 };
 
-// StyleSheet.create ka use karein taake TypeScript styles ko validate kar sake
 const styles = StyleSheet.create({
   masterContainer: {
     flex: 1,
@@ -195,7 +194,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: 40,
   },
   innerContainer: {
     alignItems: 'center',

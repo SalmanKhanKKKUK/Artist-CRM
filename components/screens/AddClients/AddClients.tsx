@@ -187,7 +187,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     marginTop: 20,
-    // Button ke niche munasib space taake scroll perfect khatam ho
     paddingBottom: 20, 
   },
 });
