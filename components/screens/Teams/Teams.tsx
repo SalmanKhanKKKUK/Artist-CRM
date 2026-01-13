@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import InfoCard from '../../common/Cards/InfoCard';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import DetailCard from '../../common/Cards/DetailCard';
-import DynamicButton from '../../common/Buttons/DynamicButton'; // Import DynamicButton
+import DynamicButton from '../../common/Buttons/DynamicButton';
 
 const { width } = Dimensions.get('window');
 
@@ -29,16 +29,24 @@ const Teams: React.FC<TeamsProps> = () => {
   const [activeTab, setActiveTab] = useState<'members' | 'roles'>('members');
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+    <SafeAreaView 
+      style={styles.masterContainer} 
+      edges={['top', 'bottom']}
+    >
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor="#FFFFFF" 
+      />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-        style={styles.mainContainer}
+        style={styles.flexOne}
       >
         <View style={styles.innerContainer}>
           <View style={styles.headerRow}>
-             <Text style={styles.title}>Our Team</Text>
+             <Text style={styles.title}>
+               Our Team
+             </Text>
           </View>
           
           <Image 
@@ -47,7 +55,6 @@ const Teams: React.FC<TeamsProps> = () => {
             resizeMode="contain"
           />
 
-          {/* Tab Wrapper with Reusable DynamicButtons */}
           <View style={styles.tabWrapper}>
             <DynamicButton
               text="Members"
@@ -59,7 +66,7 @@ const Teams: React.FC<TeamsProps> = () => {
               borderRadius={20}
               paddingVertical={10}
               elevation={activeTab === 'members' ? 2 : 0}
-              containerStyle={{ flex: 1 }} // Keeps the button expanding to fill half the width
+              containerStyle={styles.tabButton}
             />
             
             <DynamicButton
@@ -72,7 +79,7 @@ const Teams: React.FC<TeamsProps> = () => {
               borderRadius={20}
               paddingVertical={10}
               elevation={activeTab === 'roles' ? 2 : 0}
-              containerStyle={{ flex: 1 }}
+              containerStyle={styles.tabButton}
             />
           </View>
 
@@ -80,7 +87,7 @@ const Teams: React.FC<TeamsProps> = () => {
             showsVerticalScrollIndicator={false} 
             style={styles.scrollBox}
             contentContainerStyle={styles.scrollContent}
-            bounces={false}
+            bounces={false} // Extra bouncy scrolling ko khatam karne ke liye
           >
             {activeTab === 'members' ? (
               <View style={styles.contentFadeIn}>
@@ -142,11 +149,11 @@ const Teams: React.FC<TeamsProps> = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  masterContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  mainContainer: {
+  flexOne: {
     flex: 1,
   },
   innerContainer: {
@@ -181,13 +188,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '100%',
   },
-  // tabButton and activeTab styles are no longer needed as they are handled by DynamicButton props
+  tabButton: {
+    flex: 1,
+  },
   scrollBox: {
     flex: 1,
     width: '100%',
   },
   scrollContent: {
-    paddingBottom: 25,
+    paddingBottom: 40, // Navigation bar ke liye space chora hai
   },
   contentFadeIn: {
     width: '100%',

@@ -1,274 +1,239 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Alert, 
+  Dimensions,
   Image, 
   KeyboardAvoidingView, 
   Platform, 
   ScrollView, 
   StatusBar, 
+  StyleSheet,
   Text, 
   TouchableOpacity, 
-  View
+  View,
+  BackHandler // Hardware back button handle karne ke liye
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Reusable Components
 import DynamicButton from "../../common/Buttons/DynamicButton";
+import InfoCard from "../../common/Cards/InfoCard";
 import Setting from "../Setting/Setting";
 
-const Profile = ({ onBack }: any) => {
-  const [profileImage, setProfileImage] = useState<any>(null);
+const { width } = Dimensions.get('window');
+
+interface ProfileProps {
+  onBack: () => void;
+}
+
+const Profile: React.FC<ProfileProps> = ({ onBack }) => {
   const [showSetting, setShowSetting] = useState(false);
 
-  const handleImageUpload = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.status !== 'granted') {
-        Alert.alert('Permission Denied', 'Permission to access camera roll is required!');
-        return;
+  // Android Hardware Back Button Logic
+  useEffect(() => {
+    const backAction = () => {
+      if (showSetting) {
+        // Agar setting open hai to profile par wapas jao
+        setShowSetting(false);
+        return true; // Isse app close nahi hogi
+      } else {
+        // Agar profile par hain to Dashboard (onBack) par jao
+        onBack();
+        return true;
       }
+    };
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setProfileImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    return () => backHandler.remove();
+  }, [showSetting, onBack]);
 
   if (showSetting) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
-        <Setting onBack={() => setShowSetting(false)} />
-      </SafeAreaView>
-    );
+    return <Setting onBack={() => setShowSetting(false)} />;
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={false} />
+    <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      <View style={styles.mainWrapper}>
-        
-        {/* ================= FIXED BLACK HEADER ================= */}
-        <View style={styles.titleContainer}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={onBack}>
-              <MaterialCommunityIcons name="arrow-left" size={28} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>PROFILE</Text>
-            <View style={{ width: 28 }} />
-          </View>
-          
-          <View style={styles.cameraContainer}>
-            <TouchableOpacity onPress={handleImageUpload} style={styles.cameraButton}>
-              {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
-              ) : (
-                <View style={styles.cameraPlaceholder}>
-                  <MaterialCommunityIcons name="camera" size={50} color="#FFD700" />
-                  <Text style={styles.cameraText}>Upload Photo</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ================= SCROLLABLE WHITE CONTENT ================= */}
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flexOne}
+      >
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          bounces={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* formSection holds the Rounded Corners and Scrolls up */}
-          <View style={styles.formSection}>
-            <ScrollView 
-              showsVerticalScrollIndicator={false} 
-              contentContainerStyle={styles.scrollContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View style={styles.profileContent}>
+          <View style={styles.innerContainer}>
+            <Text style={styles.titleText}>Profile</Text>
+            
+            <Image 
+              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              style={styles.topImage}
+              resizeMode="contain"
+            />
+
+            <View style={styles.formContainer}>
+              <View style={styles.profileHeader}>
                 <Text style={styles.profileName}>Aqib Shoaib</Text>
                 <Text style={styles.profileBusiness}>Saloon Hair</Text>
               </View>
-              
+
               <View style={styles.infoWrapper}>
-                <View style={styles.sentenceCard}>
-                   <Text style={styles.infoCardTitle}>Email: </Text>
-                   <Text style={styles.infoCardDescription}>aqibshoaib@gmail.com</Text>
-                </View>
-
-                <View style={styles.sentenceCard}>
-                   <Text style={styles.infoCardTitle}>Phone: </Text>
-                   <Text style={styles.infoCardDescription}>3118298343</Text>
-                </View>
-
-                <TouchableOpacity 
-                  style={styles.clickableCard} 
-                  onPress={() => setShowSetting(true)}
-                >
-                  <Text style={styles.infoCardTitle}>Setting</Text>
-                  <MaterialCommunityIcons name="chevron-right" size={24} color="#333" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.clickableCard}>
-                  <Text style={styles.infoCardTitle}>Manage Billing</Text>
-                  <MaterialCommunityIcons name="chevron-right" size={24} color="#333" />
-                </TouchableOpacity>
-
-                <DynamicButton
-                  text="Logout"
-                  onPress={() => Alert.alert('Logout', 'Are you sure?')}
-                  backgroundColor="#FF4444"
-                  textColor="#FFFFFF"
-                  width="100%"
-                  borderRadius={10}
-                  containerStyle={styles.logoutBtnContainer}
+                <InfoCard 
+                  title="Email"
+                  description="aqibshoaib@gmail.com"
+                  backgroundColor="#F8FAFC"
+                  borderRadius={20}
+                  margin={0}
+                  elevation={0}
+                  containerStyle={styles.cardBorder}
                 />
+
+                <InfoCard 
+                  title="Phone"
+                  description="3118298343"
+                  backgroundColor="#F8FAFC"
+                  borderRadius={20}
+                  margin={0}
+                  elevation={0}
+                  containerStyle={styles.cardBorder}
+                />
+
+                <TouchableOpacity onPress={() => setShowSetting(true)}>
+                  <View style={styles.clickableWrapper}>
+                    <InfoCard 
+                      title="Settings"
+                      description="App preferences and security"
+                      backgroundColor="#FFFFFF"
+                      borderRadius={20}
+                      margin={0}
+                      elevation={0}
+                      containerStyle={styles.cardBorder}
+                    />
+                    <MaterialCommunityIcons 
+                      name="chevron-right" 
+                      size={24} 
+                      color="#CBD5E1" 
+                      style={styles.chevronIcon}
+                    />
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => console.log("Billing Clicked")}>
+                  <View style={styles.clickableWrapper}>
+                    <InfoCard 
+                      title="Manage Billing"
+                      description="Subscription and payments"
+                      backgroundColor="#FFFFFF"
+                      borderRadius={20}
+                      margin={0}
+                      elevation={0}
+                      containerStyle={styles.cardBorder}
+                    />
+                    <MaterialCommunityIcons 
+                      name="chevron-right" 
+                      size={24} 
+                      color="#CBD5E1" 
+                      style={styles.chevronIcon}
+                    />
+                  </View>
+                </TouchableOpacity>
+
+                <View style={styles.buttonContainer}>
+                  <DynamicButton
+                    text="Logout"
+                    onPress={() => Alert.alert('Logout', 'Are you sure?', [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Logout', onPress: () => onBack(), style: 'destructive' }
+                    ])}
+                    backgroundColor="#5152B3"
+                    textColor="#FFFFFF"
+                    borderRadius={25}
+                    width="100%"
+                    paddingVertical={14}
+                  />
+                </View>
               </View>
-            </ScrollView>
+            </View>
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-// Styles as any to bypass all TypeScript checks
-const styles: any = {
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  mainWrapper: {
-    flex: 1,
-    backgroundColor: '#000000', 
-  },
-  titleContainer: {
-    backgroundColor: '#000',
-    paddingBottom: 40,
-    alignItems: 'center',
-    width: '100%',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    width: '100%',
-    paddingTop: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    letterSpacing: 1,
-  },
-  cameraContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  cameraButton: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    backgroundColor: '#2a2a2a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#FFD700',
-  },
-  profileImage: {
-    width: 124,
-    height: 124,
-    borderRadius: 62,
-  },
-  cameraPlaceholder: {
-    alignItems: 'center',
-  },
-  cameraText: {
-    color: '#FFD700',
-    fontSize: 12,
-    marginTop: 5,
-  },
-  formSection: {
+const styles = StyleSheet.create({
+  masterContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    marginTop: -30, 
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    overflow: 'hidden',
+  },
+  flexOne: {
+    flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 40,
+    flexGrow: 1,
+    paddingBottom: 20,
   },
-  profileContent: {
+  innerContainer: {
     alignItems: 'center',
-    paddingTop: 20,
+    paddingTop: 10,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  titleText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  topImage: {
+    width: width * 0.8,
+    height: 140,
     marginBottom: 10,
   },
+  formContainer: {
+    width: '100%',
+  },
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   profileName: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
   },
   profileBusiness: {
-    fontSize: 18,
-    color: '#666',
-    marginTop: 4,
+    fontSize: 16,
+    color: '#64748B',
+    marginTop: 2,
   },
   infoWrapper: {
+    gap: 12,
+  },
+  cardBorder: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  clickableWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  chevronIcon: {
+    position: 'absolute',
+    right: 15,
+  },
+  buttonContainer: {
+    marginTop: 20,
     width: '100%',
   },
-  sentenceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginTop: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  clickableCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 18,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginTop: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  infoCardTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  infoCardDescription: {
-    fontSize: 16,
-    color: "#666",
-  },
-  logoutBtnContainer: {
-    marginTop: 30, 
-    marginBottom: 40
-  },
-};
+});
 
 export default Profile;

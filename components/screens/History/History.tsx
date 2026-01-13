@@ -17,7 +17,7 @@ import InfoCard from '../../common/Cards/InfoCard';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import DetailCard from '../../common/Cards/DetailCard';
 import PreferCard from '../../common/Cards/PreferCard';
-import DynamicButton from '../../common/Buttons/DynamicButton'; // Imported DynamicButton
+import DynamicButton from '../../common/Buttons/DynamicButton';
 
 const { width } = Dimensions.get('window');
 
@@ -30,16 +30,24 @@ const History: React.FC<HistoryProps> = () => {
   const [activeTab, setActiveTab] = useState<'activity' | 'details'>('activity');
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+    <SafeAreaView 
+      style={styles.masterContainer} 
+      edges={['top', 'bottom']}
+    >
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor="#FFFFFF" 
+      />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-        style={styles.mainContainer}
+        style={styles.flexOne}
       >
         <View style={styles.innerContainer}>
           <View style={styles.headerRow}>
-             <Text style={styles.title}>Client History</Text>
+             <Text style={styles.title}>
+               Client History
+             </Text>
           </View>
           
           <Image 
@@ -48,7 +56,6 @@ const History: React.FC<HistoryProps> = () => {
             resizeMode="contain"
           />
 
-          {/* Tabs UI using Reusable DynamicButton */}
           <View style={styles.tabWrapper}>
             <DynamicButton
               text="Activity"
@@ -60,8 +67,7 @@ const History: React.FC<HistoryProps> = () => {
               borderRadius={20}
               paddingVertical={10}
               elevation={activeTab === 'activity' ? 2 : 0}
-              shadowColor={activeTab === 'activity' ? "#000" : undefined}
-              containerStyle={{ flex: 1 }}
+              containerStyle={styles.flexOne}
             />
             
             <DynamicButton
@@ -74,8 +80,7 @@ const History: React.FC<HistoryProps> = () => {
               borderRadius={20}
               paddingVertical={10}
               elevation={activeTab === 'details' ? 2 : 0}
-              shadowColor={activeTab === 'details' ? "#000" : undefined}
-              containerStyle={{ flex: 1 }}
+              containerStyle={styles.flexOne}
             />
           </View>
 
@@ -83,7 +88,7 @@ const History: React.FC<HistoryProps> = () => {
             showsVerticalScrollIndicator={false} 
             style={styles.scrollBox}
             contentContainerStyle={styles.scrollContent}
-            bounces={false}
+            bounces={false} // Extra scrolling aur bounce rokne ke liye
           >
             {activeTab === 'activity' ? (
               <View style={styles.contentFadeIn}>
@@ -97,11 +102,15 @@ const History: React.FC<HistoryProps> = () => {
                 <View style={styles.historyImagesRow}>
                   <View style={styles.imageWrapper}>
                     <Image source={{ uri: 'https://picsum.photos/150/150' }} style={styles.historyImg} />
-                    <View style={styles.imageOverlay}><Text style={styles.overlayText}>Before</Text></View>
+                    <View style={styles.imageOverlay}>
+                      <Text style={styles.overlayText}>Before</Text>
+                    </View>
                   </View>
                   <View style={styles.imageWrapper}>
                     <Image source={{ uri: 'https://picsum.photos/152/152' }} style={styles.historyImg} />
-                    <View style={styles.imageOverlay}><Text style={styles.overlayText}>After</Text></View>
+                    <View style={styles.imageOverlay}>
+                      <Text style={styles.overlayText}>After</Text>
+                    </View>
                   </View>
                 </View>
 
@@ -137,7 +146,7 @@ const History: React.FC<HistoryProps> = () => {
                   notes="Prefers appointments on weekends."
                 />
 
-                <View style={{ height: 20 }} />
+                <View style={styles.gap20} />
 
                 <ImageDesCard
                   imageSource={{ uri: 'https://picsum.photos/81/81' }}
@@ -155,11 +164,11 @@ const History: React.FC<HistoryProps> = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  masterContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  mainContainer: {
+  flexOne: {
     flex: 1,
   },
   innerContainer: {
@@ -194,13 +203,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '100%',
   },
-  // Tab button styles removed as they are now handled by DynamicButton props
   scrollBox: {
     flex: 1,
     width: '100%',
   },
   scrollContent: {
-    paddingBottom: 25, 
+    paddingBottom: 40, // Dashboard ke gap ke liye munasib padding
   },
   contentFadeIn: {
     width: '100%',
@@ -239,6 +247,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  gap20: {
+    height: 20,
   },
 });
 

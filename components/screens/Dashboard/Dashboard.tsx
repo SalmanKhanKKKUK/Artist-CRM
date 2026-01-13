@@ -1,23 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { BackHandler, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
+import { BackHandler, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // SafeAreaView handle karne ke liye
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import NavButton from '../../common/Buttons/NavButton';
 import PlusButton from '../../common/Buttons/PlusButton';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import InfoCard from '../../common/Cards/InfoCard';
+import AddClients from '../AddClients/AddClients';
 import History from '../History/History';
 import NewVisit from '../NewVisit/NewVisit';
+import Profile from '../Profile/Profile';
 import Teams from '../Teams/Teams';
-import NavButton from '../../common/Buttons/NavButton'; 
 
 const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBack?: () => void; onNavigateToNewVisit?: () => void; onNavigateToWelcome?: () => void }) => {
-  const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | null>(null);
+  // Navigation State
+  const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | null>(null);
   
-  // Insets use karne se humein har mobile ki exact safe area space mil jati hai
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -36,28 +37,36 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
     return () => backHandler.remove();
   }, [currentScreen, onBack]);
 
+  // Navigation Handlers
+  const handleHomePress = () => setCurrentScreen(null);
   const handleNewVisitPress = () => setCurrentScreen('newVisit');
   const handleHistoryPress = () => setCurrentScreen('history');
   const handleTeamsPress = () => setCurrentScreen('teams');
+  const handleAddClientsPress = () => setCurrentScreen('addClients');
+  const handleProfilePress = () => setCurrentScreen('profile');
 
   return (
-    // edges top aur bottom dono ke liye set hain
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Conditionally Render Screens or Main Dashboard Content */}
       {currentScreen === 'newVisit' ? (
         <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
       ) : currentScreen === 'history' ? (
         <History onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
       ) : currentScreen === 'teams' ? (
         <Teams onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+      ) : currentScreen === 'addClients' ? (
+        <AddClients onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+      ) : currentScreen === 'profile' ? (
+        <Profile onBack={() => setCurrentScreen(null)} />
       ) : (
         <>
-          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-          
           <View style={styles.header}>
             <View style={styles.brandWrapper}>
               <Text style={styles.brandTitle}>ARTIST-CRM</Text>
             </View>
-            <TouchableOpacity style={styles.profileButton}>
+            <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
               <View style={styles.avatarMini}>
                 <Ionicons name="person" size={18} color="#5152B3" />
               </View>
@@ -68,13 +77,12 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
             showsVerticalScrollIndicator={false} 
             contentContainerStyle={[
               styles.mainScroll, 
-              // Padding bottom ko nav bar ki height ke mutabiq adjust kiya gaya hai
               { paddingBottom: 100 + insets.bottom } 
             ]}
           >
             <Text style={styles.mainGreeting}>Dashboard !</Text>
             
-            <View style={styles.statsContainer}>
+            <View style={statsStyles.statsContainer}>
               <InfoCard 
                 title="56" 
                 description="Total Clients"
@@ -167,55 +175,67 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
               </View>
             </View>
           </ScrollView>
-
-          {/* Bottom Nav: Iski height aur padding mobile ke mutabiq auto-adjust hogi */}
-          <View style={[
-            styles.bottomNavContainer, 
-            { paddingBottom: Platform.OS === 'ios' ? insets.bottom : 15, height: 65 + insets.bottom }
-          ]}>
-            <View style={styles.navBar}>
-              <NavButton 
-                label="Home"
-                icon={<Ionicons name={activeTab === 'home' ? "home" : "home-outline"} />}
-                isActive={activeTab === 'home'}
-                onClick={() => setActiveTab('home')}
-              />
-              <NavButton 
-                label="New Visit"
-                icon={<Ionicons name={activeTab === 'add-visit' ? "location" : "location-outline"} />}
-                isActive={activeTab === 'add-visit'}
-                onClick={handleNewVisitPress}
-              />
-              <View style={styles.plusActionWrapper}>
-                <PlusButton 
-                  onPress={() => console.log('Plus pressed')}
-                  iconName="plus"
-                  iconColor="#FFFFFF"
-                  backgroundColor="#5152B3"
-                  size={58}
-                  iconSize={28}
-                  style={styles.plusShadowFree} 
-                />
-              </View>
-              <NavButton 
-                label="History"
-                icon={<Ionicons name={activeTab === 'history' ? "time" : "time-outline"} />}
-                isActive={activeTab === 'history'}
-                onClick={handleHistoryPress}
-              />
-              <NavButton 
-                label="Teams"
-                icon={<Ionicons name={activeTab === 'team' ? "people" : "people-outline"} />}
-                isActive={activeTab === 'team'}
-                onClick={handleTeamsPress}
-              />
-            </View>
-          </View>
         </>
       )}
+
+      {/* NAVIGATION BAR - FIXED AT BOTTOM */}
+      <View style={[
+        styles.bottomNavContainer, 
+        { 
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 15, 
+          height: 65 + insets.bottom 
+        }
+      ]}>
+        <View style={styles.navBar}>
+          <NavButton 
+            label="Home"
+            icon={<Ionicons name={currentScreen === null ? "home" : "home-outline"} size={22} />}
+            isActive={currentScreen === null}
+            onClick={handleHomePress}
+          />
+          <NavButton 
+            label="New Visit"
+            icon={<Ionicons name={currentScreen === 'newVisit' ? "location" : "location-outline"} size={22} />}
+            isActive={currentScreen === 'newVisit'}
+            onClick={handleNewVisitPress}
+          />
+          <View style={styles.plusActionWrapper}>
+            <PlusButton 
+              onPress={handleAddClientsPress}
+              iconName="plus"
+              iconColor="#FFFFFF"
+              backgroundColor="#5152B3"
+              size={58}
+              iconSize={28}
+              style={styles.plusShadowFree} 
+            />
+          </View>
+          <NavButton 
+            label="History"
+            icon={<Ionicons name={currentScreen === 'history' ? "time" : "time-outline"} size={22} />}
+            isActive={currentScreen === 'history'}
+            onClick={handleHistoryPress}
+          />
+          <NavButton 
+            label="Teams"
+            icon={<Ionicons name={currentScreen === 'teams' ? "people" : "people-outline"} size={22} />}
+            isActive={currentScreen === 'teams'}
+            onClick={handleTeamsPress}
+          />
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
+
+// Separate style object for better organization as requested
+const statsStyles = StyleSheet.create({
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 15,
+  }
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -262,11 +282,6 @@ const styles = StyleSheet.create({
     color: '#5152B3',
     marginTop: 10,
     marginBottom: 20,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 15,
   },
   premiumInfoCard: {
     width: '47.5%',
@@ -334,6 +349,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#F1F5F9',
     paddingHorizontal: 10,
     paddingTop: 10,
+    zIndex: 1000,
   },
   navBar: {
     flexDirection: 'row',

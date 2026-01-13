@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { 
-  Alert, 
   Dimensions, 
   Modal, 
   ScrollView, 
@@ -10,16 +9,24 @@ import {
   Text, 
   TouchableOpacity, 
   View,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  Alert,
+  BackHandler 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Reusable Components
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import ToggleButton from '../../common/Buttons/ToggleButton';
+import InfoCard from '../../common/Cards/InfoCard';
 import CalendarCard from '../../common/Cards/CalendarCard';
-import FilterInput, { FilterSection } from '../../common/Inputs/FilterInput';
 import SearchInput from '../../common/Inputs/SearchInput';
 
-// 1. Icon Names ki list ko satisfy karne ke liye type
+const { width } = Dimensions.get('window');
+
+// 1. Icon Names ki types ko define kiya taake MaterialCommunityIcons error na de
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 interface SettingProps {
@@ -31,141 +38,132 @@ interface SettingItem {
   title: string;
   subtitle: string;
   icon: IconName;
-  category: string;
   hasRightIcon: boolean;
   rightIcon?: IconName;
-  hasPlusButton: boolean;
+  hasToggle: boolean;
 }
-
-const screenHeight: number = Dimensions.get('window').height;
 
 const Setting: React.FC<SettingProps> = ({ onBack }) => {
   const [searchText, setSearchText] = useState<string>('');
-  const [selectedFilter, setSelectedFilter] = useState<string>('all');
-  const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
   const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
   const [tempToggleStates, setTempToggleStates] = useState<Record<string, boolean>>({});
 
+  useEffect(() => {
+    const backAction = () => {
+      onBack();
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => backHandler.remove();
+  }, [onBack]);
+
   const settingsData: SettingItem[] = useMemo(() => [
-    { id: 2, title: 'Operating Hours', subtitle: 'Notice, Buffer, Add Weekly Notice', icon: 'clock', category: 'General', hasRightIcon: true, rightIcon: 'chevron-right', hasPlusButton: false },
-    { id: 3, title: 'Tax Setting', subtitle: 'Fees and Refunds', icon: 'file-document', category: 'Financial', hasRightIcon: true, rightIcon: 'chevron-right', hasPlusButton: false },
-    { id: 4, title: 'Book & Appointment', subtitle: '', icon: 'content-cut', category: 'Appointment', hasRightIcon: true, rightIcon: 'calendar', hasPlusButton: false },
-    { id: 5, title: 'Cancellation Policy', subtitle: '', icon: 'file-document', category: 'Policy', hasRightIcon: false, hasPlusButton: true },
-    { id: 6, title: 'Custom Notifications', subtitle: '', icon: 'message', category: 'Notification', hasRightIcon: true, rightIcon: 'chevron-right', hasPlusButton: false },
-    { id: 7, title: 'Staff Management', subtitle: '', icon: 'account-circle', category: 'Staff', hasRightIcon: true, rightIcon: 'chevron-right', hasPlusButton: false },
-    { id: 8, title: 'Commission', subtitle: '', icon: 'account-circle', category: 'Financial', hasRightIcon: false, hasPlusButton: true },
-    { id: 9, title: 'Two-Factor Auth Security', subtitle: '', icon: 'shield-key', category: 'Security', hasRightIcon: true, rightIcon: 'chevron-right', hasPlusButton: false },
-    { id: 10, title: 'Dark Mood', subtitle: 'Dark theme', icon: 'moon-waning-crescent', category: 'Appearance', hasRightIcon: false, hasPlusButton: true }
+    { id: 2, title: 'Operating Hours', subtitle: 'Notice, Buffer, Weekly Notice', icon: 'clock-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
+    { id: 3, title: 'Tax Setting', subtitle: 'Fees and Refunds', icon: 'file-document-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
+    { id: 4, title: 'Book & Appointment', subtitle: 'Manage your schedule', icon: 'calendar-check-outline', hasRightIcon: true, rightIcon: 'calendar', hasToggle: false },
+    { id: 5, title: 'Cancellation Policy', subtitle: 'Terms for cancellations', icon: 'shield-alert-outline', hasRightIcon: false, hasToggle: true },
+    { id: 6, title: 'Custom Notifications', subtitle: 'Email and SMS alerts', icon: 'bell-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
+    { id: 9, title: 'Two-Factor Auth', subtitle: 'Secure your account', icon: 'shield-key-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
+    { id: 10, title: 'Dark Mode', subtitle: 'Switch app theme', icon: 'moon-waning-crescent', hasRightIcon: false, hasToggle: true }
   ], []);
 
-  const filterSections: FilterSection[] = [
-    { 
-      id: "category", 
-      title: "Category", 
-      options: [
-        { label: "All", value: "all" },
-        { label: "General", value: "general" },
-        { label: "Financial", value: "financial" }
-      ] 
-    }
-  ];
-
   const filteredData = useMemo(() => {
-    let data = [...settingsData];
-    if (selectedFilter !== 'all') {
-      data = data.filter(item => item.category.toLowerCase() === selectedFilter.toLowerCase());
-    }
-    if (searchText) {
-      data = data.filter(item => item.title.toLowerCase().includes(searchText.toLowerCase()));
-    }
-    return data;
-  }, [selectedFilter, searchText, settingsData]);
+    if (!searchText) return settingsData;
+    return settingsData.filter(item => 
+      item.title.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [searchText, settingsData]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+    <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      <View style={styles.mainWrapper}>
-        {/* BLACK HEADER SECTION */}
-        <View style={styles.blackHeader}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={onBack}>
-              <MaterialCommunityIcons name="arrow-left" size={28} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>SETTING</Text>
-            <View style={{ width: 28 }} />
-          </View>
-          
-          <SearchInput
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholder="Search Settings..."
-            containerStyle={styles.searchBox}
-            onFilterIconPress={() => setShowFilterModal(true)}
-            showFilterIcon={true}
-          />
-        </View>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        style={styles.flexOne}
+      >
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          bounces={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.innerContainer}>
+            <Text style={styles.titleText}>Settings</Text>
+            
+            <Image 
+              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              style={styles.topImage}
+              resizeMode="contain"
+            />
 
-        {/* WHITE CONTENT SECTION */}
-        <View style={styles.formSection}>
-          <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.generalSettingTitle}>General Business Setting</Text>
-              
-              {filteredData.map((item) => (
-                <View key={item.id} style={styles.settingCard}>
-                  <MaterialCommunityIcons name={item.icon} size={22} color="#333" style={styles.iconStyle} />
-                  <View style={styles.textContainer}>
-                    <Text style={styles.itemTitle}>{item.title}</Text>
-                    {item.subtitle !== '' && <Text style={styles.itemSubtitle}>{item.subtitle}</Text>}
-                  </View>
-                  
-                  {item.title === 'Book & Appointment' ? (
-                    <TouchableOpacity onPress={() => setShowCalendarModal(true)}>
-                      <MaterialCommunityIcons name="calendar" size={24} color="#9E9E9E" />
-                    </TouchableOpacity>
-                  ) : item.hasPlusButton ? (
-                    <ToggleButton
-                      isOn={tempToggleStates[item.title] || false}
-                      onToggle={(isOn) => setTempToggleStates(prev => ({ ...prev, [item.title]: isOn }))}
-                      size={18}
-                    />
-                  ) : (
-                    <MaterialCommunityIcons name={item.rightIcon || 'chevron-right'} size={22} color="#333" />
-                  )}
-                </View>
-              ))}
-
-              <DynamicButton
-                text="Save Changes"
-                onPress={() => Alert.alert('Saved')}
-                backgroundColor="#FFD700"
-                textColor="#000"
-                width="100%"
-                containerStyle={styles.buttonMargin}
+            <View style={styles.formContainer}>
+              <SearchInput
+                value={searchText}
+                onChangeText={setSearchText}
+                placeholder="Search by name..."
+                containerStyle={styles.searchBox}
+                showFilterIcon={false}
               />
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </View>
 
-      {/* Filter Modal */}
-      <FilterInput
-        title="Filters"
-        sections={filterSections}
-        isVisible={showFilterModal}
-        onClose={() => setShowFilterModal(false)}
-        onApply={(selections) => {
-          if (selections.category) setSelectedFilter(selections.category);
-          setShowFilterModal(false);
-        }}
-        onReset={() => {
-          setSelectedFilter("all");
-          setShowFilterModal(false);
-        }}
-      />
+              <Text style={styles.sectionHeading}>General Business Settings</Text>
+              
+              <View style={styles.infoWrapper}>
+                {filteredData.map((item) => (
+                  <TouchableOpacity 
+                    key={item.id} 
+                    onPress={() => item.title === 'Book & Appointment' ? setShowCalendarModal(true) : null}
+                    disabled={item.hasToggle}
+                  >
+                    <View style={styles.cardWrapper}>
+                      <InfoCard 
+                        title={item.title}
+                        description={item.subtitle}
+                        backgroundColor="#F8FAFC"
+                        borderRadius={20}
+                        margin={0}
+                        elevation={0}
+                        containerStyle={styles.cardBorder}
+                        titleSize={15}
+                        descriptionSize={11}
+                      />
+                      
+                      <View style={styles.rightElement}>
+                        {item.hasToggle ? (
+                          <ToggleButton
+                            isOn={tempToggleStates[item.title] || false}
+                            onToggle={(isOn) => setTempToggleStates(prev => ({ ...prev, [item.title]: isOn }))}
+                            size={18}
+                          />
+                        ) : (
+                          <MaterialCommunityIcons 
+                            name={(item.rightIcon as any) || 'chevron-right'} 
+                            size={24} 
+                            color="#CBD5E1" 
+                          />
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
 
-      {/* Calendar Modal */}
+                <View style={styles.buttonContainer}>
+                  <DynamicButton
+                    text="Save Changes"
+                    onPress={() => Alert.alert('Success', 'Settings updated!')}
+                    backgroundColor="#5152B3"
+                    textColor="#FFFFFF"
+                    borderRadius={25}
+                    width="100%"
+                    paddingVertical={14}
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
       <Modal visible={showCalendarModal} transparent animationType="fade">
         <View style={styles.modalBg}>
           <View style={styles.modalContent}>
@@ -186,86 +184,69 @@ const Setting: React.FC<SettingProps> = ({ onBack }) => {
   );
 };
 
+// StyleSheet.create ka use karein taake TypeScript styles ko validate kar sake
 const styles = StyleSheet.create({
-  safeArea: { 
-    flex: 1, 
-    backgroundColor: '#000' 
+  masterContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  mainWrapper: { 
-    flex: 1, 
-    backgroundColor: '#fff' 
+  flexOne: {
+    flex: 1,
   },
-  blackHeader: {
-    backgroundColor: '#000',
-    paddingBottom: 40,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  innerContainer: {
     alignItems: 'center',
-    height: screenHeight * 0.28,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingTop: 10,
     paddingHorizontal: 20,
     width: '100%',
-    paddingTop: 10,
+  },
+  titleText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  topImage: {
+    width: width * 0.8,
+    height: 140,
+    marginBottom: 10,
+  },
+  formContainer: {
+    width: '100%',
+  },
+  searchBox: {
+    width: "100%",
     marginBottom: 20,
   },
-  headerTitle: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#fff' 
+  sectionHeading: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: '#333',
+    marginLeft: 5,
   },
-  searchBox: { 
-    width: "95%" 
+  infoWrapper: {
+    gap: 12,
   },
-  formSection: {
-    flex: 1,
-    backgroundColor: '#fff',
-    marginTop: -30,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingHorizontal: 20,
+  cardWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
   },
-  scrollContent: { 
-    paddingTop: 30 
+  cardBorder: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingRight: 50,
   },
-  generalSettingTitle: { 
-    fontSize: 18, 
-    fontWeight: "bold", 
-    marginBottom: 20, 
-    color: '#000' 
+  rightElement: {
+    position: 'absolute',
+    right: 15,
   },
-  settingCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  iconStyle: { 
-    marginRight: 15 
-  },
-  textContainer: { 
-    flex: 1 
-  },
-  itemTitle: { 
-    fontSize: 15, 
-    fontWeight: '600', 
-    color: '#000' 
-  },
-  itemSubtitle: { 
-    fontSize: 11, 
-    color: '#666' 
-  },
-  buttonMargin: { 
-    marginTop: 20, 
-    marginBottom: 40 
+  buttonContainer: {
+    marginTop: 20,
+    width: '100%',
   },
   modalBg: {
     flex: 1,
@@ -286,5 +267,3 @@ const styles = StyleSheet.create({
 });
 
 export default Setting;
-
-
