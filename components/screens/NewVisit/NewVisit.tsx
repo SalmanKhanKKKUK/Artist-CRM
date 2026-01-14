@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
@@ -14,11 +14,12 @@ import {
   View,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Component Imports
 import Input from '../../common/Inputs/Input';
-import DynamicButton from '../../common/Buttons/DynamicButton';
+import NavHeader from '../../common/Buttons/NavHeader';
+import DynamicButton from '../../common/Buttons/DynamicButton'; // Import Reusable Button
 
 const { width } = Dimensions.get('window');
 
@@ -30,136 +31,122 @@ interface NewVisitProps {
 const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   const [service, setService] = useState<string>('');
   const [formula, setFormula] = useState<string>('');
-  const [beforeImage, setBeforeImage] = useState<string | null>(null);
-  const [afterImage, setAfterImage] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  
+  const insets = useSafeAreaInsets();
 
-  const handleImagePick = async (type: 'before' | 'after') => {
+  const handleImagePick = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
       quality: 1,
+      allowsMultipleSelection: true,
     });
 
     if (!result.canceled) {
-      if (type === 'before') setBeforeImage(result.assets[0].uri);
-      else setAfterImage(result.assets[0].uri);
+      const selectedUris = result.assets.map(asset => asset.uri);
+      setImages(prev => [...prev, ...selectedUris]);
     }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
     <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
+      {/* NavHeader with Reusable DynamicButton */}
+      <NavHeader title="New Visit">
+        <DynamicButton 
+          text="Save"
+          onPress={onBack}
+          backgroundColor="#5152B3"
+          textColor="#FFFFFF"
+          borderRadius={20}
+          paddingVertical={8}
+          paddingHorizontal={20}
+          fontSize={14}
+          fontWeight="bold"
+        />
+      </NavHeader>
+
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
         style={styles.flexOne}
       >
         <ScrollView 
           showsVerticalScrollIndicator={false}
-          bounces={false} // Extra bouncy scrolling ko khatam karne ke liye
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: 10 + insets.bottom } 
+          ]}
         >
-          <View style={styles.innerContainer}>
-            <Text style={styles.title}>
-              New-Visit
-            </Text>
-            
-            <Image 
-              source={require('../../../assets/homeimages/welcomepagepic.png')}
-              style={styles.topImage}
-              resizeMode="contain"
+          <View style={styles.formContainer}>
+
+            <Text style={styles.label}>Service</Text>
+            <Input
+              value={service}
+              onChangeText={setService}
+              placeholder="Search service..."
+              leftIcon="magnify"
+              containerStyle={[styles.fullWidthInput, styles.roundedInput]}
+              size="large"
+              variant="outlined"
             />
 
-            <View style={styles.formContainer}>
-              <Input
-                value={service}
-                onChangeText={setService}
-                placeholder="Search Service"
-                leftIcon="magnify"
-                containerStyle={styles.roundedInput}
-                size="large"
-                variant="outlined"
-              />
-
-              <View style={styles.sectionGap} />
-              
-              <Text style={styles.label}>
-                Quick Tags
-              </Text>
-              
-              <View style={styles.tagsGrid}>
-                {['Bleech', 'Toner', 'Color', 'Style'].map((tag) => (
-                  <View key={tag} style={styles.tag}>
-                    <Text style={styles.tagText}>
-                      {tag}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-
-              <View style={styles.sectionGap} />
-              
-              <Text style={styles.label}>
-                Formulas / Notes
-              </Text>
-              
-              <TextInput
-                style={styles.textArea}
-                placeholder="Enter Technical Notes..."
-                placeholderTextColor="#94A3B8"
-                multiline
-                value={formula}
-                onChangeText={setFormula}
-              />
-
-              <View style={styles.sectionGap} />
-              
-              <Text style={styles.label}>
-                Add Photos
-              </Text>
-              
-              <View style={styles.photoRow}>
-                <TouchableOpacity 
-                  style={styles.photoBox} 
-                  onPress={() => handleImagePick('before')}
-                >
-                  {beforeImage ? (
-                    <Image source={{ uri: beforeImage }} style={styles.uploadedImg} />
-                  ) : (
-                    <>
-                      <MaterialCommunityIcons name="camera" size={28} color="#5152B3" />
-                      <Text style={styles.photoHint}>Before</Text>
-                    </>
-                  )}
+            <View style={styles.sectionGap} />
+            
+            <Text style={styles.label}>Quick Tags</Text>
+            <View style={styles.tagsGrid}>
+              {['Bleech', 'Toner', 'Color', 'Style'].map((tag) => (
+                <TouchableOpacity key={tag} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag}</Text>
                 </TouchableOpacity>
+              ))}
+            </View>
 
-                <TouchableOpacity 
-                  style={styles.photoBox} 
-                  onPress={() => handleImagePick('after')}
-                >
-                  {afterImage ? (
-                    <Image source={{ uri: afterImage }} style={styles.uploadedImg} />
-                  ) : (
-                    <>
-                      <MaterialCommunityIcons name="camera" size={28} color="#5152B3" />
-                      <Text style={styles.photoHint}>After</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </View>
+            <View style={styles.sectionGap} />
+            
+            <Text style={styles.label}>Formulas / Notes</Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Enter Technical Notes..."
+              placeholderTextColor="#94A3B8"
+              multiline
+              value={formula}
+              onChangeText={setFormula}
+            />
 
-              <View style={styles.buttonGap} />
-              
-              <DynamicButton
-                text="Save Visit"
-                onPress={onBack}
-                backgroundColor="#5152B3"
-                textColor="#FFFFFF"
-                borderRadius={25}
-                paddingVertical={14}
-                width="100%"
-              />
+            <View style={styles.sectionGap} />
+            
+            <Text style={styles.label}>Visit Photos</Text>
+            
+            <View style={styles.imageSection}>
+              <TouchableOpacity 
+                style={styles.fullWidthPhotoBox} 
+                onPress={handleImagePick}
+              >
+                <MaterialCommunityIcons name="camera-plus" size={35} color="#5152B3" />
+                <Text style={styles.photoHint}>Add Visit Images</Text>
+              </TouchableOpacity>
+
+              {images.length > 0 && (
+                <View style={styles.imageGrid}>
+                  {images.map((uri, index) => (
+                    <View key={index} style={styles.imageWrapper}>
+                      <Image source={{ uri }} style={styles.uploadedImg} />
+                      <TouchableOpacity 
+                        style={styles.removeIcon} 
+                        onPress={() => removeImage(index)}
+                      >
+                        <Ionicons name="close-circle" size={22} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
           </View>
         </ScrollView>
@@ -178,57 +165,44 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 25,
-    paddingTop: 10,
-    paddingBottom: 46, 
-  },
-  innerContainer: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  topImage: {
-    width: width * 0.75,
-    height: 140,
-    marginBottom: 10,
+    paddingTop: 15,
   },
   formContainer: {
+    width: '100%',
+  },
+  fullWidthInput: {
     width: '100%',
   },
   roundedInput: {
     borderRadius: 25,
   },
   sectionGap: {
-    height: 15,
+    height: 20,
   },
   label: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#333',
     marginBottom: 8,
-    marginLeft: 10,
+    marginLeft: 5,
   },
   tagsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    paddingHorizontal: 5,
   },
   tag: {
     borderWidth: 1,
     borderColor: '#E2E8F0',
     borderRadius: 20,
     paddingHorizontal: 15,
-    paddingVertical: 6,
-    backgroundColor: '#FFF',
+    paddingVertical: 7,
+    backgroundColor: '#F8FAFC',
   },
   tagText: {
     fontSize: 12,
     color: '#64748B',
+    fontWeight: '500',
   },
   textArea: {
     width: '100%',
@@ -236,36 +210,56 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     borderRadius: 20,
     padding: 15,
-    height: 80,
+    height: 120,
     textAlignVertical: 'top',
     color: '#333',
+    backgroundColor: '#F8FAFC',
   },
-  photoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  imageSection: {
+    width: '100%',
   },
-  photoBox: {
-    width: '48%',
-    height: 90,
+  fullWidthPhotoBox: {
+    width: '100%',
+    height: 150,
     backgroundColor: '#F8FAFC',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#5152B3',
+    borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 15,
+  },
+  imageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  imageWrapper: {
+    width: (width - 74) / 3,
+    height: 110,
+    borderRadius: 15,
     overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   uploadedImg: {
     width: '100%',
     height: '100%',
   },
-  photoHint: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 4,
+  removeIcon: {
+    position: 'absolute',
+    top: 3,
+    right: 3,
+    backgroundColor: 'white',
+    borderRadius: 12,
   },
-  buttonGap: {
-    height: 25,
+  photoHint: {
+    fontSize: 15,
+    color: '#5152B3',
+    marginTop: 10,
+    fontWeight: '600',
   },
 });
 

@@ -9,6 +9,7 @@ import NavButton from '../../common/Buttons/NavButton';
 import PlusButton from '../../common/Buttons/PlusButton';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import InfoCard from '../../common/Cards/InfoCard';
+import NavHeader from '../../common/Buttons/NavHeader'; 
 import AddClients from '../AddClients/AddClients';
 import History from '../History/History';
 import NewVisit from '../NewVisit/NewVisit';
@@ -16,7 +17,6 @@ import Profile from '../Profile/Profile';
 import Teams from '../Teams/Teams';
 
 const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBack?: () => void; onNavigateToNewVisit?: () => void; onNavigateToWelcome?: () => void }) => {
-  // Navigation State
   const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | null>(null);
   
   const insets = useSafeAreaInsets();
@@ -37,7 +37,6 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
     return () => backHandler.remove();
   }, [currentScreen, onBack]);
 
-  // Navigation Handlers
   const handleHomePress = () => setCurrentScreen(null);
   const handleNewVisitPress = () => setCurrentScreen('newVisit');
   const handleHistoryPress = () => setCurrentScreen('history');
@@ -49,7 +48,6 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Conditionally Render Screens or Main Dashboard Content */}
       {currentScreen === 'newVisit' ? (
         <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
       ) : currentScreen === 'history' ? (
@@ -62,16 +60,11 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
         <Profile onBack={() => setCurrentScreen(null)} />
       ) : (
         <>
-          <View style={styles.header}>
-            <View style={styles.brandWrapper}>
-              <Text style={styles.brandTitle}>ARTIST-CRM</Text>
-            </View>
-            <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
-              <View style={styles.avatarMini}>
-                <Ionicons name="person" size={18} color="#5152B3" />
-              </View>
-            </TouchableOpacity>
-          </View>
+          <NavHeader 
+            title="Dashboard !" 
+            showProfileIcon={true} 
+            onProfilePress={handleProfilePress} 
+          />
 
           <ScrollView 
             showsVerticalScrollIndicator={false} 
@@ -80,9 +73,7 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
               { paddingBottom: 100 + insets.bottom } 
             ]}
           >
-            <Text style={styles.mainGreeting}>Dashboard !</Text>
-            
-            <View style={statsStyles.statsContainer}>
+            <View style={[statsStyles.statsContainer, { marginTop: 10 }]}>
               <InfoCard 
                 title="56" 
                 description="Total Clients"
@@ -115,6 +106,7 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
             </View>
             
             <View style={styles.visitGrid}>
+              {/* Row 1 */}
               <View style={styles.row}>
                 <ImageDesCard 
                   imageSource={require('../../../assets/images/icon.png')}
@@ -129,7 +121,6 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
                   elevation={0}
                   containerStyle={styles.visitCardBorder}
                 />
-                
                 <ImageDesCard 
                   imageSource={require('../../../assets/images/favicon.png')}
                   title="Smith Alex"
@@ -145,6 +136,7 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
                 />
               </View>
 
+              {/* Row 2 */}
               <View style={styles.row}>
                 <ImageDesCard 
                   imageSource={require('../../../assets/images/splash-icon.png')}
@@ -173,12 +165,42 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
                   containerStyle={styles.visitCardBorder}
                 />
               </View>
+
+              {/* Row 3 - New Cards Added */}
+              <View style={styles.row}>
+                <ImageDesCard 
+                  imageSource={require('../../../assets/images/icon.png')}
+                  title="Harvey Specter"
+                  description="Last visit: 10 days ago"
+                  backgroundColor="#FFFFFF"
+                  titleStyle={styles.visitTitle}
+                  descriptionStyle={styles.visitDesc}
+                  cardMargin={0}
+                  cardPadding={12}
+                  imageSize={40}
+                  elevation={0}
+                  containerStyle={styles.visitCardBorder}
+                />
+                <ImageDesCard 
+                  imageSource={require('../../../assets/images/favicon.png')}
+                  title="Donna Paul"
+                  description="Last visit: 12 days ago"
+                  backgroundColor="#FFFFFF"
+                  titleStyle={styles.visitTitle}
+                  descriptionStyle={styles.visitDesc}
+                  cardMargin={0}
+                  cardPadding={12}
+                  imageSize={40}
+                  elevation={0}
+                  containerStyle={styles.visitCardBorder}
+                />
+              </View>
             </View>
           </ScrollView>
         </>
       )}
 
-      {/* NAVIGATION BAR - FIXED AT BOTTOM */}
+      {/* NAVIGATION BAR */}
       <View style={[
         styles.bottomNavContainer, 
         { 
@@ -228,7 +250,6 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
   );
 };
 
-// Separate style object for better organization as requested
 const statsStyles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
@@ -242,46 +263,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F1F3F5',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 25,
-    height: 70,
-  },
-  brandWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  brandTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#5152B3',
-    letterSpacing: -0.5,
-  },
-  profileButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarMini: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
   mainScroll: {
     paddingHorizontal: 25,
-  },
-  mainGreeting: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#5152B3',
-    marginTop: 10,
-    marginBottom: 20,
   },
   premiumInfoCard: {
     width: '47.5%',
@@ -314,7 +297,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 5,
+    marginBottom: 4, // Gap between rows handle karne ke liye adjustment
   },
   visitCardBorder: {
     width: '48.2%',

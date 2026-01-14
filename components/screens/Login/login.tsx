@@ -53,13 +53,15 @@ const Login: React.FC<LoginProps> = ({
         >
           <View style={styles.innerContainer}>
             
-            <Text style={styles.title}>Login</Text>
-            
+            {/* Image top par hai */}
             <Image 
               source={require('../../../assets/homeimages/welcomepagepic.png')}
               style={styles.topImage}
               resizeMode="contain"
             />
+
+            {/* Login title ab image ke neeche hai */}
+            <Text style={styles.title}>Login</Text>
             
             <View style={styles.formContainer}>
               <Input
@@ -140,7 +142,6 @@ const Login: React.FC<LoginProps> = ({
                 />
               </View>
 
-              {/* Fixed using double quotes to avoid "Don't" error */}
               <TouchableOpacity 
                 style={styles.signupContainer} 
                 onPress={() => onNavigateToSignup?.()}
@@ -183,12 +184,12 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,
+    marginBottom: 15,
   },
   topImage: {
     width: width * 0.85, 
     height: 180, 
-    marginBottom: 15,
+    marginBottom: 5,
   },
   formContainer: {
     width: '100%',
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#5152B3',
     fontWeight: 'bold',
-    marginBottom:5,
+    marginBottom: 0,
   },
   buttonContainer: { 
     width: '100%',

@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dimensions,
   Image,
@@ -9,12 +9,15 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  ScrollView,
+  BackHandler,
+  Keyboard, // Keyboard import kiya
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import DynamicButton from '../../common/Buttons/DynamicButton'; // DynamicButton Import kiya
+import DynamicButton from '../../common/Buttons/DynamicButton';
 import PlusButton from '../../common/Buttons/PlusButton';
 import Input from '../../common/Inputs/Input';
 
@@ -33,123 +36,150 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [agreeTerms, setAgreeTerms] = useState<boolean>(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false); // Scroll control ke liye state
+
+  // Android Back Button aur Keyboard handling
+  useEffect(() => {
+    const backAction = () => {
+      onBack();
+      return true;
+    };
+
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true); // Typing ke waqt scroll enable
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false); // Keyboard band hone par wapas fixed
+    });
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => {
+      backHandler.remove();
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, [onBack]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
         style={styles.mainContainer}
       >
-        <View style={styles.innerContainer}>
-          {/* Title at top */}
-          <Text style={styles.title}>Signup</Text>
-          
-          {/* Image in middle */}
-          <Image 
-            source={require('../../../assets/homeimages/welcomepagepic.png')}
-            style={styles.middleImage}
-            resizeMode="contain"
-          />
-          
-          {/* Form view at bottom */}
-          <View style={styles.formContainer}>
-            <Input
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email Address"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              leftIcon="email"
-              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-              size="large"
-              variant="outlined"
-            />
-
-            <View style={styles.inputGap} />
-
-            <Input
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter Password"
-              secureTextEntry={true}
-              leftIcon="lock"
-              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-              size="large"
-              variant="outlined"
-            />
-
-            <View style={styles.inputGap} />
-
-            <Input
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirm Password"
-              secureTextEntry={true}
-              leftIcon="lock"
-              containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-              size="large"
-              variant="outlined"
-            />
-
-            <View style={styles.optionsRow}>
-              <TouchableOpacity 
-                style={styles.rememberMe}
-                onPress={() => setAgreeTerms(!agreeTerms)}
-              >
-                <MaterialCommunityIcons 
-                  name={agreeTerms ? "checkbox-marked" : "checkbox-blank-outline"} 
-                  size={22} 
-                  color="#5152B3" 
-                />
-                <Text style={styles.optionText}>I agree to Term & Services</Text>
-              </TouchableOpacity>
-              
-              
-            </View>
-
-            <View style={styles.buttonContainer}>
-              {/* DynamicButton used with exact original styling */}
-              <DynamicButton
-                text="Signup"
-                onPress={() => onNavigateToCompanyName?.()}
-                backgroundColor="#5152B3"
-                textColor="#fff"
-                paddingVertical={12}
-                borderRadius={25}
-                fontSize={16}
-                fontWeight="bold"
-                width="100%"
-              />
-            </View>
-
-            <Text style={styles.socialText}>Signup using</Text>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          scrollEnabled={isKeyboardVisible} // Sirf typing ke waqt scroll hoga
+          bounces={isKeyboardVisible}
+        >
+          <View style={styles.innerContainer}>
             
-            <View style={styles.socialContainer}>
-              <PlusButton 
-                onPress={() => {}}
-                size={50}
-                backgroundColor="#DB4437"
-                iconSize={24}
-                iconName="google"
-                iconColor="white"
+            <Image 
+              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              style={styles.middleImage}
+              resizeMode="contain"
+            />
+
+            <Text style={styles.title}>Signup</Text>
+            
+            <View style={styles.formContainer}>
+              <Input
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Email Address"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                leftIcon="email"
+                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                size="large"
+                variant="outlined"
               />
-              <View style={styles.socialGap} />
-              <PlusButton 
-                onPress={() => {}}
-                size={50}
-                backgroundColor="#4267B2"
-                iconSize={24}
-                iconName="facebook"
-                iconColor="white"
+
+              <View style={styles.inputGap} />
+
+              <Input
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter Password"
+                secureTextEntry={true}
+                leftIcon="lock"
+                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                size="large"
+                variant="outlined"
               />
-            </View>
-            <TouchableOpacity onPress={onNavigateToLogin}>
-                <Text style={styles.forgotText}>Already have an Account?</Text>
+
+              <View style={styles.inputGap} />
+
+              <Input
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirm Password"
+                secureTextEntry={true}
+                leftIcon="lock"
+                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                size="large"
+                variant="outlined"
+              />
+
+              <View style={styles.optionsRow}>
+                <TouchableOpacity 
+                  style={styles.rememberMe}
+                  onPress={() => setAgreeTerms(!agreeTerms)}
+                >
+                  <MaterialCommunityIcons 
+                    name={agreeTerms ? "checkbox-marked" : "checkbox-blank-outline"} 
+                    size={22} 
+                    color="#5152B3" 
+                  />
+                  <Text style={styles.optionText}>I agree to Term & Services</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <DynamicButton
+                  text="Signup"
+                  onPress={() => onNavigateToCompanyName?.()}
+                  backgroundColor="#5152B3"
+                  textColor="#fff"
+                  borderRadius={25}
+                  width="100%"
+                />
+              </View>
+
+              <Text style={styles.socialText}>Signup using</Text>
+              
+              <View style={styles.socialContainer}>
+                <PlusButton 
+                  onPress={() => {}}
+                  size={50}
+                  backgroundColor="#DB4437"
+                  iconSize={24}
+                  iconName="google"
+                  iconColor="white"
+                />
+                <View style={styles.socialGap} />
+                <PlusButton 
+                  onPress={() => {}}
+                  size={50}
+                  backgroundColor="#4267B2"
+                  iconSize={24}
+                  iconName="facebook"
+                  iconColor="white"
+                />
+              </View>
+
+              <TouchableOpacity onPress={onNavigateToLogin} style={styles.loginLinkContainer}>
+                <Text style={styles.optionText}>Already have an Account? </Text>
+                <Text style={styles.forgotText}>Login</Text>
               </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -163,33 +193,33 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
   },
-  innerContainer: {
+  scrollView: {
     flex: 1,
-    flexDirection: 'column',
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  innerContainer: {
+    alignItems: 'center',
+    paddingVertical: 20, 
+    paddingHorizontal: 20, 
     width: '100%',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
-    paddingTop: 20,
-    paddingBottom: 10,
+    marginBottom: 10,
   },
   middleImage: {
-    flex: 1,
-    width: width * 0.75,
-    height: undefined,
-    aspectRatio: 1,
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginVertical: 20,
+    width: width * 0.85, 
+    height: 180, 
+    marginBottom: 0,
   },
   formContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
   },
   inputContainer: {
     width: '100%',
@@ -205,7 +235,7 @@ const styles = StyleSheet.create({
   },
   optionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     width: '98%', 
     marginBottom: 15,
     marginTop: 15,
@@ -215,35 +245,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#666',
     marginLeft: 6,
   },
   forgotText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#5152B3',
     fontWeight: 'bold',
-    marginTop: 10,
   },
   buttonContainer: {
     width: '100%',
-    marginBottom: 5,
+    marginBottom: 10,
   },
   socialText: {
-    marginVertical: 3,
+    marginVertical: 5,
     color: '#888',
-    fontSize: 14,
+    fontSize: 15,
   },
   socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     width: '60%',
-    marginTop: 10,
+    marginTop: 5,
   },
   socialGap: {
     width: 10,
   },
+  loginLinkContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+    alignItems: 'center',
+  }
 });
 
 export default Signup;

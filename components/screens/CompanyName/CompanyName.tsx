@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dimensions,
   Image,
@@ -8,14 +8,16 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView 
+  ScrollView,
+  Keyboard, // Keyboard import kiya logic ke liye
+  BackHandler
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface CompanyNameProps {
   onBack?: () => void;
@@ -24,10 +26,35 @@ interface CompanyNameProps {
 }
 
 const CompanyName: React.FC<CompanyNameProps> = ({ 
-  onNavigateToProfile 
+  onNavigateToProfile,
+  onBack 
 }) => {
   const [companyName, setCompanyName] = useState<string>('');
   const [website, setWebsite] = useState<string>('');
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false); // Scroll control state
+
+  // Back handler aur Keyboard logic
+  useEffect(() => {
+    const backAction = () => {
+      if (onBack) onBack();
+      return true;
+    };
+
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => {
+      backHandler.remove();
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, [onBack]);
 
   const handleSubmit = () => {
     if (onNavigateToProfile) {
@@ -40,35 +67,35 @@ const CompanyName: React.FC<CompanyNameProps> = ({
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
         style={styles.mainContainer}
       >
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          bounces={false}
+          scrollEnabled={isKeyboardVisible} // Typing par scroll enable hoga
+          bounces={isKeyboardVisible}
         >
           <View style={styles.innerContainer}>
             
-            {/* Top Section: Title and Image */}
-            <View style={styles.topSection}>
-              <Text style={styles.title}>Company Name</Text>
-              <Image 
-                source={require('../../../assets/homeimages/welcomepagepic.png')}
-                style={styles.topImage}
-                resizeMode="contain"
-              />
-            </View>
+            {/* Image top par (Signup size) */}
+            <Image 
+              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              style={styles.topImage}
+              resizeMode="contain"
+            />
+
+            {/* Title image ke neeche */}
+            <Text style={styles.title}>Company Name</Text>
             
-            {/* Bottom Section: Inputs and Button */}
-            <View style={styles.bottomSection}>
+            <View style={styles.formContainer}>
               <Input
                 value={companyName}
                 onChangeText={setCompanyName}
                 placeholder="Company Name"
                 leftIcon={"domain" as any} 
-                containerStyle={styles.fullWidthInput}
+                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
                 size="large"
                 variant="outlined"
               />
@@ -83,7 +110,7 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                 autoCapitalize="none"
                 autoCorrect={false}
                 leftIcon={"web" as any} 
-                containerStyle={styles.fullWidthInput}
+                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
                 size="large"
                 variant="outlined"
               />
@@ -118,48 +145,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1, // ScrollView ko height resize karne deta hai
+    flexGrow: 1,
+    justifyContent: 'center', // Normal state mein centered rahega (Fixed look)
   },
   innerContainer: {
-    flex: 1,
-    paddingHorizontal: 20, 
-    paddingTop: 10,
-    paddingBottom: 20, // Bottom se minimal space
-    justifyContent: 'space-between', // Elements ko top aur bottom mein divide karta hai
-  },
-  topSection: {
     alignItems: 'center',
+    paddingVertical: 20, 
+    paddingHorizontal: 20, 
     width: '100%',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,
-    marginTop: Platform.OS === 'android' ? 10 : 5, 
+    marginBottom: 10,
   },
   topImage: {
-    width: width * 0.95, 
-    height: height * 0.45, // Image ki height ko bara rakha gaya hai
+    width: width * 0.85, // Signup page wala exact size
+    height: 180, 
+    marginBottom: 15,
   },
-  bottomSection: {
+  formContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 20, // Image aur inputs ke beech thora gap
+  },
+  inputContainer: {
+    width: '100%',
   },
   fullWidthInput: {
     width: '100%',
+  },
+  roundedInput: {
     borderRadius: 25,
   },
   inputGap: {
-    height: 12, 
+    height: 10, // Signup page wala gap
   },
   buttonGap: {
     height: 20,
   },
   buttonWrapper: { 
     width: '100%',
-    marginBottom: 5, // Button ko bilkul bottom ke qareeb rakhne ke liye
+    marginBottom: 10,
   },
 });
 
