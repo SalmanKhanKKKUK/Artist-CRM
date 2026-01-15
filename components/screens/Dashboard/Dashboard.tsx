@@ -170,7 +170,7 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
               <View style={styles.row}>
                 <ImageDesCard 
                   imageSource={require('../../../assets/images/icon.png')}
-                  title="Harvey Specter"
+                  title="Harvey"
                   description="Last visit: 10 days ago"
                   backgroundColor="#FFFFFF"
                   titleStyle={styles.visitTitle}

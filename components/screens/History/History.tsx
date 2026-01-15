@@ -1,25 +1,20 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   View,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Reusable components imports
-import InfoCard from '../../common/Cards/InfoCard';
+// Reusable components
+import NavHeader from '../../common/Buttons/NavHeader';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
-import DetailCard from '../../common/Cards/DetailCard';
-import PreferCard from '../../common/Cards/PreferCard';
-import DynamicButton from '../../common/Buttons/DynamicButton';
-
-const { width } = Dimensions.get('window');
+import SearchInput from '../../common/Inputs/SearchInput';
+import FilterInput, { FilterSection } from '../../common/Inputs/FilterInput';
 
 interface HistoryProps {
   onBack?: () => void;
@@ -27,138 +22,138 @@ interface HistoryProps {
 }
 
 const History: React.FC<HistoryProps> = () => {
-  const [activeTab, setActiveTab] = useState<'activity' | 'details'>('activity');
+  const insets = useSafeAreaInsets();
+  const [searchText, setSearchText] = useState('');
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  
+  // History items state
+  const [historyItems, setHistoryItems] = useState([
+    { id: 1, name: "Ahmad Ali", service: "Haircut", date: "14 Jan 2026", time: "10:30 AM", img: 'https://i.pravatar.cc/150?u=1' },
+    { id: 2, name: "Sara Khan", service: "Color Expert", date: "12 Jan 2026", time: "02:15 PM", img: 'https://i.pravatar.cc/150?u=2' },
+    { id: 3, name: "Zeenat Malik", service: "Manager", date: "10 Jan 2026", time: "09:00 AM", img: 'https://i.pravatar.cc/150?u=3' },
+    { id: 4, name: "Hamza Sheikh", service: "Styling", date: "08 Jan 2026", time: "04:45 PM", img: 'https://i.pravatar.cc/150?u=4' },
+    { id: 5, name: "Danish Ahmed", service: "Haircut", date: "05 Jan 2026", time: "11:20 AM", img: 'https://i.pravatar.cc/150?u=5' },
+  ]);
+
+  const filterSections: FilterSection[] = [
+    {
+      id: 'search_type',
+      title: 'Filter By Name',
+      options: [
+        { label: 'First Name', value: 'first_name' },
+        { label: 'Last Name', value: 'last_name' },
+      ],
+    },
+    {
+      id: 'date_filter',
+      title: 'Filter By Date',
+      options: [
+        { label: 'Today', value: 'today' },
+        { label: 'This Week', value: 'week' },
+        { label: 'This Month', value: 'month' },
+      ],
+    },
+    {
+      id: 'category',
+      title: 'Filter By Category',
+      options: [
+        { label: 'Haircut', value: 'haircut' },
+        { label: 'Coloring', value: 'coloring' },
+        { label: 'Styling', value: 'styling' },
+      ],
+    },
+  ];
+
+  // Logic to Delete All History with Confirmation Popup
+  const handleClearAllHistory = () => {
+    if (historyItems.length === 0) return;
+
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure to delete all history?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "Delete All", 
+          onPress: () => setHistoryItems([]),
+          style: "destructive" 
+        }
+      ]
+    );
+  };
+
+  const handleDeleteItem = (id: number) => {
+    Alert.alert("Delete Visit", "Are you sure you want to delete this record?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => setHistoryItems(prev => prev.filter(item => item.id !== id)) }
+    ]);
+  };
+
+  const handleApplyFilter = (selections: Record<string, string>) => {
+    console.log("Selected Filters:", selections);
+    setIsFilterVisible(false);
+  };
 
   return (
-    <SafeAreaView 
-      style={styles.masterContainer} 
-      edges={['top', 'bottom']}
-    >
-      <StatusBar 
-        barStyle="dark-content" 
-        backgroundColor="#FFFFFF" 
-      />
-      
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-        style={styles.flexOne}
+    <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      <NavHeader title="Our All History !">
+        <TouchableOpacity onPress={handleClearAllHistory}>
+          <MaterialCommunityIcons name="delete-sweep-outline" size={28} color="#5152B3" />
+        </TouchableOpacity>
+      </NavHeader>
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 10 + insets.bottom }]}
       >
-        <View style={styles.innerContainer}>
-          <View style={styles.headerRow}>
-             <Text style={styles.title}>
-               Client History
-             </Text>
-          </View>
+        <View style={styles.contentFadeIn}>
           
-          <Image 
-            source={require('../../../assets/homeimages/welcomepagepic.png') as any}
-            style={styles.topImage}
-            resizeMode="contain"
+          <SearchInput
+            value={searchText}
+            onChangeText={(text: string) => setSearchText(text)}
+            placeholder="Search history..."
+            showFilterIcon={true}
+            onFilterIconPress={() => setIsFilterVisible(true)}
+            containerStyle={styles.searchBarContainer}
           />
 
-          <View style={styles.tabWrapper}>
-            <DynamicButton
-              text="Activity"
-              onPress={() => setActiveTab('activity')}
-              backgroundColor={activeTab === 'activity' ? '#FFFFFF' : 'transparent'}
-              textColor={activeTab === 'activity' ? '#5152B3' : '#94A3B8'}
-              fontSize={14}
-              fontWeight="600"
-              borderRadius={20}
-              paddingVertical={10}
-              elevation={activeTab === 'activity' ? 2 : 0}
-              containerStyle={styles.flexOne}
-            />
-            
-            <DynamicButton
-              text="Details"
-              onPress={() => setActiveTab('details')}
-              backgroundColor={activeTab === 'details' ? '#FFFFFF' : 'transparent'}
-              textColor={activeTab === 'details' ? '#5152B3' : '#94A3B8'}
-              fontSize={14}
-              fontWeight="600"
-              borderRadius={20}
-              paddingVertical={10}
-              elevation={activeTab === 'details' ? 2 : 0}
-              containerStyle={styles.flexOne}
-            />
-          </View>
-
-          <ScrollView 
-            showsVerticalScrollIndicator={false} 
-            style={styles.scrollBox}
-            contentContainerStyle={styles.scrollContent}
-            bounces={false} // Extra scrolling aur bounce rokne ke liye
-          >
-            {activeTab === 'activity' ? (
-              <View style={styles.contentFadeIn}>
-                <InfoCard
-                  title="Service: Full Color"
-                  description="Price: 500PKR"
-                  backgroundColor="#F8FAFC"
-                  containerStyle={styles.cardMargin}
-                />
-                
-                <View style={styles.historyImagesRow}>
-                  <View style={styles.imageWrapper}>
-                    <Image source={{ uri: 'https://picsum.photos/150/150' }} style={styles.historyImg} />
-                    <View style={styles.imageOverlay}>
-                      <Text style={styles.overlayText}>Before</Text>
-                    </View>
-                  </View>
-                  <View style={styles.imageWrapper}>
-                    <Image source={{ uri: 'https://picsum.photos/152/152' }} style={styles.historyImg} />
-                    <View style={styles.imageOverlay}>
-                      <Text style={styles.overlayText}>After</Text>
-                    </View>
-                  </View>
-                </View>
-
-                <InfoCard
-                  title="Dec, 1, 2025"
-                  description="[bleech root] [s toner] [violet ash]"
-                  backgroundColor="#F8FAFC"
-                  containerStyle={styles.cardMargin}
-                />
-
+          {historyItems
+            .filter(item => item.name.toLowerCase().includes(searchText.toLowerCase()))
+            .map((item) => (
+              <View key={item.id} style={styles.cardWrapper}>
                 <ImageDesCard
-                  imageSource={{ uri: 'https://picsum.photos/80/80' }}
-                  title="Service Summary"
-                  description="Client was very happy with the violet ash result."
-                  backgroundColor="#F8FAFC"
-                />
-              </View>
-            ) : (
-              <View style={styles.contentFadeIn}>
-                <DetailCard
-                  title="PERSONAL DETAILS"
-                  name="Salman Khan"
-                  phone="+92 300 1234567"
-                  email="salman@gmail.com"
-                  birthday="Jan 15, 1990"
+                  imageSource={{ uri: item.img }}
+                  title={item.name}
+                  description={`${item.service}\n${item.date} | ${item.time}`}
+                  backgroundColor="#FFFFFF"
                   containerStyle={styles.cardMargin}
+                  titleStyle={styles.cardTitle}
                 />
-                
-                <PreferCard
-                  title="Preferences"
-                  allergies="No allergies"
-                  favoriteStyle="Modern Classic"
-                  notes="Prefers appointments on weekends."
-                />
-
-                <View style={styles.gap20} />
-
-                <ImageDesCard
-                  imageSource={{ uri: 'https://picsum.photos/81/81' }}
-                  title="Consultation Notes"
-                  description="Skin sensitivity test passed on Dec 2025."
-                  backgroundColor="#F8FAFC"
-                />
+                <TouchableOpacity 
+                  style={styles.threeDotButton} 
+                  onPress={() => handleDeleteItem(item.id)}
+                >
+                  <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
+                </TouchableOpacity>
               </View>
-            )}
-          </ScrollView>
+          ))}
         </View>
-      </KeyboardAvoidingView>
+      </ScrollView>
+
+      <FilterInput 
+        isVisible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
+        sections={filterSections}
+        onApply={handleApplyFilter}
+        onReset={() => {}}
+        title="Search Filters"
+      />
     </SafeAreaView>
   );
 };
@@ -166,90 +161,39 @@ const History: React.FC<HistoryProps> = () => {
 const styles = StyleSheet.create({
   masterContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  flexOne: {
-    flex: 1,
-  },
-  innerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    width: '100%',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  topImage: {
-    width: width * 0.6,
-    height: 120,
-    marginBottom: 15,
-  },
-  tabWrapper: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 25,
-    padding: 5,
-    marginBottom: 20,
-    width: '100%',
-  },
-  scrollBox: {
-    flex: 1,
-    width: '100%',
+    backgroundColor: '#F1F3F5',
   },
   scrollContent: {
-    paddingBottom: 40, // Dashboard ke gap ke liye munasib padding
+    paddingHorizontal: 25,
+    paddingTop: 15,
   },
   contentFadeIn: {
     width: '100%',
   },
+  searchBarContainer: {
+    marginBottom: 20,
+    width: '100%',
+  },
+  cardWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
   cardMargin: {
     marginBottom: 15,
-  },
-  historyImagesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    width: '100%',
-  },
-  imageWrapper: {
-    width: '48%',
-    height: 110,
-    borderRadius: 15,
-    overflow: 'hidden',
-    position: 'relative',
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    paddingRight: 45,
   },
-  historyImg: {
-    width: '100%',
-    height: '100%',
-  },
-  imageOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: 'rgba(81, 82, 179, 0.8)',
-    paddingVertical: 4,
-    alignItems: 'center',
-  },
-  overlayText: {
-    color: '#FFF',
-    fontSize: 10,
+  cardTitle: {
+    color: '#5152B3',
     fontWeight: 'bold',
   },
-  gap20: {
-    height: 20,
+  threeDotButton: {
+    position: 'absolute',
+    right: 15,
+    padding: 10,
+    zIndex: 5,
   },
 });
 

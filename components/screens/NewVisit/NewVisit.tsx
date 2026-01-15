@@ -19,7 +19,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 // Component Imports
 import Input from '../../common/Inputs/Input';
 import NavHeader from '../../common/Buttons/NavHeader';
-import DynamicButton from '../../common/Buttons/DynamicButton'; // Import Reusable Button
+import DynamicButton from '../../common/Buttons/DynamicButton';
 
 const { width } = Dimensions.get('window');
 
@@ -54,20 +54,18 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   };
 
   return (
-    <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      {/* NavHeader with Reusable DynamicButton */}
-      <NavHeader title="New Visit">
+      <NavHeader title="Add New Visit !" showProfileIcon={false}>
         <DynamicButton 
           text="Save"
           onPress={onBack}
-          backgroundColor="#5152B3"
-          textColor="#FFFFFF"
-          borderRadius={20}
+          backgroundColor="transparent"
+          textColor="#5152B3"
           paddingVertical={8}
-          paddingHorizontal={20}
-          fontSize={14}
+          paddingHorizontal={5}
+          fontSize={18}
           fontWeight="bold"
         />
       </NavHeader>
@@ -82,14 +80,16 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
             styles.scrollContent,
             { paddingBottom: 10 + insets.bottom } 
           ]}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.formContainer}>
-
             <Text style={styles.label}>Service</Text>
+            
             <Input
               value={service}
               onChangeText={setService}
               placeholder="Search service..."
+              autoCapitalize="none"
               leftIcon="magnify"
               containerStyle={[styles.fullWidthInput, styles.roundedInput]}
               size="large"
@@ -124,6 +124,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
             <Text style={styles.label}>Visit Photos</Text>
             
             <View style={styles.imageSection}>
+              {/* Photo box now matches Input design exactly */}
               <TouchableOpacity 
                 style={styles.fullWidthPhotoBox} 
                 onPress={handleImagePick}
@@ -158,7 +159,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 const styles = StyleSheet.create({
   masterContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1F3F5', 
   },
   flexOne: {
     flex: 1,
@@ -177,43 +178,45 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   sectionGap: {
-    height: 20,
+    height: 25,
   },
   label: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#333',
-    marginBottom: 8,
+    color: '#5152B3',
+    marginBottom: 10,
     marginLeft: 5,
   },
   tagsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 8,
   },
   tag: {
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 7,
-    backgroundColor: '#F8FAFC',
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
   },
   tagText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#64748B',
-    fontWeight: '500',
+    fontWeight: '700',
   },
   textArea: {
     width: '100%',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 20,
-    padding: 15,
-    height: 120,
+    borderRadius: 25, 
+    padding: 18,
+    height: 140,
     textAlignVertical: 'top',
     color: '#333',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
   imageSection: {
     width: '100%',
@@ -221,11 +224,11 @@ const styles = StyleSheet.create({
   fullWidthPhotoBox: {
     width: '100%',
     height: 150,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#5152B3',
-    borderStyle: 'dashed',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    borderWidth: 1,            
+    borderColor: '#E2E8F0',   
+    borderStyle: 'solid',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F1F5F9',
   },
   uploadedImg: {
     width: '100%',

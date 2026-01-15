@@ -13,9 +13,11 @@ import {
   Platform,
   Image,
   Alert,
-  BackHandler 
+  BackHandler,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Storage import kiya
 
 // Reusable Components
 import DynamicButton from '../../common/Buttons/DynamicButton';
@@ -26,7 +28,6 @@ import SearchInput from '../../common/Inputs/SearchInput';
 
 const { width } = Dimensions.get('window');
 
-// 1. Icon Names ki types ko define kiya taake MaterialCommunityIcons error na de
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 interface SettingProps {
@@ -48,6 +49,33 @@ const Setting: React.FC<SettingProps> = ({ onBack }) => {
   const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
   const [tempToggleStates, setTempToggleStates] = useState<Record<string, boolean>>({});
 
+  // Helper function to get current date formatted
+  const getCurrentFormattedDate = () => {
+    return new Date().toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  // State with default as current date
+  const [selectedAppointmentDate, setSelectedAppointmentDate] = useState<string>(`Scheduled: ${getCurrentFormattedDate()}`);
+
+  // Load saved date from Storage when app starts
+  useEffect(() => {
+    const loadSavedDate = async () => {
+      try {
+        const savedDate = await AsyncStorage.getItem('appointment_date');
+        if (savedDate !== null) {
+          setSelectedAppointmentDate(savedDate);
+        }
+      } catch (error) {
+        console.error("Failed to load date", error);
+      }
+    };
+    loadSavedDate();
+  }, []);
+
   useEffect(() => {
     const backAction = () => {
       onBack();
@@ -60,12 +88,12 @@ const Setting: React.FC<SettingProps> = ({ onBack }) => {
   const settingsData: SettingItem[] = useMemo(() => [
     { id: 2, title: 'Operating Hours', subtitle: 'Notice, Buffer, Weekly Notice', icon: 'clock-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
     { id: 3, title: 'Tax Setting', subtitle: 'Fees and Refunds', icon: 'file-document-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
-    { id: 4, title: 'Book & Appointment', subtitle: 'Manage your schedule', icon: 'calendar-check-outline', hasRightIcon: true, rightIcon: 'calendar', hasToggle: false },
+    { id: 4, title: 'Book & Appointment', subtitle: selectedAppointmentDate, icon: 'calendar-check-outline', hasRightIcon: true, rightIcon: 'calendar', hasToggle: false },
     { id: 5, title: 'Cancellation Policy', subtitle: 'Terms for cancellations', icon: 'shield-alert-outline', hasRightIcon: false, hasToggle: true },
     { id: 6, title: 'Custom Notifications', subtitle: 'Email and SMS alerts', icon: 'bell-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
     { id: 9, title: 'Two-Factor Auth', subtitle: 'Secure your account', icon: 'shield-key-outline', hasRightIcon: true, rightIcon: 'chevron-right', hasToggle: false },
     { id: 10, title: 'Dark Mode', subtitle: 'Switch app theme', icon: 'moon-waning-crescent', hasRightIcon: false, hasToggle: true }
-  ], []);
+  ], [selectedAppointmentDate]);
 
   const filteredData = useMemo(() => {
     if (!searchText) return settingsData;
@@ -73,6 +101,24 @@ const Setting: React.FC<SettingProps> = ({ onBack }) => {
       item.title.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [searchText, settingsData]);
+
+  // Handle selection and save to permanent storage
+  const handleDateSelect = async (date: Date) => {
+    const formattedDate = date.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    const finalDateString = `Scheduled: ${formattedDate}`;
+    
+    try {
+      setSelectedAppointmentDate(finalDateString);
+      await AsyncStorage.setItem('appointment_date', finalDateString); // Save permanently
+      setShowCalendarModal(false);
+    } catch (error) {
+      console.error("Failed to save date", error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
@@ -165,20 +211,21 @@ const Setting: React.FC<SettingProps> = ({ onBack }) => {
       </KeyboardAvoidingView>
 
       <Modal visible={showCalendarModal} transparent animationType="fade">
-        <View style={styles.modalBg}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setShowCalendarModal(false)}>
-              <MaterialCommunityIcons name="close" size={24} color="#000" />
-            </TouchableOpacity>
-            <CalendarCard 
-                title="Select Date" 
-                subtitle="Appointment" 
-                icon="calendar" 
-                showHeader={false} 
-                onDateSelect={() => setShowCalendarModal(false)} 
-            />
+        <TouchableWithoutFeedback onPress={() => setShowCalendarModal(false)}>
+          <View style={styles.modalBg}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <CalendarCard 
+                    title="Select Date" 
+                    subtitle="Appointment" 
+                    icon="calendar" 
+                    showHeader={true}
+                    onDateSelect={handleDateSelect} 
+                />
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </SafeAreaView>
   );
@@ -254,14 +301,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: { 
-    backgroundColor: '#fff', 
-    borderRadius: 20, 
-    padding: 20, 
-    width: '90%' 
-  },
-  closeBtn: { 
-    alignSelf: 'flex-end', 
-    marginBottom: 10 
+    width: '90%',
+    backgroundColor: 'transparent', 
   },
 });
 

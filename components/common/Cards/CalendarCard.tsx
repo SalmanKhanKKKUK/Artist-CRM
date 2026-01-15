@@ -1,14 +1,20 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+type MaterialIconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 interface CalendarCardProps {
   title: string;
   subtitle?: string;
   icon: string;
   onDateSelect?: (date: Date) => void;
-  selectedDate?: Date;
-  showHeader?: boolean; // New prop to control header visibility
+  showHeader?: boolean;
 }
 
 const CalendarCard: React.FC<CalendarCardProps> = ({
@@ -16,182 +22,136 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   subtitle,
   icon,
   onDateSelect,
-  selectedDate = new Date(), // Default to current date
-  showHeader = true, // Default to true for backward compatibility
+  showHeader = true,
 }) => {
-  // Initialize with current live date
   const today = new Date();
-  const [selectedDay, setSelectedDay] = useState(0); // 0 means no day selected initially
-  const [liveDate, setLiveDate] = useState(today);
-
-  // Update live date every second for fully live calendar experience
-  useEffect(() => {
-    const updateLiveDate = () => {
-      const now = new Date();
-      setLiveDate(now);
-    };
-
-    // Update immediately
-    updateLiveDate();
-
-    // Set up interval to update every second for fully live experience
-    const interval = setInterval(updateLiveDate, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const daysInMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const daysInMonth = (year: number, month: number): number => {
+    return new Date(year, month + 1, 0).getDate();
   };
 
-  const generateCalendarDays = () => {
-    const days = [];
-    const daysCount = daysInMonth(liveDate); // Use liveDate for current month
+  const generateCalendarDays = (): (number | null)[] => {
+    const days: (number | null)[] = [];
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     
-    // Get the actual day of week for the first day of the current month
-    const firstDay = new Date(liveDate.getFullYear(), liveDate.getMonth(), 1).getDay();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysCount = daysInMonth(year, month);
     
-    // Add empty cells for days before month starts (Sunday = 0, Monday = 1, etc.)
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
-    
-    // Add all days of the current month
     for (let i = 1; i <= daysCount; i++) {
       days.push(i);
     }
-    
     return days;
   };
 
-  const handleDayPress = (day: number) => {
-    setSelectedDay(day);
-    const newDate = new Date(liveDate.getFullYear(), liveDate.getMonth(), day);
+  const changeMonth = (offset: number): void => {
+    const nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
+    setCurrentDate(nextDate);
+  };
+
+  const handleDayPress = (day: number): void => {
+    const newSelectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    setSelectedDate(newSelectedDate);
     if (onDateSelect) {
-      onDateSelect(newDate);
+      onDateSelect(newSelectedDate);
     }
   };
 
-  // Auto-select today's date when calendar loads and when it becomes today
-  useEffect(() => {
-    const today = liveDate.getDate();
-    
-    if (selectedDay === 0) {
-      setSelectedDay(today);
-    }
-  }, [liveDate, selectedDay]);
+  const isToday = (day: number): boolean => {
+    return day === today.getDate() && 
+           currentDate.getMonth() === today.getMonth() && 
+           currentDate.getFullYear() === today.getFullYear();
+  };
 
-  const handleCalendarPress = () => {
-    const dayToSelect = selectedDay > 0 ? selectedDay : liveDate.getDate();
-    const newDate = new Date(liveDate.getFullYear(), liveDate.getMonth(), dayToSelect);
-    if (onDateSelect) {
-      onDateSelect(newDate);
-    }
+  const isSelected = (day: number): boolean => {
+    return day === selectedDate.getDate() && 
+           currentDate.getMonth() === selectedDate.getMonth() && 
+           currentDate.getFullYear() === selectedDate.getFullYear();
   };
 
   return (
     <View style={styles.cardContainer}>
-      {/* Show header only if showHeader is true */}
       {showHeader && (
-        <View style={styles.cardContent}>
-          <View style={styles.leftSection}>
-            <MaterialCommunityIcons 
-              name={icon as any}
-              size={20} 
-              color="#FFD700" 
-              style={styles.cardIcon}
-            />
-            <View style={styles.textSection}>
-              <Text style={styles.cardTitle}>{title}</Text>
-              {subtitle && <Text style={styles.cardSubtitle}>{subtitle}</Text>}
+        <View style={styles.headerSection}>
+          <View style={styles.leftInfo}>
+            <View style={styles.iconBackground}>
+              <MaterialCommunityIcons 
+                name={icon as MaterialIconName} 
+                size={22} 
+                color="#5152B3" 
+              />
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>{title}</Text>
+              {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
             </View>
           </View>
-          
-          <TouchableOpacity 
-            onPress={handleCalendarPress}
-            style={styles.calendarIconContainer}
-          >
-            <MaterialCommunityIcons 
-              name="calendar" 
-              size={24} 
-              color="#FFD700" 
-            />
-          </TouchableOpacity>
+          {/* Note: Cross div is completely removed from here */}
         </View>
       )}
-      
-      {/* Full Calendar Section */}
-      <View style={styles.calendarContainer}>
-        {/* Month/Year Header with Live Time - Fully Live */}
-        <View style={styles.monthYearHeader}>
-          <View style={styles.monthYearContainer}>
-            <Text style={styles.monthYearText}>
-              {monthNames[liveDate.getMonth()]} {liveDate.getFullYear()}
-            </Text>
-            <Text style={styles.liveTimeText}>
-              {liveDate.toLocaleTimeString()}
-            </Text>
-            <Text style={styles.liveDateText}>
-              {liveDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-            </Text>
+
+      <View style={styles.calendarBody}>
+        <View style={styles.navigationRow}>
+          <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.navBtn}>
+            <MaterialCommunityIcons name="chevron-left" size={30} color="#5152B3" />
+          </TouchableOpacity>
+          
+          <View style={styles.monthYearDisplay}>
+            <Text style={styles.monthNameText}>{monthNames[currentDate.getMonth()]}</Text>
+            <Text style={styles.yearNameText}>{currentDate.getFullYear()}</Text>
           </View>
+
+          <TouchableOpacity onPress={() => changeMonth(1)} style={styles.navBtn}>
+            <MaterialCommunityIcons name="chevron-right" size={30} color="#5152B3" />
+          </TouchableOpacity>
         </View>
-        
-        {/* Days of Week Header - Dynamic */}
-        <View style={styles.daysOfWeekContainer}>
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-            <View key={day} style={styles.dayOfWeekCell}>
-              <Text 
-                style={[
-                  styles.dayOfWeekText,
-                  index === liveDate.getDay() && styles.currentDayOfWeekText
-                ]}
-              >
-                {day}
-              </Text>
+
+        <View style={styles.weekHeader}>
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+            <View key={day} style={styles.weekCell}>
+              <Text style={styles.weekText}>{day}</Text>
             </View>
           ))}
         </View>
-        
-        {/* Calendar Days Grid - Always shows current month */}
-        <ScrollView style={styles.daysContainer} contentContainerStyle={styles.daysContent}>
-          <View style={styles.daysGrid}>
-            {generateCalendarDays().map((day, index) => {
-              return (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => day && handleDayPress(day)}
-                  style={[
-                    styles.dayCell,
-                    !day && styles.emptyDay,
-                    selectedDay > 0 && day === selectedDay && styles.selectedDay,
-                    day === liveDate.getDate() && 
-                    liveDate.getMonth() === liveDate.getMonth() && 
-                    liveDate.getFullYear() === liveDate.getFullYear() && styles.today
-                  ]}
-                  disabled={!day}
-                >
-                  {day && (
-                    <Text style={[
-                      styles.dayText,
-                      selectedDay > 0 && day === selectedDay && styles.selectedDayText,
-                      day === liveDate.getDate() && 
-                      liveDate.getMonth() === liveDate.getMonth() && 
-                      liveDate.getFullYear() === liveDate.getFullYear() && styles.todayText
-                    ]}>
-                      {day}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
+
+        <View style={styles.gridContainer}>
+          {generateCalendarDays().map((day, index) => {
+            const daySelected = day !== null && isSelected(day);
+            const dayIsToday = day !== null && isToday(day);
+
+            return (
+              <TouchableOpacity
+                key={index}
+                onPress={() => day && handleDayPress(day)}
+                disabled={!day}
+                style={[
+                  styles.dayCell,
+                  daySelected ? styles.selectedDayCell : null,
+                  dayIsToday ? styles.todayCell : null,
+                ]}
+              >
+                {day && (
+                  <Text style={[
+                    styles.dayText,
+                    (daySelected || dayIsToday) && styles.whiteText
+                  ]}>
+                    {day}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -199,197 +159,115 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: "100%",
-    backgroundColor: "#000000", // Black background for professional look
-    borderRadius: 12,
-    marginBottom: 10,
-    shadowColor: "#FFD700", // Gold shadow for premium feel
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    overflow: 'hidden',
     elevation: 8,
-    borderWidth: 1,
-    borderColor: "#FFD700", // Gold border
-    overflow: 'hidden', // Prevent content overflow
-    minWidth: 300, // Adjusted width for proper calendar fit
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
-  cardContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    padding: 18,
+  headerSection: {
+    flexDirection: 'row',
+    padding: 20,
+    backgroundColor: '#F8FAFC',
     borderBottomWidth: 1,
-    borderBottomColor: "#FFD700",
+    borderBottomColor: '#E2E8F0',
   },
-  leftSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
+  leftInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  cardIcon: {
-    marginRight: 15,
+  iconBackground: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#EEF2FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
   },
-  textSection: {
-    flex: 1,
-  },
-  cardTitle: {
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF', // White text
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#1E293B',
   },
-  cardSubtitle: {
-    fontSize: 13,
-    color: '#CCCCCC', // Light gray for subtitle
-    marginTop: 3,
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
   },
-  calendarIconContainer: {
-    padding: 8,
-    backgroundColor: '#FFD700',
-    borderRadius: 20,
+  calendarBody: {
+    padding: 20,
   },
-  calendarContainer: {
-    padding: 15,
-    backgroundColor: '#000000',
-    width: '100%',
-    minWidth: 300, // Adjusted width
-  },
-  monthYearHeader: {
+  navigationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    backgroundColor: '#1a1a1a',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    width: '100%',
-    minWidth: 270, // Adjusted for better fit
+    marginBottom: 25,
   },
-  monthYearContainer: {
+  navBtn: {
+    padding: 5,
+  },
+  monthYearDisplay: {
     alignItems: 'center',
-    flex: 1,
   },
-  monthYearText: {
-    fontSize: 18,
+  monthNameText: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#1E293B',
   },
-  liveTimeText: {
-    fontSize: 12,
-    color: '#FFD700',
-    marginTop: 2,
-    fontWeight: '500',
+  yearNameText: {
+    fontSize: 14,
+    color: '#5152B3',
+    fontWeight: '700',
   },
-  liveDateText: {
-    fontSize: 10,
-    color: '#CCCCCC',
-    marginTop: 2,
-    fontWeight: '400',
-  },
-  navButton: {
-    padding: 8,
-    backgroundColor: '#FFD700',
-    borderRadius: 15,
-  },
-  daysOfWeekContainer: {
+  weekHeader: {
     flexDirection: 'row',
-    marginBottom: 10,
-    backgroundColor: '#1a1a1a',
-    paddingVertical: 10,
-    paddingHorizontal: 3, // Minimal padding for tight fit
-    borderRadius: 8,
-    width: '100%',
+    marginBottom: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  dayOfWeekCell: {
-    width: '14.285%', // Exact 1/7th width like calendar buttons
-    height: 30,
-    justifyContent: 'center',
+  weekCell: {
+    flex: 1,
     alignItems: 'center',
   },
-  dayOfWeekText: {
-    fontSize: 10, // Slightly smaller for better fit
-    fontWeight: 'bold',
-    color: '#FFD700', // Gold for day headers
-    textAlign: 'center',
-    textTransform: 'uppercase',
+  weekText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#94A3B8',
   },
-  currentDayOfWeekText: {
-    color: '#FFFFFF', // White for current day
-    backgroundColor: '#FFD700', // Gold background for current day
-    borderRadius: 10,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  daysContainer: {
-    maxHeight: 240,
-    width: '100%',
-  },
-  daysContent: {
-    paddingBottom: 15,
-    width: '100%',
-  },
-  daysGrid: {
+  gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    width: '100%',
-    alignItems: 'flex-start',
-    paddingHorizontal: 3, // Match week container padding
   },
   dayCell: {
-    width: '14.285%', // Exact 1/7th of width for 7 columns
-    height: 40,
+    width: '14.28%',
+    height: 45,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 1,
-    marginHorizontal: 0, // No horizontal margin for tight fit
-    borderRadius: 20,
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  emptyDay: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    // Ensure empty cells maintain same spacing as regular cells
-    width: '14.285%',
-    height: 40,
-    marginVertical: 1,
-    marginHorizontal: 0,
-  },
-  selectedDay: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  today: {
-    backgroundColor: '#2a2a2a',
-    borderColor: '#FFD700',
-    borderWidth: 2,
+    marginVertical: 4,
+    borderRadius: 12,
   },
   dayText: {
-    fontSize: 12,
+    fontSize: 15,
+    color: '#334155',
+    fontWeight: '600',
+  },
+  whiteText: {
     color: '#FFFFFF',
-    fontWeight: '500',
-  },
-  selectedDayText: {
-    color: '#000000',
     fontWeight: 'bold',
   },
-  todayText: {
-    color: '#FFD700',
-    fontWeight: 'bold',
+  selectedDayCell: {
+    backgroundColor: '#5152B3',
+  },
+  todayCell: {
+    backgroundColor: '#5152B3',
+    borderWidth: 2,
+    borderColor: '#5152B3',
   },
 });
 

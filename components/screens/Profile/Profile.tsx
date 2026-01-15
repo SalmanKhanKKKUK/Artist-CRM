@@ -1,20 +1,24 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
-import { 
-  Alert, 
+import {
+  Alert,
   Dimensions,
-  Image, 
-  KeyboardAvoidingView, 
-  Platform, 
-  ScrollView, 
-  StatusBar, 
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
   StyleSheet,
-  Text, 
-  TouchableOpacity, 
+  Text,
+  TouchableOpacity,
   View,
-  BackHandler // Hardware back button handle karne ke liye
+  BackHandler,
+  Modal,
+  TextInput,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Reusable Components
 import DynamicButton from "../../common/Buttons/DynamicButton";
@@ -28,29 +32,71 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ onBack }) => {
-  const [showSetting, setShowSetting] = useState(false);
+  const [showSetting, setShowSetting] = useState<boolean>(false);
 
-  // Android Hardware Back Button Logic
+  // Data States
+  const [email] = useState<string>("aqibshoaib@gmail.com");
+  const [phone, setPhone] = useState<string>("3118298343");
+
+  // UI States for Modals
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+  const [tempValue, setTempValue] = useState<string>("");
+
+  // Load Saved Data on Mount
   useEffect(() => {
-    const backAction = () => {
+    const loadStoredPhone = async () => {
+      try {
+        const savedPhone = await AsyncStorage.getItem('user_phone');
+        if (savedPhone !== null) {
+          setPhone(savedPhone);
+        }
+      } catch (error: any) {
+        console.error("Failed to load phone number:", error.message);
+      }
+    };
+    loadStoredPhone();
+  }, []);
+
+  // Save Data to Phone Memory
+  const persistPhone = async (val: string) => {
+    try {
+      await AsyncStorage.setItem('user_phone', val);
+    } catch (error: any) {
+      console.error("Failed to save phone number:", error.message);
+    }
+  };
+
+  // Hardware Back Button Logic
+  useEffect(() => {
+    const backAction = (): boolean => {
       if (showSetting) {
-        // Agar setting open hai to profile par wapas jao
         setShowSetting(false);
-        return true; // Isse app close nahi hogi
+        return true;
       } else {
-        // Agar profile par hain to Dashboard (onBack) par jao
         onBack();
         return true;
       }
     };
-
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
     return () => backHandler.remove();
   }, [showSetting, onBack]);
+
+  const handleOpenPhoneMenu = (): void => {
+    setTempValue(phone);
+    setMenuVisible(true);
+  };
+
+  const handleEditInitiate = (): void => {
+    setMenuVisible(false);
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = (): void => {
+    setPhone(tempValue);
+    persistPhone(tempValue); // Save to storage
+    setEditModalVisible(false);
+  };
 
   if (showSetting) {
     return <Setting onBack={() => setShowSetting(false)} />;
@@ -59,21 +105,21 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
   return (
     <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
-      <KeyboardAvoidingView 
+
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flexOne}
       >
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
+        <ScrollView
+          showsVerticalScrollIndicator={false}
           bounces={false}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.innerContainer}>
             <Text style={styles.titleText}>Profile</Text>
-            
-            <Image 
+
+            <Image
               source={require('../../../assets/homeimages/welcomepagepic.png')}
               style={styles.topImage}
               resizeMode="contain"
@@ -86,9 +132,10 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
               </View>
 
               <View style={styles.infoWrapper}>
-                <InfoCard 
+                {/* Email Card - 3 Dots removed */}
+                <InfoCard
                   title="Email"
-                  description="aqibshoaib@gmail.com"
+                  description={email}
                   backgroundColor="#F8FAFC"
                   borderRadius={20}
                   margin={0}
@@ -96,53 +143,52 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
                   containerStyle={styles.cardBorder}
                 />
 
-                <InfoCard 
-                  title="Phone"
-                  description="3118298343"
-                  backgroundColor="#F8FAFC"
-                  borderRadius={20}
-                  margin={0}
-                  elevation={0}
-                  containerStyle={styles.cardBorder}
-                />
+                {/* Phone Card with Edit only 3 dots */}
+                <View style={styles.cardWithMenu}>
+                  <InfoCard
+                    title="Phone"
+                    description={phone}
+                    backgroundColor="#F8FAFC"
+                    borderRadius={20}
+                    margin={0}
+                    elevation={0}
+                    containerStyle={styles.cardBorder}
+                  />
+                  <TouchableOpacity
+                    style={styles.threeDotButton}
+                    onPress={handleOpenPhoneMenu}
+                  >
+                    <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
+                  </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity onPress={() => setShowSetting(true)}>
                   <View style={styles.clickableWrapper}>
-                    <InfoCard 
+                    <InfoCard
                       title="Settings"
                       description="App preferences and security"
-                      backgroundColor="#FFFFFF"
+                      backgroundColor="#F8FAFC"
                       borderRadius={20}
                       margin={0}
                       elevation={0}
                       containerStyle={styles.cardBorder}
                     />
-                    <MaterialCommunityIcons 
-                      name="chevron-right" 
-                      size={24} 
-                      color="#CBD5E1" 
-                      style={styles.chevronIcon}
-                    />
+                    <MaterialCommunityIcons name="chevron-right" size={24} color="#CBD5E1" style={styles.chevronIcon} />
                   </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => console.log("Billing Clicked")}>
                   <View style={styles.clickableWrapper}>
-                    <InfoCard 
+                    <InfoCard
                       title="Manage Billing"
                       description="Subscription and payments"
-                      backgroundColor="#FFFFFF"
+                      backgroundColor="#F8FAFC"
                       borderRadius={20}
                       margin={0}
                       elevation={0}
                       containerStyle={styles.cardBorder}
                     />
-                    <MaterialCommunityIcons 
-                      name="chevron-right" 
-                      size={24} 
-                      color="#CBD5E1" 
-                      style={styles.chevronIcon}
-                    />
+                    <MaterialCommunityIcons name="chevron-right" size={24} color="#CBD5E1" style={styles.chevronIcon} />
                   </View>
                 </TouchableOpacity>
 
@@ -165,6 +211,44 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Pop-up Menu - Only Edit */}
+      <Modal visible={menuVisible} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.menuPopup}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleEditInitiate}>
+                <MaterialCommunityIcons name="pencil" size={20} color="#5152B3" />
+                <Text style={styles.menuText}>Edit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal visible={editModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.editPopup}>
+            <Text style={styles.editTitle}>Edit Phone</Text>
+            <TextInput
+              style={styles.inputField}
+              value={tempValue}
+              onChangeText={setTempValue}
+              keyboardType="phone-pad"
+              autoFocus
+            />
+            <View style={styles.editActions}>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveEdit}>
+                <Text style={styles.saveBtnText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -233,6 +317,90 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 20,
     width: '100%',
+  },
+  cardWithMenu: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  threeDotButton: {
+    position: 'absolute',
+    right: 15,
+    padding: 5,
+    zIndex: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuPopup: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    width: 120,
+    paddingVertical: 5,
+    position: 'absolute',
+    right: 40,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    gap: 10,
+  },
+  menuText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  editPopup: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: '85%',
+    padding: 20,
+    alignItems: 'center',
+  },
+  editTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  inputField: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 20,
+    color: '#333',
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    width: '100%',
+    alignItems: 'center',
+    gap: 20,
+  },
+  cancelBtnText: {
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  saveBtn: {
+    backgroundColor: '#5152B3',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  saveBtnText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });
 

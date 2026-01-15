@@ -6,13 +6,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextStyle,
   TouchableOpacity,
   View,
-  ViewStyle,
+  Platform,
 } from 'react-native';
 
-// Interfaces for strict type checking
+// Interfaces
 export interface FilterOption {
   label: string;
   value: string;
@@ -67,9 +66,11 @@ const FilterInput: React.FC<FilterInputProps> = ({
         <View style={styles.modalContent}>
           {/* Header Section */}
           <View style={styles.header}>
+            <View style={styles.dragHandle} />
             <Text style={styles.headerText}>{title}</Text>
           </View>
 
+          {/* Body Section */}
           <ScrollView 
             style={styles.scrollBody} 
             contentContainerStyle={styles.scrollContent}
@@ -81,26 +82,22 @@ const FilterInput: React.FC<FilterInputProps> = ({
                 <View style={styles.optionsContainer}>
                   {section.options.map((option) => {
                     const isSelected = selections[section.id] === option.value;
-                    
-                    // Style objects define separately to avoid TS array merging errors
-                    const chipStyle: ViewStyle[] = [
-                      styles.chip,
-                      isSelected ? styles.chipSelected : {}
-                    ];
-                    
-                    const chipTextStyle: TextStyle[] = [
-                      styles.chipText,
-                      isSelected ? styles.chipTextSelected : {}
-                    ];
-
                     return (
                       <TouchableOpacity
                         key={option.value}
-                        activeOpacity={0.8}
+                        activeOpacity={0.7}
                         onPress={() => handleSelect(section.id, option.value)}
-                        style={chipStyle}
+                        style={[
+                          styles.chip, 
+                          isSelected ? styles.chipSelected : styles.chipUnselected
+                        ]}
                       >
-                        <Text style={chipTextStyle}>{option.label}</Text>
+                        <Text style={[
+                          styles.chipText, 
+                          isSelected ? styles.chipTextSelected : styles.chipTextUnselected
+                        ]}>
+                          {option.label}
+                        </Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -109,7 +106,7 @@ const FilterInput: React.FC<FilterInputProps> = ({
             ))}
           </ScrollView>
 
-          {/* Footer with SafeAreaView for bottom notch devices */}
+          {/* Footer Section with Fixed Visibility */}
           <SafeAreaView style={styles.footer}>
             <TouchableOpacity 
               style={styles.applyBtn} 
@@ -122,8 +119,11 @@ const FilterInput: React.FC<FilterInputProps> = ({
               style={styles.resetBtn} 
               onPress={handleReset}
             >
-              <Text style={styles.resetBtnText}>Reset</Text>
+              <Text style={styles.resetBtnText}>Reset Selections</Text>
             </TouchableOpacity>
+            
+            {/* Extra spacer for Android/iOS bottom bars */}
+            <View style={styles.bottomSpacer} />
           </SafeAreaView>
         </View>
       </Pressable>
@@ -131,6 +131,7 @@ const FilterInput: React.FC<FilterInputProps> = ({
   );
 };
 
+// Proper CSS-like Structured Styles
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -138,91 +139,117 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '85%',
+    backgroundColor: '#F8FAFC',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    maxHeight: '80%',
     width: '100%',
   },
   header: {
-    backgroundColor: '#333333',
-    paddingVertical: 18,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    paddingVertical: 15,
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#CBD5E1',
+    borderRadius: 3,
+    marginBottom: 10,
   },
   headerText: {
-    color: '#FFFFFF',
+    color: '#5152B3',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   scrollBody: {
-    paddingHorizontal: 20,
+    backgroundColor: '#F8FAFC',
   },
   scrollContent: {
+    paddingHorizontal: 25,
     paddingTop: 20,
-    paddingBottom: 10,
+    paddingBottom: 20,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 25,
   },
   sectionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#444',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
     marginBottom: 12,
   },
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 10,
   },
   chip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#D4AF37',
-    marginRight: 10,
-    marginBottom: 10,
-    backgroundColor: '#FFF',
+  },
+  chipUnselected: {
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   chipSelected: {
-    backgroundColor: '#D4AF37',
+    borderColor: '#5152B3',
+    backgroundColor: '#5152B3',
   },
   chipText: {
-    color: '#333',
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  chipTextUnselected: {
+    color: '#64748B',
   },
   chipTextSelected: {
-    color: '#FFF',
+    color: '#FFFFFF',
   },
   footer: {
-    padding: 20,
+    paddingHorizontal: 25,
+    paddingTop: 20,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: '#E2E8F0',
   },
   applyBtn: {
-    backgroundColor: '#E53935',
-    paddingVertical: 14,
-    borderRadius: 12,
+    backgroundColor: '#5152B3',
+    paddingVertical: 16,
+    borderRadius: 25,
     alignItems: 'center',
     marginBottom: 10,
+    elevation: 4,
+    shadowColor: '#5152B3',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   applyBtnText: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
   resetBtn: {
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: 'center',
+    marginBottom: 5,
   },
   resetBtnText: {
-    color: '#777',
+    color: '#94A3B8',
     fontSize: 14,
+    fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+  bottomSpacer: {
+    height: Platform.OS === 'ios' ? 30 : 20, // Reset button ke neeche proper margin
   },
 });
 

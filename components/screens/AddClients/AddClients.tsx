@@ -34,20 +34,19 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   };
 
   return (
-    <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* NavHeader with Save Button */}
-      <NavHeader title="Add Client">
+      {/* NavHeader exact Dashboard ki position par rahega kar diya gaya hai. */}
+      <NavHeader title="Add New Client !">
         <DynamicButton 
           text="Save"
           onPress={handleSave}
-          backgroundColor="#5152B3"
-          textColor="#FFFFFF"
-          borderRadius={20}
+          backgroundColor="transparent"
+          textColor="#5152B3"
           paddingVertical={8}
-          paddingHorizontal={20}
-          fontSize={14}
+          paddingHorizontal={5}
+          fontSize={18}
           fontWeight="bold"
         />
       </NavHeader>
@@ -61,7 +60,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: 20 + insets.bottom } 
+            { paddingBottom: 10 + insets.bottom } 
           ]}
         >
           <View style={styles.formContainer}>
@@ -72,7 +71,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
               onChangeText={setName}
               placeholder="Enter full name"
               leftIcon="account"
-              containerStyle={styles.fullWidthInput}
+              containerStyle={[styles.fullWidthInput, styles.roundedInput]}
               size="large"
               variant="outlined"
             />
@@ -86,7 +85,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
               placeholder="e.g. +1 234 567 890"
               keyboardType="phone-pad"
               leftIcon="phone"
-              containerStyle={styles.fullWidthInput}
+              containerStyle={[styles.fullWidthInput, styles.roundedInput]}
               size="large"
               variant="outlined"
             />
@@ -99,7 +98,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
               onChangeText={setInstagram}
               placeholder="@username"
               leftIcon="instagram"
-              containerStyle={styles.fullWidthInput}
+              containerStyle={[styles.fullWidthInput, styles.roundedInput]}
               size="large"
               variant="outlined"
             />
@@ -114,12 +113,10 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
               keyboardType="email-address"
               autoCapitalize="none"
               leftIcon="email"
-              containerStyle={styles.fullWidthInput}
+              containerStyle={[styles.fullWidthInput, styles.roundedInput]}
               size="large"
               variant="outlined"
             />
-
-            
 
           </View>
         </ScrollView>
@@ -131,7 +128,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 const styles = StyleSheet.create({
   masterContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1F3F5',
   },
   flexOne: {
     flex: 1,
@@ -146,14 +143,17 @@ const styles = StyleSheet.create({
   fullWidthInput: {
     width: '100%',
   },
+  roundedInput: {
+    borderRadius: 25, 
+  },
   sectionGap: {
-    height: 20,
+    height: 25,
   },
   label: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#333',
-    marginBottom: 8,
+    color: '#5152B3', 
+    marginBottom: 10,
     marginLeft: 5,
   },
 });

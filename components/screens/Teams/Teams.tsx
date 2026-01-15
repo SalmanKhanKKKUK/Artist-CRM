@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -9,17 +7,16 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Reusable components imports
-import ImageDesCard from '../../common/Cards/ImageDesCard';
-import DynamicButton from '../../common/Buttons/DynamicButton';
 import NavHeader from '../../common/Buttons/NavHeader';
+import DynamicButton from '../../common/Buttons/DynamicButton';
+import ImageDesCard from '../../common/Cards/ImageDesCard';
 
 interface TeamsProps {
   onBack?: () => void;
   onNavigateToWelcome?: () => void;
 }
 
-const Teams: React.FC<TeamsProps> = () => {
+const Teams: React.FC<TeamsProps> = ({ onBack }) => {
   const insets = useSafeAreaInsets();
 
   const handleInviteTeam = () => {
@@ -27,112 +24,97 @@ const Teams: React.FC<TeamsProps> = () => {
   };
 
   return (
-    <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* NavHeader with Invite Button - Back Icon Removed */}
+      {/* FIXED HEADER: Stays in the same spot across screens */}
       <NavHeader 
-        title="Our Team" 
+        title=" Meet Our Team !"
       >
         <DynamicButton
           text="Invite"
           onPress={handleInviteTeam}
-          backgroundColor="#5152B3"
-          textColor="#FFFFFF"
-          borderRadius={20}
+          backgroundColor="transparent" 
+          textColor="#5152B3"
           paddingVertical={8}
-          paddingHorizontal={15}
-          fontSize={14}
+          paddingHorizontal={5}
+          fontSize={18} 
           fontWeight="bold"
         />
       </NavHeader>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flexOne}
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={[
+          styles.mainScroll, 
+          { paddingBottom: 10 + insets.bottom } 
+        ]}
       >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={styles.scrollBox}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: 20 + insets.bottom }
-          ]}
-          bounces={false}
-        >
-          <View style={styles.contentFadeIn}>
-            {/* 1. Ahmad Ali */}
-            <ImageDesCard
-              imageSource={{ uri: 'https://i.pravatar.cc/150?u=1' }}
-              title="Ahmad Ali"
-              description="Senior Stylist - Active"
-              backgroundColor="#F8FAFC"
-              containerStyle={styles.cardMargin}
-            />
+        <View style={styles.contentFadeIn}>
+          {/* Team Cards */}
+          <ImageDesCard
+            imageSource={{ uri: 'https://i.pravatar.cc/150?u=1' }}
+            title="Ahmad Ali"
+            description="Senior Stylist - Active"
+            backgroundColor="#FFFFFF" 
+            containerStyle={styles.cardMargin}
+          />
 
-            {/* 2. Sara Khan */}
-            <ImageDesCard
-              imageSource={{ uri: 'https://i.pravatar.cc/150?u=2' }}
-              title="Sara Khan"
-              description="Color Expert - Active"
-              backgroundColor="#F8FAFC"
-              containerStyle={styles.cardMargin}
-            />
+          <ImageDesCard
+            imageSource={{ uri: 'https://i.pravatar.cc/150?u=2' }}
+            title="Sara Khan"
+            description="Color Expert - Active"
+            backgroundColor="#FFFFFF"
+            containerStyle={styles.cardMargin}
+          />
 
-            {/* 3. Zeenat Malik */}
-            <ImageDesCard
-              imageSource={{ uri: 'https://i.pravatar.cc/150?u=3' }}
-              title="Zeenat Malik"
-              description="Manager - Active"
-              backgroundColor="#F8FAFC"
-              containerStyle={styles.cardMargin}
-            />
+          <ImageDesCard
+            imageSource={{ uri: 'https://i.pravatar.cc/150?u=3' }}
+            title="Zeenat Malik"
+            description="Manager - Active"
+            backgroundColor="#FFFFFF"
+            containerStyle={styles.cardMargin}
+          />
 
-            {/* 4. Team Member 4 */}
-            <ImageDesCard
-              imageSource={{ uri: 'https://i.pravatar.cc/150?u=4' }}
-              title="Hamza Sheikh"
-              description="Junior Stylist - Active"
-              backgroundColor="#F8FAFC"
-              containerStyle={styles.cardMargin}
-            />
+          <ImageDesCard
+            imageSource={{ uri: 'https://i.pravatar.cc/150?u=4' }}
+            title="Hamza Sheikh"
+            description="Junior Stylist - Active"
+            backgroundColor="#FFFFFF"
+            containerStyle={styles.cardMargin}
+          />
 
-            {/* 5. Team Member 5 */}
-            <ImageDesCard
-              imageSource={{ uri: 'https://i.pravatar.cc/150?u=5' }}
-              title="Danish Ahmed"
-              description="Assistant - Active"
-              backgroundColor="#F8FAFC"
-              containerStyle={styles.cardMargin}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <ImageDesCard
+            imageSource={{ uri: 'https://i.pravatar.cc/150?u=5' }}
+            title="Danish Ahmed"
+            description="Assistant - Active"
+            backgroundColor="#FFFFFF"
+            containerStyle={styles.cardMargin}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  masterContainer: {
+  container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1F3F5', 
   },
-  flexOne: {
-    flex: 1,
-  },
-  scrollBox: {
-    flex: 1,
-    width: '100%',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
+  mainScroll: {
+    paddingHorizontal: 25, 
     paddingTop: 15,
   },
   contentFadeIn: {
     width: '100%',
+    marginTop: 10,
   },
   cardMargin: {
     marginBottom: 15,
+    borderRadius: 20, 
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
 });
 
