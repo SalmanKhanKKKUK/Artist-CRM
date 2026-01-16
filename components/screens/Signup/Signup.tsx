@@ -1,18 +1,18 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   Dimensions,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
-  BackHandler,
-  Keyboard, // Keyboard import kiya
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,9 +36,8 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [agreeTerms, setAgreeTerms] = useState<boolean>(false);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false); // Scroll control ke liye state
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
-  // Android Back Button aur Keyboard handling
   useEffect(() => {
     const backAction = () => {
       onBack();
@@ -46,10 +45,10 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
     };
 
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true); // Typing ke waqt scroll enable
+      setKeyboardVisible(true);
     });
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false); // Keyboard band hone par wapas fixed
+      setKeyboardVisible(false);
     });
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
@@ -66,21 +65,25 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={styles.mainContainer}
       >
         <ScrollView 
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            // Jab keyboard khule tab bottom padding add hogi taake aakhri input tak scroll ho sakay
+            { paddingBottom: isKeyboardVisible ? 20 : 0 } 
+          ]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          scrollEnabled={isKeyboardVisible} // Sirf typing ke waqt scroll hoga
+          keyboardShouldPersistTaps="always" // Typing ke waqt tap handle karne ke liye
+          scrollEnabled={isKeyboardVisible} 
           bounces={isKeyboardVisible}
         >
           <View style={styles.innerContainer}>
             
             <Image 
-              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              source={require('../../../assets/homeimages/logo.png')}
               style={styles.middleImage}
               resizeMode="contain"
             />
@@ -174,8 +177,8 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
               </View>
 
               <TouchableOpacity onPress={onNavigateToLogin} style={styles.loginLinkContainer}>
-                <Text style={styles.optionText}>Already have an Account? </Text>
-                <Text style={styles.forgotText}>Login</Text>
+                <Text style={styles.optionText}>Already have an Account?</Text>
+                <Text style={styles.forgotText}> Login</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -185,6 +188,7 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
   );
 };
 
+// Styles remain exactly the same as your original
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

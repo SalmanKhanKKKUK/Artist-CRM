@@ -103,7 +103,7 @@ const Input: React.FC<InputProps> = ({
 
   const getVariantStyles = () => {
     // Gray color jab focus na ho, aur purple jab focus ho
-    const borderColor = error ? '#ff4444' : isFocused ? '#5152B3' : '#e9e9e9ff';
+    const borderColor = error ? '#ff4444' : isFocused ? '#5152B3' : '#e5e7eb';
 
     switch (variant) {
       case 'outlined':
@@ -111,7 +111,7 @@ const Input: React.FC<InputProps> = ({
           borderWidth: 1,
           borderColor: borderColor,
           backgroundColor: '#fff',
-          boxShadow: "rgba(0, 0, 0, 0.1) 0px 2px 10px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px",
+          // boxShadow: "rgba(0, 0, 0, 0.1) 0px 1px 5px -1px, rgba(0, 0, 0, 0.06) 0px 1px 2px -1px",
           
         };
       case 'filled':
@@ -123,7 +123,7 @@ const Input: React.FC<InputProps> = ({
         return {
           borderWidth: 1,
           borderColor: borderColor,
-          boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px",
+          // boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px",
           backgroundColor: '#fff',
         };
     }
@@ -158,7 +158,7 @@ const Input: React.FC<InputProps> = ({
             <MaterialCommunityIcons
               name={leftIcon}
               size={iconSize}
-              color={error ? '#ff4444' : isFocused ? '#5152B3' : '#d6d6d6ff'}
+              color={error ? '#ff4444' : isFocused ? '#5152B3' : '#5152B3'}
             />
           </TouchableOpacity>
         )}

@@ -56,7 +56,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack }) => {
             imageSource={{ uri: 'https://i.pravatar.cc/150?u=1' }}
             title="Ahmad Ali"
             description="Senior Stylist - Active"
-            backgroundColor="#FFFFFF" 
+            backgroundColor="#F8FAFC"
             containerStyle={styles.cardMargin}
           />
 
@@ -64,7 +64,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack }) => {
             imageSource={{ uri: 'https://i.pravatar.cc/150?u=2' }}
             title="Sara Khan"
             description="Color Expert - Active"
-            backgroundColor="#FFFFFF"
+            backgroundColor="#F8FAFC"
             containerStyle={styles.cardMargin}
           />
 
@@ -72,7 +72,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack }) => {
             imageSource={{ uri: 'https://i.pravatar.cc/150?u=3' }}
             title="Zeenat Malik"
             description="Manager - Active"
-            backgroundColor="#FFFFFF"
+            backgroundColor="#F8FAFC"
             containerStyle={styles.cardMargin}
           />
 
@@ -80,7 +80,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack }) => {
             imageSource={{ uri: 'https://i.pravatar.cc/150?u=4' }}
             title="Hamza Sheikh"
             description="Junior Stylist - Active"
-            backgroundColor="#FFFFFF"
+            backgroundColor="#F8FAFC"
             containerStyle={styles.cardMargin}
           />
 
@@ -88,7 +88,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack }) => {
             imageSource={{ uri: 'https://i.pravatar.cc/150?u=5' }}
             title="Danish Ahmed"
             description="Assistant - Active"
-            backgroundColor="#FFFFFF"
+            backgroundColor="#F8FAFC"
             containerStyle={styles.cardMargin}
           />
         </View>

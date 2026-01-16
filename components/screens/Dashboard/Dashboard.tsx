@@ -1,8 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { BackHandler, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-// SafeAreaView handle karne ke liye
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import NavButton from '../../common/Buttons/NavButton';
@@ -44,6 +41,19 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
   const handleAddClientsPress = () => setCurrentScreen('addClients');
   const handleProfilePress = () => setCurrentScreen('profile');
 
+  const visitData = [
+    { id: 1, title: "John Doe", img: require('../../../assets/images/icon.png') },
+    { id: 2, title: "Smith Alex", img: require('../../../assets/images/favicon.png') },
+    { id: 3, title: "Mike Ross", img: require('../../../assets/images/splash-icon.png') },
+    { id: 4, title: "Wilson tel", img: require('../../../assets/images/react-logo.png') },
+    { id: 5, title: "Harvey Specter", img: require('../../../assets/images/icon.png') },
+    { id: 6, title: "Donna Paul", img: require('../../../assets/images/favicon.png') },
+    { id: 7, title: "Louis Litt", img: require('../../../assets/images/splash-icon.png') },
+    { id: 8, title: "Rachel Zane", img: require('../../../assets/images/react-logo.png') },
+    { id: 9, title: "Jessica P.", img: require('../../../assets/images/icon.png') },
+    { id: 10, title: "Daniel H.", img: require('../../../assets/images/favicon.png') },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -62,15 +72,18 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
         <>
           <NavHeader 
             title="Dashboard !" 
-            showProfileIcon={true} 
-            onProfilePress={handleProfilePress} 
-          />
+            showProfileIcon={false} 
+          >
+             <TouchableOpacity onPress={handleProfilePress}>
+                <Text style={{ fontSize: 20 }}>👤</Text> 
+             </TouchableOpacity>
+          </NavHeader>
 
           <ScrollView 
             showsVerticalScrollIndicator={false} 
             contentContainerStyle={[
               styles.mainScroll, 
-              { paddingBottom: 100 + insets.bottom } 
+              { paddingBottom: 50 + insets.bottom } 
             ]}
           >
             <View style={[statsStyles.statsContainer, { marginTop: 10 }]}>
@@ -100,124 +113,56 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
 
             <View style={styles.sectionHeadingWrapper}>
               <Text style={styles.sectionTitle}>Recent Visits</Text>
-              <TouchableOpacity onPress={handleHistoryPress}>
+              
+              {/* Sirf yahan background apply kiya gaya hai */}
+              <TouchableOpacity onPress={handleHistoryPress} style={styles.historyBtnBackground}>
                 <Text style={styles.seeAllText}>View History</Text>
               </TouchableOpacity>
             </View>
             
             <View style={styles.visitGrid}>
-              {/* Row 1 */}
-              <View style={styles.row}>
-                <ImageDesCard 
-                  imageSource={require('../../../assets/images/icon.png')}
-                  title="John Doe"
-                  description="Last visit: 2 days ago"
-                  backgroundColor="#FFFFFF"
-                  titleStyle={styles.visitTitle}
-                  descriptionStyle={styles.visitDesc}
-                  cardMargin={0}
-                  cardPadding={12}
-                  imageSize={40}
-                  elevation={0}
-                  containerStyle={styles.visitCardBorder}
-                />
-                <ImageDesCard 
-                  imageSource={require('../../../assets/images/favicon.png')}
-                  title="Smith Alex"
-                  description="Last visit: 3 days ago"
-                  backgroundColor="#FFFFFF"
-                  titleStyle={styles.visitTitle}
-                  descriptionStyle={styles.visitDesc}
-                  cardMargin={0}
-                  cardPadding={12}
-                  imageSize={40}
-                  elevation={0}
-                  containerStyle={styles.visitCardBorder}
-                />
-              </View>
-
-              {/* Row 2 */}
-              <View style={styles.row}>
-                <ImageDesCard 
-                  imageSource={require('../../../assets/images/splash-icon.png')}
-                  title="Mike Ross"
-                  description="Last visit: 5 days ago"
-                  backgroundColor="#FFFFFF"
-                  titleStyle={styles.visitTitle}
-                  descriptionStyle={styles.visitDesc}
-                  cardMargin={0}
-                  cardPadding={12}
-                  imageSize={40}
-                  elevation={0}
-                  containerStyle={styles.visitCardBorder}
-                />
-                <ImageDesCard 
-                  imageSource={require('../../../assets/images/react-logo.png')}
-                  title="Wilson tel"
-                  description="Last visit: 1 week ago"
-                  backgroundColor="#FFFFFF"
-                  titleStyle={styles.visitTitle}
-                  descriptionStyle={styles.visitDesc}
-                  cardMargin={0}
-                  cardPadding={12}
-                  imageSize={40}
-                  elevation={0}
-                  containerStyle={styles.visitCardBorder}
-                />
-              </View>
-
-              {/* Row 3 - New Cards Added */}
-              <View style={styles.row}>
-                <ImageDesCard 
-                  imageSource={require('../../../assets/images/icon.png')}
-                  title="Harvey"
-                  description="Last visit: 10 days ago"
-                  backgroundColor="#FFFFFF"
-                  titleStyle={styles.visitTitle}
-                  descriptionStyle={styles.visitDesc}
-                  cardMargin={0}
-                  cardPadding={12}
-                  imageSize={40}
-                  elevation={0}
-                  containerStyle={styles.visitCardBorder}
-                />
-                <ImageDesCard 
-                  imageSource={require('../../../assets/images/favicon.png')}
-                  title="Donna Paul"
-                  description="Last visit: 12 days ago"
-                  backgroundColor="#FFFFFF"
-                  titleStyle={styles.visitTitle}
-                  descriptionStyle={styles.visitDesc}
-                  cardMargin={0}
-                  cardPadding={12}
-                  imageSize={40}
-                  elevation={0}
-                  containerStyle={styles.visitCardBorder}
-                />
-              </View>
+              {[0, 2, 4, 6, 8].map((startIndex) => (
+                <View key={startIndex} style={styles.row}>
+                  {visitData.slice(startIndex, startIndex + 2).map((item) => (
+                    <ImageDesCard 
+                      key={item.id}
+                      imageSource={item.img}
+                      title={item.title}
+                      description="Last visit: 2 days ago"
+                      backgroundColor="#FFFFFF"
+                      titleStyle={styles.visitTitle}
+                      descriptionStyle={styles.visitDesc}
+                      cardMargin={0}
+                      cardPadding={12}
+                      imageSize={40}
+                      elevation={0}
+                      containerStyle={styles.visitCardBorder}
+                    />
+                  ))}
+                </View>
+              ))}
             </View>
           </ScrollView>
         </>
       )}
 
-      {/* NAVIGATION BAR */}
       <View style={[
         styles.bottomNavContainer, 
         { 
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 15, 
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 10, 
           height: 65 + insets.bottom 
         }
       ]}>
         <View style={styles.navBar}>
           <NavButton 
             label="Home"
-            icon={<Ionicons name={currentScreen === null ? "home" : "home-outline"} size={22} />}
+            icon={<Text style={{fontSize: 22}}>🏠</Text>} 
             isActive={currentScreen === null}
             onClick={handleHomePress}
           />
           <NavButton 
             label="New Visit"
-            icon={<Ionicons name={currentScreen === 'newVisit' ? "location" : "location-outline"} size={22} />}
+            icon={<Text style={{fontSize: 22}}>📍</Text>} 
             isActive={currentScreen === 'newVisit'}
             onClick={handleNewVisitPress}
           />
@@ -226,7 +171,7 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
               onPress={handleAddClientsPress}
               iconName="plus"
               iconColor="#FFFFFF"
-              backgroundColor="#5152B3"
+              backgroundColor="#A855F7" 
               size={58}
               iconSize={28}
               style={styles.plusShadowFree} 
@@ -234,13 +179,13 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
           </View>
           <NavButton 
             label="History"
-            icon={<Ionicons name={currentScreen === 'history' ? "time" : "time-outline"} size={22} />}
+            icon={<Text style={{fontSize: 22}}>🕒</Text>} 
             isActive={currentScreen === 'history'}
             onClick={handleHistoryPress}
           />
           <NavButton 
             label="Teams"
-            icon={<Ionicons name={currentScreen === 'teams' ? "people" : "people-outline"} size={22} />}
+            icon={<Text style={{fontSize: 22}}>👥</Text>} 
             isActive={currentScreen === 'teams'}
             onClick={handleTeamsPress}
           />
@@ -285,9 +230,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#5152B3',
   },
+  // New style for View History background
+  historyBtnBackground: {
+    backgroundColor: '#1e3ea8ff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
   seeAllText: {
     fontSize: 14,
-    color: '#5152B3',
+    color: '#d3d3daff',
     fontWeight: '500',
   },
   visitGrid: {
@@ -297,7 +249,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 4, // Gap between rows handle karne ke liye adjustment
+    marginBottom: 12,
   },
   visitCardBorder: {
     width: '48.2%',

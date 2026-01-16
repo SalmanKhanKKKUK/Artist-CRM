@@ -1,24 +1,24 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from "react";
 import {
   Alert,
+  BackHandler,
   Dimensions,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  View,
-  BackHandler,
-  Modal,
   TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Reusable Components
 import DynamicButton from "../../common/Buttons/DynamicButton";
@@ -120,7 +120,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
             <Text style={styles.titleText}>Profile</Text>
 
             <Image
-              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              source={require('../../../assets/homeimages/logo.png')}
               style={styles.topImage}
               resizeMode="contain"
             />

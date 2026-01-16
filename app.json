@@ -29,7 +29,13 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "fonts": [
+        {
+          "src": "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap",
+          "family": "Outfit"
+        }
+      ]
     },
     "plugins": [
       "expo-router"

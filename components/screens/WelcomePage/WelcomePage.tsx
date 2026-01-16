@@ -93,7 +93,7 @@
 //         return (
 //           <View style={styles.content}>
 //             <Image 
-//               source={require('../../../assets/homeimages/welcomepagepic.png')}
+//               source={require('../../../assets/homeimages/logo.png')}
 //               style={styles.topImage}
 //               resizeMode="contain"
 //             />

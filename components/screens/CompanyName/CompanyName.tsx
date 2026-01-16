@@ -1,23 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  View,
-  ScrollView,
-  Keyboard, // Keyboard import kiya logic ke liye
-  BackHandler
+  View
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import Input from '../../common/Inputs/Input';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface CompanyNameProps {
   onBack?: () => void;
@@ -31,29 +30,14 @@ const CompanyName: React.FC<CompanyNameProps> = ({
 }) => {
   const [companyName, setCompanyName] = useState<string>('');
   const [website, setWebsite] = useState<string>('');
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false); // Scroll control state
 
-  // Back handler aur Keyboard logic
   useEffect(() => {
     const backAction = () => {
       if (onBack) onBack();
       return true;
     };
-
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => {
-      backHandler.remove();
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
+    return () => backHandler.remove();
   }, [onBack]);
 
   const handleSubmit = () => {
@@ -64,8 +48,9 @@ const CompanyName: React.FC<CompanyNameProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
+      {/* Professional Fixed Logic:*/}
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
         style={styles.mainContainer}
@@ -74,28 +59,30 @@ const CompanyName: React.FC<CompanyNameProps> = ({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          scrollEnabled={isKeyboardVisible} // Typing par scroll enable hoga
-          bounces={isKeyboardVisible}
+          scrollEnabled={false} 
+          bounces={false}
         >
           <View style={styles.innerContainer}>
             
-            {/* Image top par (Signup size) */}
-            <Image 
-              source={require('../../../assets/homeimages/welcomepagepic.png')}
-              style={styles.topImage}
-              resizeMode="contain"
-            />
+            {/* Top Section */}
+            <View style={styles.topSection}>
+              <Image 
+                source={require('../../../assets/homeimages/logo.png')}
+                style={styles.topImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.title}>Company Name</Text>
+              <Text style={styles.subTitle}>Tell us about your business</Text>
+            </View>
 
-            {/* Title image ke neeche */}
-            <Text style={styles.title}>Company Name</Text>
-            
+            {/* Form Section: Fixed in its place */}
             <View style={styles.formContainer}>
               <Input
                 value={companyName}
                 onChangeText={setCompanyName}
                 placeholder="Company Name"
                 leftIcon={"domain" as any} 
-                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
               />
@@ -108,27 +95,27 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                 placeholder="Website (Optional)"
                 keyboardType="url"
                 autoCapitalize="none"
-                autoCorrect={false}
                 leftIcon={"web" as any} 
-                containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
               />
 
               <View style={styles.buttonGap} />
 
-              <View style={styles.buttonWrapper}>
-                <DynamicButton
-                  text="Submit"
-                  onPress={handleSubmit}
-                  backgroundColor="#5152B3"
-                  textColor="#fff"
-                  borderRadius={25}
-                  width="100%"
-                />
-              </View>
+              <DynamicButton
+                text="Submit"
+                onPress={handleSubmit}
+                backgroundColor="#5152B3"
+                textColor="#fff"
+                borderRadius={25}
+                width="100%"
+              />
             </View>
 
+            {/* Bottom spacer hidden to keep design tight */}
+            <View style={styles.footerSpacer} />
+            
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -146,47 +133,50 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center', // Normal state mein centered rahega (Fixed look)
   },
   innerContainer: {
-    alignItems: 'center',
-    paddingVertical: 20, 
-    paddingHorizontal: 20, 
-    width: '100%',
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 30,
+    paddingVertical: 40,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+  topSection: {
+    alignItems: 'center',
+    width: '100%',
+    marginTop: height * 0.05,
   },
   topImage: {
-    width: width * 0.85, // Signup page wala exact size
-    height: 180, 
-    marginBottom: 15,
+    width: width * 0.75,
+    height: height * 0.22,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#313867',
+    textAlign: 'center',
+  },
+  subTitle: {
+    fontSize: 16,
+    color: '#94A3B8',
+    marginTop: 5,
+    textAlign: 'center',
   },
   formContainer: {
     width: '100%',
-    alignItems: 'center',
-  },
-  inputContainer: {
-    width: '100%',
+    marginBottom: height * 0.05,
   },
   fullWidthInput: {
     width: '100%',
   },
-  roundedInput: {
-    borderRadius: 25,
-  },
   inputGap: {
-    height: 10, // Signup page wala gap
+    height: 10,
   },
   buttonGap: {
     height: 20,
   },
-  buttonWrapper: { 
-    width: '100%',
-    marginBottom: 10,
+  footerSpacer: {
+    height: 70,
   },
 });
 

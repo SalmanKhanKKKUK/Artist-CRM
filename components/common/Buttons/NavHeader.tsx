@@ -50,7 +50,7 @@ const NavHeader: React.FC<NavHeaderProps> = ({
         {showProfileIcon && (
           <TouchableOpacity style={styles.profileButton} onPress={onProfilePress}>
             <View style={styles.avatarMini}>
-              <Ionicons name="person" size={18} color="#5152B3" />
+              <Ionicons name="person" size={18} color="#5152B3"  />
             </View>
           </TouchableOpacity>
         )}

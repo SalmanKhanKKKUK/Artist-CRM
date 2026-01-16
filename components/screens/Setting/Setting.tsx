@@ -1,29 +1,29 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useMemo, useState, useEffect } from 'react';
-import { 
-  Dimensions, 
-  Modal, 
-  ScrollView, 
-  StatusBar, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  View,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Storage import kiya
+import React, { useEffect, useMemo, useState } from 'react';
+import {
   Alert,
   BackHandler,
-  TouchableWithoutFeedback
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Storage import kiya
 
 // Reusable Components
 import DynamicButton from '../../common/Buttons/DynamicButton';
 import ToggleButton from '../../common/Buttons/ToggleButton';
-import InfoCard from '../../common/Cards/InfoCard';
 import CalendarCard from '../../common/Cards/CalendarCard';
+import InfoCard from '../../common/Cards/InfoCard';
 import SearchInput from '../../common/Inputs/SearchInput';
 
 const { width } = Dimensions.get('window');
@@ -138,7 +138,7 @@ const Setting: React.FC<SettingProps> = ({ onBack }) => {
             <Text style={styles.titleText}>Settings</Text>
             
             <Image 
-              source={require('../../../assets/homeimages/welcomepagepic.png')}
+              source={require('../../../assets/homeimages/logo.png')}
               style={styles.topImage}
               resizeMode="contain"
             />

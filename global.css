@@ -1,0 +1,17 @@
+/* Global CSS for Artist CRM App */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+/* Apply Outfit font globally */
+body, html, #root {
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Apply to all text elements */
+* {
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Specific React Native text elements */
+.Text, text, p, h1, h2, h3, h4, h5, h6, span, div {
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif !important;
+}
