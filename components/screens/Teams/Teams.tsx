@@ -47,7 +47,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack }) => {
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={[
           styles.mainScroll, 
-          { paddingBottom: 10 + insets.bottom } 
+          { paddingBottom: 60 + insets.bottom } 
         ]}
       >
         <View style={styles.contentFadeIn}>
@@ -91,6 +91,22 @@ const Teams: React.FC<TeamsProps> = ({ onBack }) => {
             backgroundColor="#F8FAFC"
             containerStyle={styles.cardMargin}
           />
+
+             <ImageDesCard
+            imageSource={{ uri: 'https://i.pravatar.cc/150?u=2' }}
+            title="Sara Khan"
+            description="Color Expert - Active"
+            backgroundColor="#F8FAFC"
+            containerStyle={styles.cardMargin}
+          />
+
+          <ImageDesCard
+            imageSource={{ uri: 'https://i.pravatar.cc/150?u=3' }}
+            title="Zeenat Malik"
+            description="Manager - Active"
+            backgroundColor="#F8FAFC"
+            containerStyle={styles.cardMargin}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -103,15 +119,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F3F5', 
   },
   mainScroll: {
-    paddingHorizontal: 25, 
-    paddingTop: 15,
+    paddingHorizontal: 15, 
+    paddingTop: 5,
   },
   contentFadeIn: {
     width: '100%',
-    marginTop: 10,
+    marginTop: 5,
   },
   cardMargin: {
-    marginBottom: 15,
+    marginBottom: 5,
     borderRadius: 20, 
     borderWidth: 1,
     borderColor: '#E2E8F0',

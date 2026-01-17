@@ -112,7 +112,7 @@ const Login: React.FC<LoginProps> = ({
                   </TouchableOpacity>
                 </View>
 
-                {/* Login Button - Purple Linear #9D71FD Gradient  */}
+                {/* Login Button */}
                 <TouchableOpacity 
                   onPress={() => onNavigateToDashboard?.()}
                   style={styles.buttonWrapper}
@@ -130,8 +130,8 @@ const Login: React.FC<LoginProps> = ({
                 <Text style={styles.socialText}>Login using</Text>
                 
                 <View style={styles.socialContainer}>
-                  {/* Facebook Official Icon - Exactly as Image */}
-                  <TouchableOpacity style={[styles.socialIconCircle, { backgroundColor: 'none', borderColor: 'none' }]}>
+                  {/* Facebook Icon - Background set to white by using socialIconCircle style */}
+                  <TouchableOpacity style={styles.socialIconCircle}>
                     <Svg width={24} height={24} viewBox="126.445 2.281 589 589">
                       <Circle cx="420.945" cy="296.781" r="294.5" fill="#3c5a9a"/>
                       <Path d="M516.704 92.677h-65.239c-38.715 0-81.777 16.283-81.777 72.402.189 19.554 0 38.281 0 59.357H324.9v71.271h46.174v205.177h84.847V294.353h56.002l5.067-70.117h-62.531s.14-31.191 0-40.249c0-22.177 23.076-20.907 24.464-20.907 10.981 0 32.332.032 37.813 0V92.677h-.032z" fill="#ffffff"/>
@@ -140,7 +140,7 @@ const Login: React.FC<LoginProps> = ({
 
                   <View style={styles.socialGap} />
 
-                  {/* Google Official Icon - Exactly as Image */}
+                  {/* Google Icon */}
                   <TouchableOpacity style={styles.socialIconCircle}>
                     <Svg width={24} height={24} viewBox="-3 0 262 262">
                       <Path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"/>
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     height: 24,
   },
   socialGap: { 
-    width: 20 
+    width: 10 
   },
   signupContainer: {
      flexDirection: 'row',

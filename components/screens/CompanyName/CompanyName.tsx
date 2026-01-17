@@ -1,3 +1,5 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
   BackHandler,
@@ -9,19 +11,20 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View
+  TouchableOpacity,
+  View,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DynamicButton from '../../common/Buttons/DynamicButton';
+
 import Input from '../../common/Inputs/Input';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
+
+type IconNames = keyof typeof MaterialCommunityIcons.glyphMap;
 
 interface CompanyNameProps {
   onBack?: () => void;
   onNavigateToProfile?: () => void;
-  onNavigateToSignup?: () => void;
 }
 
 const CompanyName: React.FC<CompanyNameProps> = ({ 
@@ -47,136 +50,166 @@ const CompanyName: React.FC<CompanyNameProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Professional Fixed Logic:*/}
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-        style={styles.mainContainer}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          scrollEnabled={false} 
-          bounces={false}
+    <LinearGradient
+      colors={['#f3e8ff', '#fae8ff']} 
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" />
+        
+        <KeyboardAvoidingView 
+          // Typing ke waqt halka sa scroll up karne ke liye offset add kiya hai
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 20}
+          style={styles.container}
         >
-          <View style={styles.innerContainer}>
-            
-            {/* Top Section */}
-            <View style={styles.topSection}>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            // scrollEnabled ko true rakha hai taake keyboard ane par view move ho sake
+          >
+            <View style={styles.innerContainer}>
+              
               <Image 
                 source={require('../../../assets/homeimages/logo.png')}
                 style={styles.topImage}
                 resizeMode="contain"
               />
-              <Text style={styles.title}>Company Name</Text>
-              <Text style={styles.subTitle}>Tell us about your business</Text>
+
+              <Text style={styles.title}>Company Details</Text>
+              
+              <Text style={styles.subTitle}>
+                Please provide your company information to{"\n"}continue
+              </Text>
+              
+              <View style={styles.formContainer}>
+                <Input
+                  value={companyName}
+                  onChangeText={(text: string) => setCompanyName(text)}
+                  placeholder="Company Name"
+                  leftIcon={"domain" as IconNames} 
+                  containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  size="large"
+                  variant="outlined"
+                />
+
+                <View style={styles.inputGap} />
+
+                <Input
+                  value={website}
+                  onChangeText={(text: string) => setWebsite(text)}
+                  placeholder="Website URL"
+                  keyboardType="url"
+                  autoCapitalize="none"
+                  leftIcon={"web" as IconNames} 
+                  containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  size="large"
+                  variant="outlined"
+                />
+
+                <View style={styles.buttonGap} />
+
+                <TouchableOpacity 
+                  onPress={handleSubmit}
+                  style={styles.buttonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#7459FF', '#9D71FD']} 
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.gradientButton}
+                  >
+                    <Text style={styles.buttonText}>Save</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+              </View>
             </View>
-
-            {/* Form Section: Fixed in its place */}
-            <View style={styles.formContainer}>
-              <Input
-                value={companyName}
-                onChangeText={setCompanyName}
-                placeholder="Company Name"
-                leftIcon={"domain" as any} 
-                containerStyle={styles.fullWidthInput}
-                size="large"
-                variant="outlined"
-              />
-
-              <View style={styles.inputGap} />
-
-              <Input
-                value={website}
-                onChangeText={setWebsite}
-                placeholder="Website (Optional)"
-                keyboardType="url"
-                autoCapitalize="none"
-                leftIcon={"web" as any} 
-                containerStyle={styles.fullWidthInput}
-                size="large"
-                variant="outlined"
-              />
-
-              <View style={styles.buttonGap} />
-
-              <DynamicButton
-                text="Submit"
-                onPress={handleSubmit}
-                backgroundColor="#5152B3"
-                textColor="#fff"
-                borderRadius={25}
-                width="100%"
-              />
-            </View>
-
-            {/* Bottom spacer hidden to keep design tight */}
-            <View style={styles.footerSpacer} />
-            
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  gradientContainer: { 
+    flex: 1 
+  },
   safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    flex: 1 
   },
-  mainContainer: {
-    flex: 1,
+  container: {
+    flex: 1 
   },
-  scrollContent: {
+  scrollView: {
+    flex: 1
+  },
+  scrollViewContent: { 
     flexGrow: 1,
+    justifyContent: 'center' 
   },
   innerContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 30,
-    paddingVertical: 40,
-  },
-  topSection: {
     alignItems: 'center',
+    paddingVertical: 30, 
+    paddingHorizontal: 20, 
     width: '100%',
-    marginTop: height * 0.05,
   },
   topImage: {
-    width: width * 0.75,
-    height: height * 0.22,
-    marginBottom: 10,
+    width: width * 0.85,
+    height: 180,
+    marginBottom: 5
   },
   title: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#313867',
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
     textAlign: 'center',
   },
   subTitle: {
     fontSize: 16,
-    color: '#94A3B8',
-    marginTop: 5,
+    color: '#666',
+    marginBottom: 30,
     textAlign: 'center',
+    lineHeight: 22,
   },
-  formContainer: {
+  formContainer: { 
     width: '100%',
-    marginBottom: height * 0.05,
+    alignItems: 'center'
   },
-  fullWidthInput: {
-    width: '100%',
+  inputContainer: {
+    width: '100%' 
   },
-  inputGap: {
-    height: 10,
+  roundedInput: {
+    borderRadius: 25,
+    backgroundColor: '#FFFFFF' 
+  },
+  inputGap: { 
+    height: 15 
   },
   buttonGap: {
-    height: 20,
+    height: 30,
   },
-  footerSpacer: {
-    height: 70,
+  buttonWrapper: {
+    width: '100%',
+    borderRadius: 25,
+    overflow: 'hidden',
+    elevation: 3,
+  },
+  gradientButton: {
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: { 
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold'
   },
 });
 

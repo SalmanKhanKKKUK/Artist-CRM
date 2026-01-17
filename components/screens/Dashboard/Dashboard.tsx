@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { BackHandler, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons'; 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import NavButton from '../../common/Buttons/NavButton';
-import PlusButton from '../../common/Buttons/PlusButton';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import InfoCard from '../../common/Cards/InfoCard';
 import NavHeader from '../../common/Buttons/NavHeader'; 
@@ -13,7 +14,7 @@ import NewVisit from '../NewVisit/NewVisit';
 import Profile from '../Profile/Profile';
 import Teams from '../Teams/Teams';
 
-const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBack?: () => void; onNavigateToNewVisit?: () => void; onNavigateToWelcome?: () => void }) => {
+const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNavigateToWelcome?: () => void }) => {
   const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | null>(null);
   
   const insets = useSafeAreaInsets();
@@ -55,161 +56,179 @@ const Dashboard = ({ onBack, onNavigateToNewVisit, onNavigateToWelcome }: { onBa
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <LinearGradient
+      colors={['#f3e8ff', '#fae8ff']} 
+      style={styles.gradientContainer}
+    >
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {currentScreen === 'newVisit' ? (
-        <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
-      ) : currentScreen === 'history' ? (
-        <History onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
-      ) : currentScreen === 'teams' ? (
-        <Teams onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
-      ) : currentScreen === 'addClients' ? (
-        <AddClients onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
-      ) : currentScreen === 'profile' ? (
-        <Profile onBack={() => setCurrentScreen(null)} />
-      ) : (
-        <>
-          <NavHeader 
-            title="Dashboard !" 
-            showProfileIcon={false} 
-          >
-             <TouchableOpacity onPress={handleProfilePress}>
-                <Text style={{ fontSize: 20 }}>👤</Text> 
-             </TouchableOpacity>
-          </NavHeader>
+        {currentScreen === 'newVisit' ? (
+          <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+        ) : currentScreen === 'history' ? (
+          <History onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+        ) : currentScreen === 'teams' ? (
+          <Teams onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+        ) : currentScreen === 'addClients' ? (
+          <AddClients onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+        ) : currentScreen === 'profile' ? (
+          <Profile onBack={() => setCurrentScreen(null)} />
+        ) : (
+          <>
+            <NavHeader title="Dashboard !" showProfileIcon={false}>
+              <TouchableOpacity onPress={handleProfilePress}>
+                <LinearGradient
+                  colors={['#7459FF', '#9D71FD']}
+                  style={styles.profileGradientIcon}
+                >
+                  <Ionicons name="person" size={18} color="#FFFFFF" />
+                </LinearGradient>
+              </TouchableOpacity>
+            </NavHeader>
 
-          <ScrollView 
-            showsVerticalScrollIndicator={false} 
-            contentContainerStyle={[
-              styles.mainScroll, 
-              { paddingBottom: 50 + insets.bottom } 
-            ]}
-          >
-            <View style={[statsStyles.statsContainer, { marginTop: 10 }]}>
-              <InfoCard 
-                title="56" 
-                description="Total Clients"
-                backgroundColor="#FFFFFF"
-                titleColor="#1E293B"
-                descriptionColor="#94A3B8"
-                titleSize={26}
-                margin={0}
-                elevation={0}
-                containerStyle={styles.premiumInfoCard}
-              />
-              <InfoCard 
-                title="10" 
-                description="Active Clients"
-                backgroundColor="#FFFFFF"
-                titleColor="#313867"
-                descriptionColor="#94A3B8"
-                titleSize={26}
-                margin={0}
-                elevation={0}
-                containerStyle={styles.premiumInfoCard}
-              />
-            </View>
+            <ScrollView 
+              showsVerticalScrollIndicator={false} 
+              contentContainerStyle={[
+                styles.mainScroll, 
+                { paddingBottom: 100 + insets.bottom } 
+              ]}
+            >
+              <View style={styles.statsContainer}>
+                <InfoCard 
+                  title="56" 
+                  description="Total Clients"
+                  backgroundColor="#FFFFFF"
+                  titleColor="#1E293B"
+                  descriptionColor="#94A3B8"
+                  titleSize={26}
+                  margin={0}
+                  elevation={0}
+                  containerStyle={styles.premiumInfoCard}
+                />
+                <InfoCard 
+                  title="10" 
+                  description="Active Clients"
+                  backgroundColor="#FFFFFF"
+                  titleColor="#313867"
+                  descriptionColor="#94A3B8"
+                  titleSize={26}
+                  margin={0}
+                  elevation={0}
+                  containerStyle={styles.premiumInfoCard}
+                />
+              </View>
 
-            <View style={styles.sectionHeadingWrapper}>
-              <Text style={styles.sectionTitle}>Recent Visits</Text>
+              <View style={styles.sectionHeadingWrapper}>
+                <Text style={styles.sectionTitle}>Recent Visits</Text>
+                <TouchableOpacity onPress={handleHistoryPress}>
+                  <LinearGradient
+                    colors={['#7459FF', '#9D71FD']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.historyGradientBtn}
+                  >
+                    <Text style={styles.seeAllText}>View History</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
               
-              {/* Sirf yahan background apply kiya gaya hai */}
-              <TouchableOpacity onPress={handleHistoryPress} style={styles.historyBtnBackground}>
-                <Text style={styles.seeAllText}>View History</Text>
+              <View style={styles.visitGrid}>
+                {[0, 2, 4, 6, 8].map((startIndex) => (
+                  <View key={startIndex} style={styles.row}>
+                    {visitData.slice(startIndex, startIndex + 2).map((item) => (
+                      <ImageDesCard 
+                        key={item.id}
+                        imageSource={item.img}
+                        title={item.title}
+                        description="Last visit: 2 days ago"
+                        backgroundColor="#FFFFFF"
+                        titleStyle={styles.visitTitle}
+                        descriptionStyle={styles.visitDesc}
+                        cardMargin={0}
+                        cardPadding={12}
+                        imageSize={40}
+                        elevation={0}
+                        containerStyle={styles.visitCardBorder}
+                      />
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </>
+        )}
+
+        <View style={[
+          styles.bottomNavContainer, 
+          { 
+            paddingBottom: Platform.OS === 'ios' ? insets.bottom : 10, 
+            height: 65 + insets.bottom 
+          }
+        ]}>
+          <View style={styles.navBar}>
+            <NavButton 
+              label="Home"
+              icon={<MaterialCommunityIcons name="home-variant" size={24} />} 
+              isActive={currentScreen === null}
+              onClick={handleHomePress}
+            />
+            <NavButton 
+              label="New Visit"
+              icon={<MaterialCommunityIcons name="calendar-plus" size={24} />} 
+              isActive={currentScreen === 'newVisit'}
+              onClick={handleNewVisitPress}
+            />
+            <View style={styles.plusActionWrapper}>
+              <TouchableOpacity onPress={handleAddClientsPress} activeOpacity={0.8}>
+                <LinearGradient
+                  colors={['#7459FF', '#9D71FD']}
+                  style={styles.plusGradientBtn}
+                >
+                  <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
+                </LinearGradient>
               </TouchableOpacity>
             </View>
-            
-            <View style={styles.visitGrid}>
-              {[0, 2, 4, 6, 8].map((startIndex) => (
-                <View key={startIndex} style={styles.row}>
-                  {visitData.slice(startIndex, startIndex + 2).map((item) => (
-                    <ImageDesCard 
-                      key={item.id}
-                      imageSource={item.img}
-                      title={item.title}
-                      description="Last visit: 2 days ago"
-                      backgroundColor="#FFFFFF"
-                      titleStyle={styles.visitTitle}
-                      descriptionStyle={styles.visitDesc}
-                      cardMargin={0}
-                      cardPadding={12}
-                      imageSize={40}
-                      elevation={0}
-                      containerStyle={styles.visitCardBorder}
-                    />
-                  ))}
-                </View>
-              ))}
-            </View>
-          </ScrollView>
-        </>
-      )}
-
-      <View style={[
-        styles.bottomNavContainer, 
-        { 
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 10, 
-          height: 65 + insets.bottom 
-        }
-      ]}>
-        <View style={styles.navBar}>
-          <NavButton 
-            label="Home"
-            icon={<Text style={{fontSize: 22}}>🏠</Text>} 
-            isActive={currentScreen === null}
-            onClick={handleHomePress}
-          />
-          <NavButton 
-            label="New Visit"
-            icon={<Text style={{fontSize: 22}}>📍</Text>} 
-            isActive={currentScreen === 'newVisit'}
-            onClick={handleNewVisitPress}
-          />
-          <View style={styles.plusActionWrapper}>
-            <PlusButton 
-              onPress={handleAddClientsPress}
-              iconName="plus"
-              iconColor="#FFFFFF"
-              backgroundColor="#A855F7" 
-              size={58}
-              iconSize={28}
-              style={styles.plusShadowFree} 
+            <NavButton 
+              label="History"
+              icon={<MaterialCommunityIcons name="history" size={24} />} 
+              isActive={currentScreen === 'history'}
+              onClick={handleHistoryPress}
+            />
+            <NavButton 
+              label="Teams"
+              icon={<FontAwesome5 name="users" size={20} />} 
+              isActive={currentScreen === 'teams'}
+              onClick={handleTeamsPress}
             />
           </View>
-          <NavButton 
-            label="History"
-            icon={<Text style={{fontSize: 22}}>🕒</Text>} 
-            isActive={currentScreen === 'history'}
-            onClick={handleHistoryPress}
-          />
-          <NavButton 
-            label="Teams"
-            icon={<Text style={{fontSize: 22}}>👥</Text>} 
-            isActive={currentScreen === 'teams'}
-            onClick={handleTeamsPress}
-          />
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
-const statsStyles = StyleSheet.create({
+const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+  },
+  mainScroll: {
+    paddingHorizontal: 20,
+  },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 15,
-  }
-});
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F1F3F5',
+    marginTop: 5,
   },
-  mainScroll: {
-    paddingHorizontal: 25,
+  profileGradientIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   premiumInfoCard: {
     width: '47.5%',
@@ -217,29 +236,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9',
     paddingVertical: 20,
+    backgroundColor: '#FFFFFF', // Card color remains white as per original UI
   },
   sectionHeadingWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 35,
-    marginBottom: 15,
+    marginBottom: 25,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#5152B3',
   },
-  // New style for View History background
-  historyBtnBackground: {
-    backgroundColor: '#1e3ea8ff',
+  historyGradientBtn: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
   },
   seeAllText: {
     fontSize: 14,
-    color: '#d3d3daff',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   visitGrid: {
@@ -259,6 +277,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FFFFFF', // Card color remains white
   },
   visitTitle: {
     fontSize: 14,
@@ -298,9 +317,12 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 35,
   },
-  plusShadowFree: {
-    shadowOpacity: 0,
-    elevation: 0,
+  plusGradientBtn: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
 

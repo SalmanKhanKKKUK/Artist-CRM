@@ -31,6 +31,7 @@ const History: React.FC<HistoryProps> = () => {
     { id: 3, name: "Zeenat Malik", service: "Manager", date: "10 Jan 2026", time: "09:00 AM", img: 'https://i.pravatar.cc/150?u=8' },
     { id: 4, name: "Hamza Sheikh", service: "Styling", date: "08 Jan 2026", time: "04:45 PM", img: 'https://i.pravatar.cc/150?u=9' },
     { id: 5, name: "Danish Ahmed", service: "Haircut", date: "05 Jan 2026", time: "11:20 AM", img: 'https://i.pravatar.cc/150?u=3' },
+    
   ]);
 
   const filterSections: FilterSection[] = [
@@ -108,7 +109,7 @@ const History: React.FC<HistoryProps> = () => {
       <ScrollView 
         showsVerticalScrollIndicator={false} 
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 10 + insets.bottom }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 50 + insets.bottom }]}
       >
         <View style={styles.contentFadeIn}>
           
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F3F5',
   },
   scrollContent: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 15,
     paddingTop: 15,
   },
   contentFadeIn: {
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardMargin: {
-    marginBottom: 15,
+    marginBottom: 5,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',

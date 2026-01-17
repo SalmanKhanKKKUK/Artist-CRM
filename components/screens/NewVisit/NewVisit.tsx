@@ -78,7 +78,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: 10 + insets.bottom } 
+            { paddingBottom: 50 + insets.bottom } 
           ]}
           keyboardShouldPersistTaps="handled"
         >
