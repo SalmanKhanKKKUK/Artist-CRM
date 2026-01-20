@@ -9,6 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { THEME_COLORS } from '@/constants/Colors';
 
 import NavHeader from '../../common/Buttons/NavHeader';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
@@ -20,7 +22,7 @@ interface HistoryProps {
   onNavigateToWelcome?: () => void;
 }
 
-const History: React.FC<HistoryProps> = () => {
+const History: React.FC<HistoryProps> = ({ onBack }) => {
   const insets = useSafeAreaInsets();
   const [searchText, setSearchText] = useState('');
   const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -31,7 +33,6 @@ const History: React.FC<HistoryProps> = () => {
     { id: 3, name: "Zeenat Malik", service: "Manager", date: "10 Jan 2026", time: "09:00 AM", img: 'https://i.pravatar.cc/150?u=8' },
     { id: 4, name: "Hamza Sheikh", service: "Styling", date: "08 Jan 2026", time: "04:45 PM", img: 'https://i.pravatar.cc/150?u=9' },
     { id: 5, name: "Danish Ahmed", service: "Haircut", date: "05 Jan 2026", time: "11:20 AM", img: 'https://i.pravatar.cc/150?u=3' },
-    
   ]);
 
   const filterSections: FilterSection[] = [
@@ -52,143 +53,149 @@ const History: React.FC<HistoryProps> = () => {
         { label: 'This Month', value: 'month' },
       ],
     },
-    {
-      id: 'category',
-      title: 'Filter By Category',
-      options: [
-        { label: 'Haircut', value: 'haircut' },
-        { label: 'Coloring', value: 'coloring' },
-        { label: 'Styling', value: 'styling' },
-      ],
-    },
   ];
 
-  // Logic to Delete All History with Confirmation Popup
   const handleClearAllHistory = () => {
     if (historyItems.length === 0) return;
-
-    Alert.alert(
-      "Confirm Delete",
-      "Are you sure to delete all history?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        { 
-          text: "Delete All", 
-          onPress: () => setHistoryItems([]),
-          style: "destructive" 
-        }
-      ]
-    );
+    Alert.alert("Confirm Delete", "Delete all history records?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete All", onPress: () => setHistoryItems([]), style: "destructive" }
+    ]);
   };
 
   const handleDeleteItem = (id: number) => {
-    Alert.alert("Delete Visit", "Are you sure you want to delete this record?", [
+    Alert.alert("Delete Visit", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => setHistoryItems(prev => prev.filter(item => item.id !== id)) }
     ]);
   };
 
-  const handleApplyFilter = (selections: Record<string, string>) => {
-    console.log("Selected Filters:", selections);
-    setIsFilterVisible(false);
-  };
-
   return (
-    <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <LinearGradient colors={THEME_COLORS.bgGradient} style={styles.gradientContainer}>
+      <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <NavHeader title="Our All History !">
-        <TouchableOpacity onPress={handleClearAllHistory}>
-          <MaterialCommunityIcons name="delete-sweep-outline" size={28} color="#5152B3" />
-        </TouchableOpacity>
-      </NavHeader>
+        {/* --- Header Section --- */}
+        <NavHeader title="Our All History !">
+          <TouchableOpacity onPress={handleClearAllHistory} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="delete-sweep-outline" size={28} color="#5152B3" />
+          </TouchableOpacity>
+        </NavHeader>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 50 + insets.bottom }]}
-      >
-        <View style={styles.contentFadeIn}>
-          
+        {/* --- Fixed Search Section --- */}
+        <View style={styles.searchFixedWrapper}>
           <SearchInput
             value={searchText}
-            onChangeText={(text: string) => setSearchText(text)}
+            onChangeText={setSearchText}
             placeholder="Search history..."
             showFilterIcon={true}
             onFilterIconPress={() => setIsFilterVisible(true)}
-            containerStyle={styles.searchBarContainer}
+            containerStyle={styles.searchBar}
           />
+        </View>
 
+        {/* --- Scrollable List Section --- */}
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            styles.listContent, 
+            { paddingBottom: 60 + insets.bottom }
+          ]}
+        >
           {historyItems
             .filter(item => item.name.toLowerCase().includes(searchText.toLowerCase()))
             .map((item) => (
-              <View key={item.id} style={styles.cardWrapper}>
+              <View key={item.id} style={styles.cardOuterWrapper}>
                 <ImageDesCard
                   imageSource={{ uri: item.img }}
                   title={item.name}
                   description={`${item.service}\n${item.date} | ${item.time}`}
-                     backgroundColor="#F8FAFC"
-                  containerStyle={styles.cardMargin}
-                  titleStyle={styles.cardTitle}
+                  backgroundColor="#FFFFFF"
+                  containerStyle={styles.cardItem}
+                  titleStyle={styles.cardTitleText}
                 />
+                
+                {/* Action Button (Three Dots) */}
                 <TouchableOpacity 
-                  style={styles.threeDotButton} 
+                  style={styles.actionButton} 
                   onPress={() => handleDeleteItem(item.id)}
+                  activeOpacity={0.6}
                 >
                   <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
                 </TouchableOpacity>
               </View>
           ))}
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      <FilterInput 
-        isVisible={isFilterVisible}
-        onClose={() => setIsFilterVisible(false)}
-        sections={filterSections}
-        onApply={handleApplyFilter}
-        onReset={() => {}}
-        title="Search Filters"
-      />
-    </SafeAreaView>
+        {/* --- Filter Modal --- */}
+        <FilterInput 
+          isVisible={isFilterVisible}
+          onClose={() => setIsFilterVisible(false)}
+          sections={filterSections}
+          onApply={() => setIsFilterVisible(false)}
+          onReset={() => {}}
+          title="Search Filters"
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  // 1. Layout Styles
+  gradientContainer: {
+    flex: 1,
+  },
   masterContainer: {
     flex: 1,
-    backgroundColor: '#F1F3F5',
+    backgroundColor: 'transparent',
   },
-  scrollContent: {
+  
+  // 2. Fixed Search Bar Styles
+  searchFixedWrapper: {
     paddingHorizontal: 15,
-    paddingTop: 15,
+    paddingVertical: 10,
+    zIndex: 10,
   },
-  contentFadeIn: {
+  searchBar: {
     width: '100%',
+    marginBottom: 0,
   },
-  searchBarContainer: {
-    marginBottom: 20,
-    width: '100%',
+
+  // 3. List & Scroll Styles
+  listContent: {
+    paddingHorizontal: 15,
+    paddingTop: 5,
   },
-  cardWrapper: {
+
+  // 4. Card Item Styles (Compact Gap like Teams.tsx)
+  cardOuterWrapper: {
     position: 'relative',
     justifyContent: 'center',
   },
-  cardMargin: {
-    marginBottom: 5,
+  cardItem: {
+    marginBottom: 0, // Compact gap set to 5px
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     paddingRight: 45,
+    backgroundColor: '#FFFFFF',
+    
+    // Professional Shadow
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  cardTitle: {
+  cardTitleText: {
     color: '#5152B3',
     fontWeight: 'bold',
   },
-  threeDotButton: {
+
+  // 5. Buttons Styles
+  actionButton: {
     position: 'absolute',
     right: 15,
     padding: 10,

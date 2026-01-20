@@ -1,14 +1,16 @@
+// common/Inputs/FilterInput.tsx
+
 import React, { useState } from 'react';
 import {
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 
 // Interfaces
@@ -43,10 +45,7 @@ const FilterInput: React.FC<FilterInputProps> = ({
   const [selections, setSelections] = useState<Record<string, string>>({});
 
   const handleSelect = (sectionId: string, value: string) => {
-    setSelections((prev) => ({
-      ...prev,
-      [sectionId]: value,
-    }));
+    setSelections((prev) => ({ ...prev, [sectionId]: value }));
   };
 
   const handleReset = () => {
@@ -57,81 +56,71 @@ const FilterInput: React.FC<FilterInputProps> = ({
   return (
     <Modal
       visible={isVisible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       statusBarTranslucent={true}
       onRequestClose={onClose}
     >
+      {/* Overlay: Bahar click karne par Modal close hoga */}
       <Pressable style={styles.overlay} onPress={onClose}>
-        <View style={styles.modalContent}>
-          {/* Header Section */}
-          <View style={styles.header}>
-            <View style={styles.dragHandle} />
-            <Text style={styles.headerText}>{title}</Text>
-          </View>
-
-          {/* Body Section */}
-          <ScrollView 
-            style={styles.scrollBody} 
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {sections.map((section) => (
-              <View key={section.id} style={styles.section}>
-                <Text style={styles.sectionLabel}>{section.title}</Text>
-                <View style={styles.optionsContainer}>
-                  {section.options.map((option) => {
-                    const isSelected = selections[section.id] === option.value;
-                    return (
-                      <TouchableOpacity
-                        key={option.value}
-                        activeOpacity={0.7}
-                        onPress={() => handleSelect(section.id, option.value)}
-                        style={[
-                          styles.chip, 
-                          isSelected ? styles.chipSelected : styles.chipUnselected
-                        ]}
-                      >
-                        <Text style={[
-                          styles.chipText, 
-                          isSelected ? styles.chipTextSelected : styles.chipTextUnselected
-                        ]}>
-                          {option.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-
-          {/* Footer Section with Fixed Visibility */}
-          <SafeAreaView style={styles.footer}>
-            <TouchableOpacity 
-              style={styles.applyBtn} 
-              onPress={() => onApply(selections)}
-            >
-              <Text style={styles.applyBtnText}>Apply Filters</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.resetBtn} 
-              onPress={handleReset}
-            >
-              <Text style={styles.resetBtnText}>Reset Selections</Text>
-            </TouchableOpacity>
+        
+        {/* Card: Is par click karne se Modal close nahi hoga */}
+        <TouchableWithoutFeedback>
+          <View style={styles.modalContent}>
             
-            {/* Extra spacer for Android/iOS bottom bars */}
-            <View style={styles.bottomSpacer} />
-          </SafeAreaView>
-        </View>
+            <View style={styles.header}>
+              <View style={styles.dragHandle} />
+              <Text style={styles.headerText}>{title}</Text>
+            </View>
+
+            <ScrollView 
+              style={styles.scrollBody} 
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {sections.map((section) => (
+                <View key={section.id} style={styles.sectionContainer}>
+                  <Text style={styles.sectionLabel}>{section.title}</Text>
+                  <View style={styles.optionsWrapper}>
+                    {section.options.map((option) => {
+                      const isSelected = selections[section.id] === option.value;
+                      return (
+                        <TouchableOpacity
+                          key={option.value}
+                          activeOpacity={0.7}
+                          onPress={() => handleSelect(section.id, option.value)}
+                          style={[styles.chip, isSelected ? styles.chipActive : styles.chipInactive]}
+                        >
+                          <Text style={[styles.chipText, isSelected ? styles.textActive : styles.textInactive]}>
+                            {option.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.footer}>
+              <TouchableOpacity style={styles.primaryBtn} onPress={() => onApply(selections)}>
+                <Text style={styles.primaryBtnText}>Apply Filters</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.secondaryBtn} onPress={handleReset}>
+                <Text style={styles.secondaryBtnText}>Reset Selections</Text>
+              </TouchableOpacity>
+              
+              <View style={styles.safeBottomSpacer} />
+            </View>
+
+          </View>
+        </TouchableWithoutFeedback>
       </Pressable>
     </Modal>
   );
 };
 
-// Proper CSS-like Structured Styles
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -144,28 +133,29 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     maxHeight: '80%',
     width: '100%',
+    // Android navigation bar se gap
+    paddingBottom: Platform.OS === 'android' ? 10 : 0, 
   },
   header: {
     paddingVertical: 15,
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   dragHandle: {
     width: 40,
     height: 5,
-    backgroundColor: '#CBD5E1',
-    borderRadius: 3,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 10,
     marginBottom: 10,
   },
   headerText: {
     color: '#5152B3',
     fontSize: 18,
     fontWeight: '800',
-    letterSpacing: 0.5,
   },
   scrollBody: {
     backgroundColor: '#F8FAFC',
@@ -173,88 +163,82 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 25,
     paddingTop: 20,
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
-  section: {
+  sectionContainer: {
     marginBottom: 25,
   },
   sectionLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#334155',
     marginBottom: 12,
   },
-  optionsContainer: {
+  optionsWrapper: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
   chip: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
   },
-  chipUnselected: {
+  chipInactive: {
     borderColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
   },
-  chipSelected: {
+  chipActive: {
     borderColor: '#5152B3',
     backgroundColor: '#5152B3',
   },
   chipText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
-  chipTextUnselected: {
+  textInactive: {
     color: '#64748B',
   },
-  chipTextSelected: {
+  textActive: {
     color: '#FFFFFF',
   },
   footer: {
     paddingHorizontal: 25,
-    paddingTop: 20,
+    paddingTop: 15,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: '#F1F5F9',
   },
-  applyBtn: {
+  primaryBtn: {
     backgroundColor: '#5152B3',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
     marginBottom: 10,
-    elevation: 4,
-    shadowColor: '#5152B3',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    elevation: 2,
   },
-  applyBtnText: {
+  primaryBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
-  resetBtn: {
-    paddingVertical: 10,
+  secondaryBtn: {
+    paddingVertical: 8,
     alignItems: 'center',
-    marginBottom: 5,
   },
-  resetBtnText: {
+  secondaryBtnText: {
     color: '#94A3B8',
     fontSize: 14,
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
-  bottomSpacer: {
-    height: Platform.OS === 'ios' ? 30 : 20, // Reset button ke neeche proper margin
+  safeBottomSpacer: {
+    height: Platform.OS === 'ios' ? 40 : 50, // Taake buttons mobile nav bar se upar rahein
   },
 });
 
 export default FilterInput;
-
 // ye reusable component hai
 // s ko hum ne filter k reusable banaya hai
 // ye project k andar search k sath ane wali filter k liye used hoga

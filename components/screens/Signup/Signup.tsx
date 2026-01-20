@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState, useRef } from 'react';
+import { THEME_COLORS } from '@/constants/Colors';
 import {
   BackHandler,
   Dimensions,
@@ -62,7 +63,7 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
 
   return (
     <LinearGradient
-      colors={['#f3e8ff', '#fae8ff']}
+       colors={THEME_COLORS.bgGradient} 
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -156,7 +157,7 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   style={styles.buttonWrapper}
                 >
                   <LinearGradient
-                    colors={['#7459FF', '#9D71FD']}
+                    colors={THEME_COLORS.buttonGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.gradientButton}

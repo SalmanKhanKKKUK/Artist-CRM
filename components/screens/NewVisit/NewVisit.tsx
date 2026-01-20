@@ -15,6 +15,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient'; // Added
+import { THEME_COLORS } from '@/constants/Colors'; // Added
 
 // Component Imports
 import Input from '../../common/Inputs/Input';
@@ -54,112 +56,122 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   };
 
   return (
-    <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
-      <NavHeader title="Add New Visit !" showProfileIcon={false}>
-        <DynamicButton 
-          text="Save"
-          onPress={onBack}
-          backgroundColor="transparent"
-          textColor="#5152B3"
-          paddingVertical={8}
-          paddingHorizontal={5}
-          fontSize={18}
-          fontWeight="bold"
-        />
-      </NavHeader>
+    // Background Linear Gradient Added
+    <LinearGradient
+      colors={THEME_COLORS.bgGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        
+        <NavHeader title="Add New Visit !" showProfileIcon={false}>
+          <DynamicButton 
+            text="Save"
+            onPress={onBack}
+            backgroundColor="transparent"
+            textColor="#5152B3"
+            paddingVertical={8}
+            paddingHorizontal={5}
+            fontSize={18}
+            fontWeight="bold"
+          />
+        </NavHeader>
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-        style={styles.flexOne}
-      >
-        <ScrollView 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: 50 + insets.bottom } 
-          ]}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+          style={styles.flexOne}
         >
-          <View style={styles.formContainer}>
-            <Text style={styles.label}>Service</Text>
-            
-            <Input
-              value={service}
-              onChangeText={setService}
-              placeholder="Search service..."
-              autoCapitalize="none"
-              leftIcon="magnify"
-              containerStyle={[styles.fullWidthInput, styles.roundedInput]}
-              size="large"
-              variant="outlined"
-            />
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: 50 + insets.bottom } 
+            ]}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.formContainer}>
+              <Text style={styles.label}>Service</Text>
+              
+              <Input
+                value={service}
+                onChangeText={setService}
+                placeholder="Search service..."
+                autoCapitalize="none"
+                leftIcon="magnify"
+                containerStyle={[styles.fullWidthInput, styles.roundedInput]}
+                size="large"
+                variant="outlined"
+              />
 
-            <View style={styles.sectionGap} />
-            
-            <Text style={styles.label}>Quick Tags</Text>
-            <View style={styles.tagsGrid}>
-              {['Bleech', 'Toner', 'Color', 'Style'].map((tag) => (
-                <TouchableOpacity key={tag} style={styles.tag}>
-                  <Text style={styles.tagText}>{tag}</Text>
+              <View style={styles.sectionGap} />
+              
+              <Text style={styles.label}>Quick Tags</Text>
+              <View style={styles.tagsGrid}>
+                {['Bleech', 'Toner', 'Color', 'Style'].map((tag) => (
+                  <TouchableOpacity key={tag} style={styles.tag}>
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.sectionGap} />
+              
+              <Text style={styles.label}>Formulas / Notes</Text>
+              <TextInput
+                style={styles.textArea}
+                placeholder="Enter Technical Notes..."
+                placeholderTextColor="#94A3B8"
+                multiline
+                value={formula}
+                onChangeText={setFormula}
+              />
+
+              <View style={styles.sectionGap} />
+              
+              <Text style={styles.label}>Visit Photos</Text>
+              
+              <View style={styles.imageSection}>
+                <TouchableOpacity 
+                  style={styles.fullWidthPhotoBox} 
+                  onPress={handleImagePick}
+                >
+                  <MaterialCommunityIcons name="camera-plus" size={35} color="#5152B3" />
+                  <Text style={styles.photoHint}>Add Visit Images</Text>
                 </TouchableOpacity>
-              ))}
+
+                {images.length > 0 && (
+                  <View style={styles.imageGrid}>
+                    {images.map((uri, index) => (
+                      <View key={index} style={styles.imageWrapper}>
+                        <Image source={{ uri }} style={styles.uploadedImg} />
+                        <TouchableOpacity 
+                          style={styles.removeIcon} 
+                          onPress={() => removeImage(index)}
+                        >
+                          <Ionicons name="close-circle" size={22} color="#EF4444" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
             </View>
-
-            <View style={styles.sectionGap} />
-            
-            <Text style={styles.label}>Formulas / Notes</Text>
-            <TextInput
-              style={styles.textArea}
-              placeholder="Enter Technical Notes..."
-              placeholderTextColor="#94A3B8"
-              multiline
-              value={formula}
-              onChangeText={setFormula}
-            />
-
-            <View style={styles.sectionGap} />
-            
-            <Text style={styles.label}>Visit Photos</Text>
-            
-            <View style={styles.imageSection}>
-              {/* Photo box now matches Input design exactly */}
-              <TouchableOpacity 
-                style={styles.fullWidthPhotoBox} 
-                onPress={handleImagePick}
-              >
-                <MaterialCommunityIcons name="camera-plus" size={35} color="#5152B3" />
-                <Text style={styles.photoHint}>Add Visit Images</Text>
-              </TouchableOpacity>
-
-              {images.length > 0 && (
-                <View style={styles.imageGrid}>
-                  {images.map((uri, index) => (
-                    <View key={index} style={styles.imageWrapper}>
-                      <Image source={{ uri }} style={styles.uploadedImg} />
-                      <TouchableOpacity 
-                        style={styles.removeIcon} 
-                        onPress={() => removeImage(index)}
-                      >
-                        <Ionicons name="close-circle" size={22} color="#EF4444" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   masterContainer: {
     flex: 1,
-    backgroundColor: '#F1F3F5', 
+    backgroundColor: 'transparent', // Transparent to show gradient
   },
   flexOne: {
     flex: 1,
@@ -176,6 +188,7 @@ const styles = StyleSheet.create({
   },
   roundedInput: {
     borderRadius: 25,
+    backgroundColor: '#FFFFFF',
   },
   sectionGap: {
     height: 25,
@@ -226,8 +239,8 @@ const styles = StyleSheet.create({
     height: 150,
     backgroundColor: '#FFFFFF',
     borderRadius: 25,
-    borderWidth: 1,            
-    borderColor: '#E2E8F0',   
+    borderWidth: 1,            
+    borderColor: '#E2E8F0',   
     borderStyle: 'solid',
     justifyContent: 'center',
     alignItems: 'center',

@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Circle, Path, Svg } from 'react-native-svg';
-
+import { THEME_COLORS } from '@/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
@@ -40,7 +40,7 @@ const Login: React.FC<LoginProps> = ({
 
   return (
     <LinearGradient
-      colors={['#f3e8ff', '#fae8ff']} 
+      colors={THEME_COLORS.bgGradient} 
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -118,7 +118,7 @@ const Login: React.FC<LoginProps> = ({
                   style={styles.buttonWrapper}
                 >
                   <LinearGradient
-                    colors={['#7459FF', '#9D71FD']} 
+                   colors={THEME_COLORS.buttonGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.gradientButton}

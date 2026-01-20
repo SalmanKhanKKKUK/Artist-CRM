@@ -1,21 +1,23 @@
+import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { BackHandler, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons'; 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 
+import { THEME_COLORS } from '@/constants/Colors';
 import NavButton from '../../common/Buttons/NavButton';
+import NavHeader from '../../common/Buttons/NavHeader';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import InfoCard from '../../common/Cards/InfoCard';
-import NavHeader from '../../common/Buttons/NavHeader'; 
 import AddClients from '../AddClients/AddClients';
 import History from '../History/History';
+import Invite from '../Invite/Invite';
 import NewVisit from '../NewVisit/NewVisit';
 import Profile from '../Profile/Profile';
 import Teams from '../Teams/Teams';
 
 const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNavigateToWelcome?: () => void }) => {
-  const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | null>(null);
+  const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | 'invite' | null>(null);
   
   const insets = useSafeAreaInsets();
 
@@ -57,7 +59,7 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
 
   return (
     <LinearGradient
-      colors={['#f3e8ff', '#fae8ff']} 
+      colors={THEME_COLORS.bgGradient}
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -68,17 +70,19 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
         ) : currentScreen === 'history' ? (
           <History onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
         ) : currentScreen === 'teams' ? (
-          <Teams onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+          <Teams onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} onNavigateToInvite={() => setCurrentScreen('invite')} />
         ) : currentScreen === 'addClients' ? (
           <AddClients onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
         ) : currentScreen === 'profile' ? (
           <Profile onBack={() => setCurrentScreen(null)} />
+        ) : currentScreen === 'invite' ? (
+          <Invite onBack={() => setCurrentScreen(null)} />
         ) : (
           <>
             <NavHeader title="Dashboard !" showProfileIcon={false}>
               <TouchableOpacity onPress={handleProfilePress}>
                 <LinearGradient
-                  colors={['#7459FF', '#9D71FD']}
+                  colors={THEME_COLORS.buttonGradient}
                   style={styles.profileGradientIcon}
                 >
                   <Ionicons name="person" size={18} color="#FFFFFF" />
@@ -122,7 +126,7 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
                 <Text style={styles.sectionTitle}>Recent Visits</Text>
                 <TouchableOpacity onPress={handleHistoryPress}>
                   <LinearGradient
-                    colors={['#7459FF', '#9D71FD']}
+                    colors={THEME_COLORS.buttonGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.historyGradientBtn}
@@ -181,7 +185,7 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
             <View style={styles.plusActionWrapper}>
               <TouchableOpacity onPress={handleAddClientsPress} activeOpacity={0.8}>
                 <LinearGradient
-                  colors={['#7459FF', '#9D71FD']}
+                   colors={THEME_COLORS.buttonGradient}
                   style={styles.plusGradientBtn}
                 >
                   <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />

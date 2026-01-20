@@ -15,107 +15,96 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// Reusable Component Imports
 import Input from '../../common/Inputs/Input';
 
 const { width } = Dimensions.get('window');
-
 type IconNames = keyof typeof MaterialCommunityIcons.glyphMap;
 
-interface CompanyNameProps {
+interface InviteProps {
   onBack?: () => void;
-  onNavigateToProfile?: () => void;
 }
 
-const CompanyName: React.FC<CompanyNameProps> = ({ 
-  onNavigateToProfile,
-  onBack 
-}) => {
-  const [companyName, setCompanyName] = useState<string>('');
-  const [website, setWebsite] = useState<string>('');
+const Invite: React.FC<InviteProps> = ({ onBack }) => {
+  const [email, setEmail] = useState<string>('');
+  const insets = useSafeAreaInsets();
 
+  // Android Hardware Back Button logic (Same as Teams/CompanyName)
   useEffect(() => {
     const backAction = () => {
-      if (onBack) onBack();
-      return true;
+      if (onBack) {
+        onBack();
+        return true;
+      }
+      return false;
     };
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, [onBack]);
 
-  const handleSubmit = () => {
-    if (onNavigateToProfile) {
-      onNavigateToProfile();
-    }
+  const handleInviteSubmit = () => {
+    console.log('Inviting Email:', email);
   };
 
   return (
     <LinearGradient
-      colors={THEME_COLORS.bgGradient}  
+      colors={THEME_COLORS.bgGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" />
-        
-        <KeyboardAvoidingView 
-          // Typing ke waqt halka sa scroll up karne ke liye offset add kiya hai
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 20}
-          style={styles.container}
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flexOne}
         >
-          <ScrollView 
+          <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
+            contentContainerStyle={[
+              styles.scrollViewContent,
+              { paddingBottom: insets.bottom + 20 }
+            ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            // scrollEnabled ko true rakha hai taake keyboard ane par view move ho sake
           >
             <View style={styles.innerContainer}>
-              
-              <Image 
+              {/* Logo Section */}
+              <Image
                 source={require('../../../assets/homeimages/logo.png')}
                 style={styles.topImage}
                 resizeMode="contain"
               />
 
-              <Text style={styles.title}>Company Details</Text>
-              
+              <Text style={styles.title}>Invite Team</Text>
+
               <Text style={styles.subTitle}>
-                Please provide your company information to{"\n"}continue
+                Invite team members to join your salon and{"\n"}manage business together.
               </Text>
-              
+
               <View style={styles.formContainer}>
+                {/* Email Input */}
                 <Input
-                  value={companyName}
-                  onChangeText={(text: string) => setCompanyName(text)}
-                  placeholder="Company Name"
-                  leftIcon={"domain" as IconNames} 
-                  containerStyle={[styles.inputContainer, styles.roundedInput]}
-                  size="large"
-                  variant="outlined"
-                />
-
-                <View style={styles.inputGap} />
-
-                <Input
-                  value={website}
-                  onChangeText={(text: string) => setWebsite(text)}
-                  placeholder="Website URL"
-                  keyboardType="url"
+                  value={email}
+                  onChangeText={(text: string) => setEmail(text)}
+                  placeholder="Team Member's Email"
+                  keyboardType="email-address"
                   autoCapitalize="none"
-                  leftIcon={"web" as IconNames} 
+                  leftIcon={"email-outline" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
                   size="large"
                   variant="outlined"
                 />
 
-                <View style={styles.buttonGap} />
+                {/* Reduced Gap between Input and Button */}
+                <View style={styles.compactGap} />
 
-                <TouchableOpacity 
-                  onPress={handleSubmit}
+                {/* Invite Button */}
+                <TouchableOpacity
+                  onPress={handleInviteSubmit}
                   style={styles.buttonWrapper}
                 >
                   <LinearGradient
@@ -124,10 +113,9 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                     end={{ x: 1, y: 0 }}
                     style={styles.gradientButton}
                   >
-                    <Text style={styles.buttonText}>Save</Text>
+                    <Text style={styles.buttonText}>Send Invitation</Text>
                   </LinearGradient>
                 </TouchableOpacity>
-
               </View>
             </View>
           </ScrollView>
@@ -138,32 +126,32 @@ const CompanyName: React.FC<CompanyNameProps> = ({
 };
 
 const styles = StyleSheet.create({
-  gradientContainer: { 
-    flex: 1 
+  gradientContainer: {
+    flex: 1,
   },
   safeArea: {
-    flex: 1 
+    flex: 1,
   },
-  container: {
-    flex: 1 
+  flexOne: {
+    flex: 1,
   },
   scrollView: {
-    flex: 1
+    flex: 1,
   },
-  scrollViewContent: { 
+  scrollViewContent: {
     flexGrow: 1,
-    justifyContent: 'center' 
+    justifyContent: 'center',
   },
   innerContainer: {
     alignItems: 'center',
-    paddingVertical: 30, 
-    paddingHorizontal: 20, 
+    paddingVertical: 20,
+    paddingHorizontal: 25,
     width: '100%',
   },
   topImage: {
-    width: width * 0.85,
-    height: 180,
-    marginBottom: 5
+    width: width * 0.8,
+    height: 160,
+    marginBottom: 10,
   },
   title: {
     fontSize: 28,
@@ -173,28 +161,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subTitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 30,
+    fontSize: 15,
+    color: '#64748B',
+    marginBottom: 25,
     textAlign: 'center',
     lineHeight: 22,
   },
-  formContainer: { 
+  formContainer: {
     width: '100%',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   inputContainer: {
-    width: '100%' 
+    width: '100%',
   },
   roundedInput: {
     borderRadius: 25,
-    backgroundColor: '#FFFFFF' 
+    backgroundColor: '#FFFFFF',
   },
-  inputGap: { 
-    height: 15 
-  },
-  buttonGap: {
-    height: 30,
+  compactGap: {
+    height: 15, // Gap reduced from 30 to 15
   },
   buttonWrapper: {
     width: '100%',
@@ -207,11 +192,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: { 
+  buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
 });
 
-export default CompanyName;
+export default Invite;
