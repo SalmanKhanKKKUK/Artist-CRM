@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker'; // Expo Image Picker
+import * as ImagePicker from 'expo-image-picker'; 
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   BackHandler,
   Image,
@@ -13,6 +13,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,6 +32,11 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [image, setImage] = useState<string | null>(null);
+  
+  // States for Loading and Success Animation
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const slideAnim = useRef(new Animated.Value(-150)).current;
 
   const insets = useSafeAreaInsets();
 
@@ -45,7 +52,29 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
     return () => backHandler.remove();
   }, [onBack]);
 
-  // Image Picker Logic
+  const showTopSuccessLoader = () => {
+    setShowSuccess(true);
+    
+    // Slide Down Animation (Same as Invite.tsx)
+    Animated.spring(slideAnim, {
+      toValue: Platform.OS === 'android' ? 50 : 60,
+      useNativeDriver: true,
+      bounciness: 10,
+    }).start();
+
+    // Hide after 2 seconds and navigate back to Dashboard
+    setTimeout(() => {
+      Animated.timing(slideAnim, {
+        toValue: -150,
+        duration: 400,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowSuccess(false);
+        if (onBack) onBack(); // Automatically go to Dashboard
+      });
+    }, 2000);
+  };
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -60,8 +89,14 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   };
 
   const handleSave = () => {
-    console.log('Client Saved:', { name, phone, email, image });
-    if (onBack) onBack();
+    if (loading) return;
+    setLoading(true);
+
+    // Simulating save logic
+    setTimeout(() => {
+      setLoading(false);
+      showTopSuccessLoader();
+    }, 1500);
   };
 
   return (
@@ -69,19 +104,38 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
       colors={THEME_COLORS.bgGradient}
       style={styles.gradientContainer}
     >
-      <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        {/* History Style Header with Linear Background Button */}
+      {/* Success Notification - Invite.tsx Design */}
+      {showSuccess && (
+        <Animated.View 
+          style={[
+            styles.successNotification, 
+            { transform: [{ translateY: slideAnim }] }
+          ]}
+        >
+          <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
+          <View>
+            <Text style={styles.successTitle}>Success!</Text>
+            <Text style={styles.successMessage}>Client saved successfully.</Text>
+          </View>
+        </Animated.View>
+      )}
+
+      <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
         <NavHeader title="Add New Client !">
-          <TouchableOpacity onPress={handleSave} activeOpacity={0.8}>
+          <TouchableOpacity onPress={handleSave} activeOpacity={0.8} disabled={loading}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.saveHeaderBtn}
             >
-              <Text style={styles.saveBtnText}>Save</Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.saveBtnText}>Save</Text>
+              )}
             </LinearGradient>
           </TouchableOpacity>
         </NavHeader>
@@ -89,16 +143,16 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.flexOne}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 40}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: insets.bottom + 20 }
+              { paddingBottom: insets.bottom + 80 } // Extra padding so email is visible when typing
             ]}
           >
-            {/* Profile Photo Section (As per Image) */}
             <View style={styles.photoSection}>
               <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
                 <View style={styles.imageCircle}>
@@ -116,7 +170,6 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
             </View>
 
             <View style={styles.formContainer}>
-              {/* Client Name Input */}
               <Text style={styles.inputLabel}>Client Name</Text>
               <Input
                 value={name}
@@ -129,7 +182,6 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
               <View style={styles.sectionGap} />
 
-              {/* Phone Number Input */}
               <Text style={styles.inputLabel}>Phone Number</Text>
               <Input
                 value={phone}
@@ -143,7 +195,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
               <View style={styles.sectionGap} />
 
-              {/* Email Input */}
+              {/* Email Input Fix: Scrolling ensures this is visible */}
               <Text style={styles.inputLabel}>Email Address</Text>
               <Input
                 value={email}
@@ -163,7 +215,6 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   );
 };
 
-// ================= STYLES (Properly Organized) =================
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -180,6 +231,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     elevation: 3,
+    minWidth: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveBtnText: {
     color: '#FFFFFF',
@@ -190,7 +244,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 20,
   },
-  // Profile Photo Styles
   photoSection: {
     alignItems: 'center',
     marginBottom: 40,
@@ -233,7 +286,6 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontWeight: '500',
   },
-  // Form Styles
   formContainer: {
     width: '100%',
   },
@@ -250,6 +302,35 @@ const styles = StyleSheet.create({
   },
   sectionGap: {
     height: 20,
+  },
+  // Success Message (Design copied from Invite.tsx)
+  successNotification: {
+    position: 'absolute',
+    top: 0,
+    left: 80,
+    right: 20,
+    backgroundColor: '#10B981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    zIndex: 9999,
+    elevation: 15,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  successTitle: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  successMessage: {
+    color: '#E0F2FE',
+    fontSize: 12,
   },
 });
 

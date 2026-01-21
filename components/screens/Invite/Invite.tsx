@@ -269,8 +269,8 @@ const styles = StyleSheet.create({
   successNotification: {
     position: 'absolute',
     top: 0,
-    left: 20,
-    right: 80,
+    left: 80,
+    right: 20,
     backgroundColor: '#10B981',
     flexDirection: 'row',
     alignItems: 'center',
