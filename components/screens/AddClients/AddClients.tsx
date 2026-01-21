@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker'; // Expo Image Picker
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
+  Image,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
-  ScrollView,
-  BackHandler,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { THEME_COLORS } from '@/constants/Colors';
 
-// Component Imports
-import Input from '../../common/Inputs/Input';
-import DynamicButton from '../../common/Buttons/DynamicButton';
+import { THEME_COLORS } from '@/constants/Colors';
 import NavHeader from '../../common/Buttons/NavHeader';
+import Input from '../../common/Inputs/Input';
 
 interface AddClientsProps {
   onBack?: () => void;
@@ -24,11 +26,10 @@ interface AddClientsProps {
 }
 
 const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
-  const [title, setTitle] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [socialLink, setSocialLink] = useState<string>('');
+  const [image, setImage] = useState<string | null>(null);
 
   const insets = useSafeAreaInsets();
 
@@ -44,72 +45,83 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
     return () => backHandler.remove();
   }, [onBack]);
 
+  // Image Picker Logic
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
   const handleSave = () => {
-    console.log('Client Saved:', { title, name, phone, email, socialLink });
+    console.log('Client Saved:', { name, phone, email, image });
     if (onBack) onBack();
   };
 
   return (
     <LinearGradient
       colors={THEME_COLORS.bgGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
+        {/* History Style Header with Linear Background Button */}
         <NavHeader title="Add New Client !">
-          <DynamicButton 
-            text="Save"
-            onPress={handleSave}
-            backgroundColor="transparent"
-            textColor="#5152B3"
-            paddingVertical={8}
-            paddingHorizontal={5}
-            fontSize={18}
-            fontWeight="bold"
-          />
+          <TouchableOpacity onPress={handleSave} activeOpacity={0.8}>
+            <LinearGradient
+              colors={THEME_COLORS.buttonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.saveHeaderBtn}
+            >
+              <Text style={styles.saveBtnText}>Save</Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </NavHeader>
 
         <KeyboardAvoidingView
-          // behavior 'padding' typing ke waqt view ko push karta hai
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.flexOne}
-          // keyboardVerticalOffset ko 20-40 ke darmiyan rakhne se "halka sa" scroll hota hai
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 20}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            // iOS par keyboard ke sath insets ko auto adjust karne ke liye
-            automaticallyAdjustKeyboardInsets={true}
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: insets.bottom + 20 } 
+              { paddingBottom: insets.bottom + 20 }
             ]}
           >
+            {/* Profile Photo Section (As per Image) */}
+            <View style={styles.photoSection}>
+              <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
+                <View style={styles.imageCircle}>
+                  {image ? (
+                    <Image source={{ uri: image }} style={styles.profileImage} />
+                  ) : (
+                    <MaterialCommunityIcons name="account-outline" size={60} color="#5152B3" />
+                  )}
+                  <View style={styles.plusIconWrapper}>
+                    <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.addPhotoText}>Add profile photo</Text>
+            </View>
+
             <View style={styles.formContainer}>
-              
-              <Text style={styles.label}>Title</Text>
-              <Input
-                value={title}
-                onChangeText={setTitle}
-                placeholder="e.g. CEO / Manager"
-                leftIcon="briefcase"
-                containerStyle={styles.fullWidthInput}
-                size="large"
-                variant="outlined"
-              />
-
-              <View style={styles.sectionGap} />
-
-              <Text style={styles.label}>Client Name</Text>
+              {/* Client Name Input */}
+              <Text style={styles.inputLabel}>Client Name</Text>
               <Input
                 value={name}
                 onChangeText={setName}
                 placeholder="Enter full name"
-                leftIcon="account"
                 containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
@@ -117,13 +129,13 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
               <View style={styles.sectionGap} />
 
-              <Text style={styles.label}>Phone Number</Text>
+              {/* Phone Number Input */}
+              <Text style={styles.inputLabel}>Phone Number</Text>
               <Input
                 value={phone}
                 onChangeText={setPhone}
-                placeholder="e.g. +1 234 567 890"
+                placeholder="Contact Number...."
                 keyboardType="phone-pad"
-                leftIcon="phone"
                 containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
@@ -131,32 +143,18 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
               <View style={styles.sectionGap} />
 
-              <Text style={styles.label}>Email Address</Text>
+              {/* Email Input */}
+              <Text style={styles.inputLabel}>Email Address</Text>
               <Input
                 value={email}
                 onChangeText={setEmail}
-                placeholder="client@example.com"
+                placeholder="Enter email address"
                 keyboardType="email-address"
                 autoCapitalize="none"
-                leftIcon="email"
                 containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
               />
-
-              <View style={styles.sectionGap} />
-
-              <Text style={styles.label}>Social Links</Text>
-              <Input
-                value={socialLink}
-                onChangeText={setSocialLink}
-                placeholder="@username or profile link"
-                leftIcon="instagram"
-                containerStyle={styles.fullWidthInput}
-                size="large"
-                variant="outlined"
-              />
-
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -165,6 +163,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   );
 };
 
+// ================= STYLES (Properly Organized) =================
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -176,25 +175,81 @@ const styles = StyleSheet.create({
   flexOne: {
     flex: 1,
   },
+  saveHeaderBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+    borderRadius: 20,
+    elevation: 3,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   scrollContent: {
     paddingHorizontal: 25,
-    paddingTop: 10,
+    paddingTop: 20,
   },
+  // Profile Photo Styles
+  photoSection: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  imageWrapper: {
+    position: 'relative',
+  },
+  imageCircle: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: '#EEF2FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+  },
+  profileImage: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+  },
+  plusIconWrapper: {
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    backgroundColor: '#5152B3',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  addPhotoText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  // Form Styles
   formContainer: {
     width: '100%',
   },
   fullWidthInput: {
     width: '100%',
+    marginBottom: 5,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#334155',
+    marginBottom: 10,
+    marginLeft: 2,
   },
   sectionGap: {
-    height: 18,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#5152B3', 
-    marginBottom: 8,
-    marginLeft: 5,
+    height: 20,
   },
 });
 

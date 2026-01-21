@@ -1,5 +1,3 @@
-// common/Inputs/FilterInput.tsx
-
 import React, { useState } from 'react';
 import {
   Modal,
@@ -12,8 +10,9 @@ import {
   Platform,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { THEME_COLORS } from '@/constants/Colors';
 
-// Interfaces
 export interface FilterOption {
   label: string;
   value: string;
@@ -53,6 +52,11 @@ const FilterInput: React.FC<FilterInputProps> = ({
     onReset();
   };
 
+  const handleApply = () => {
+    onApply(selections);
+    onClose(); 
+  };
+
   return (
     <Modal
       visible={isVisible}
@@ -61,10 +65,7 @@ const FilterInput: React.FC<FilterInputProps> = ({
       statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      {/* Overlay: Bahar click karne par Modal close hoga */}
       <Pressable style={styles.overlay} onPress={onClose}>
-        
-        {/* Card: Is par click karne se Modal close nahi hoga */}
         <TouchableWithoutFeedback>
           <View style={styles.modalContent}>
             
@@ -89,9 +90,17 @@ const FilterInput: React.FC<FilterInputProps> = ({
                           key={option.value}
                           activeOpacity={0.7}
                           onPress={() => handleSelect(section.id, option.value)}
-                          style={[styles.chip, isSelected ? styles.chipActive : styles.chipInactive]}
+                          style={[
+                            styles.chip, 
+                            isSelected ? styles.chipActive : styles.chipInactive
+                          ]}
                         >
-                          <Text style={[styles.chipText, isSelected ? styles.textActive : styles.textInactive]}>
+                          <Text 
+                            style={[
+                              styles.chipText, 
+                              isSelected ? styles.textActive : styles.textInactive
+                            ]}
+                          >
                             {option.label}
                           </Text>
                         </TouchableOpacity>
@@ -103,8 +112,15 @@ const FilterInput: React.FC<FilterInputProps> = ({
             </ScrollView>
 
             <View style={styles.footer}>
-              <TouchableOpacity style={styles.primaryBtn} onPress={() => onApply(selections)}>
-                <Text style={styles.primaryBtnText}>Apply Filters</Text>
+              <TouchableOpacity activeOpacity={0.8} onPress={handleApply}>
+                <LinearGradient
+                  colors={THEME_COLORS.buttonGradient}
+                  start={{ x: 0, y: 0 }} 
+                  end={{ x: 1, y: 0 }}
+                  style={styles.primaryBtnGradient}
+                >
+                  <Text style={styles.primaryBtnText}>Apply Filters</Text>
+                </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.secondaryBtn} onPress={handleReset}>
@@ -121,6 +137,7 @@ const FilterInput: React.FC<FilterInputProps> = ({
   );
 };
 
+// ================= STYLES (Properly Organized) =================
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -133,7 +150,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     maxHeight: '80%',
     width: '100%',
-    // Android navigation bar se gap
     paddingBottom: Platform.OS === 'android' ? 10 : 0, 
   },
   header: {
@@ -210,13 +226,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
-  primaryBtn: {
-    backgroundColor: '#5152B3',
+  primaryBtnGradient: {
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
     marginBottom: 10,
-    elevation: 2,
+    elevation: 3,
   },
   primaryBtnText: {
     color: '#FFFFFF',
@@ -234,7 +249,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   safeBottomSpacer: {
-    height: Platform.OS === 'ios' ? 40 : 50, // Taake buttons mobile nav bar se upar rahein
+    height: Platform.OS === 'ios' ? 40 : 40,
   },
 });
 

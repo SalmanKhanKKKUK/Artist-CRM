@@ -1,7 +1,7 @@
 import { THEME_COLORS } from '@/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   BackHandler,
   Dimensions,
@@ -14,6 +14,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Animated,
+  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -29,9 +32,12 @@ interface InviteProps {
 
 const Invite: React.FC<InviteProps> = ({ onBack }) => {
   const [email, setEmail] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  
+  const slideAnim = useRef(new Animated.Value(-150)).current;
   const insets = useSafeAreaInsets();
 
-  // Android Hardware Back Button logic (Same as Teams/CompanyName)
   useEffect(() => {
     const backAction = () => {
       if (onBack) {
@@ -44,8 +50,43 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
     return () => backHandler.remove();
   }, [onBack]);
 
+  const showTopSuccessLoader = () => {
+    setShowSuccess(true);
+    
+    // Drop down animation
+    Animated.spring(slideAnim, {
+      toValue: Platform.OS === 'android' ? 50 : 60,
+      useNativeDriver: true,
+      bounciness: 10,
+    }).start();
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+      Animated.timing(slideAnim, {
+        toValue: -150,
+        duration: 400,
+        useNativeDriver: true,
+      }).start(() => setShowSuccess(false));
+    }, 3000);
+  };
+
   const handleInviteSubmit = () => {
-    console.log('Inviting Email:', email);
+    console.log("Button Clicked!"); // Debugging point
+
+    if (!email || email.trim() === '') {
+      Alert.alert("Error", "Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Network request simulate karein
+    setTimeout(() => {
+      console.log("Invitation logic completed");
+      setLoading(false);
+      setEmail(''); 
+      showTopSuccessLoader();
+    }, 1500);
   };
 
   return (
@@ -55,6 +96,22 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
+      {/* Success Notification Bar */}
+      {showSuccess && (
+        <Animated.View 
+          style={[
+            styles.successNotification, 
+            { transform: [{ translateY: slideAnim }] }
+          ]}
+        >
+          <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
+          <View>
+            <Text style={styles.successTitle}>Success!</Text>
+            <Text style={styles.successMessage}>Invitation sent successfully.</Text>
+          </View>
+        </Animated.View>
+      )}
+
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
@@ -72,7 +129,6 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.innerContainer}>
-              {/* Logo Section */}
               <Image
                 source={require('../../../assets/homeimages/logo.png')}
                 style={styles.topImage}
@@ -82,11 +138,10 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
               <Text style={styles.title}>Invite Team</Text>
 
               <Text style={styles.subTitle}>
-                Invite team members to join your salon and{"\n"}manage business together.
+                Invite team members to join Artist-CRM {"\n"}and manage business together.
               </Text>
 
               <View style={styles.formContainer}>
-                {/* Email Input */}
                 <Input
                   value={email}
                   onChangeText={(text: string) => setEmail(text)}
@@ -99,13 +154,14 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
                   variant="outlined"
                 />
 
-                {/* Reduced Gap between Input and Button */}
                 <View style={styles.compactGap} />
 
-                {/* Invite Button */}
+                {/* Main Submit Button */}
                 <TouchableOpacity
                   onPress={handleInviteSubmit}
                   style={styles.buttonWrapper}
+                  activeOpacity={0.8}
+                  disabled={loading}
                 >
                   <LinearGradient
                     colors={THEME_COLORS.buttonGradient}
@@ -113,7 +169,11 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
                     end={{ x: 1, y: 0 }}
                     style={styles.gradientButton}
                   >
-                    <Text style={styles.buttonText}>Send Invitation</Text>
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.buttonText}>Send Invitation</Text>
+                    )}
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -125,6 +185,7 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
   );
 };
 
+// ================= STYLES (Clean & Expanded) =================
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -179,23 +240,62 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   compactGap: {
-    height: 15, // Gap reduced from 30 to 15
+    height: 15,
   },
   buttonWrapper: {
     width: '100%',
     borderRadius: 25,
     overflow: 'hidden',
-    elevation: 3,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   gradientButton: {
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 56,
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  successNotification: {
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    right: 80,
+    backgroundColor: '#10B981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    zIndex: 9999,
+    elevation: 15,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  successTitle: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  successMessage: {
+    color: '#E0F2FE',
+    fontSize: 12,
   },
 });
 

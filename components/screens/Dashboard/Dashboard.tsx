@@ -16,7 +16,13 @@ import NewVisit from '../NewVisit/NewVisit';
 import Profile from '../Profile/Profile';
 import Teams from '../Teams/Teams';
 
-const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNavigateToWelcome?: () => void }) => {
+// Strictly defined Interface for zero TypeScript errors
+interface DashboardProps {
+  onBack?: () => void;
+  onNavigateToWelcome?: () => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) => {
   const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | 'invite' | null>(null);
   
   const insets = useSafeAreaInsets();
@@ -37,6 +43,7 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
     return () => backHandler.remove();
   }, [currentScreen, onBack]);
 
+  // Handlers for Navigation
   const handleHomePress = () => setCurrentScreen(null);
   const handleNewVisitPress = () => setCurrentScreen('newVisit');
   const handleHistoryPress = () => setCurrentScreen('history');
@@ -65,12 +72,19 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
+        {/* --- SCREEN RENDERING LOGIC --- */}
         {currentScreen === 'newVisit' ? (
           <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
         ) : currentScreen === 'history' ? (
-          <History onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
+          <History 
+            onBack={() => setCurrentScreen(null)} 
+            onNavigateToNewVisit={() => setCurrentScreen('newVisit')} // Fixed: Passing the required prop
+          />
         ) : currentScreen === 'teams' ? (
-          <Teams onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} onNavigateToInvite={() => setCurrentScreen('invite')} />
+          <Teams 
+            onBack={() => setCurrentScreen(null)} 
+            onNavigateToInvite={() => setCurrentScreen('invite')} 
+          />
         ) : currentScreen === 'addClients' ? (
           <AddClients onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
         ) : currentScreen === 'profile' ? (
@@ -162,6 +176,7 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
           </>
         )}
 
+        {/* --- BOTTOM NAVIGATION BAR --- */}
         <View style={[
           styles.bottomNavContainer, 
           { 
@@ -185,7 +200,7 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
             <View style={styles.plusActionWrapper}>
               <TouchableOpacity onPress={handleAddClientsPress} activeOpacity={0.8}>
                 <LinearGradient
-                   colors={THEME_COLORS.buttonGradient}
+                  colors={THEME_COLORS.buttonGradient}
                   style={styles.plusGradientBtn}
                 >
                   <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
@@ -211,6 +226,7 @@ const Dashboard = ({ onBack, onNavigateToWelcome }: { onBack?: () => void; onNav
   );
 };
 
+// ================= STYLES (Properly Organized) =================
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -240,7 +256,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9',
     paddingVertical: 20,
-    backgroundColor: '#FFFFFF', // Card color remains white as per original UI
+    backgroundColor: '#FFFFFF',
   },
   sectionHeadingWrapper: {
     flexDirection: 'row',
@@ -255,9 +271,9 @@ const styles = StyleSheet.create({
     color: '#5152B3',
   },
   historyGradientBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
+    paddingHorizontal: 15,
+    paddingVertical: 8, // Slightly increased for better tap area
+    borderRadius: 25,    // Changed to 25 to make it fully rounded
   },
   seeAllText: {
     fontSize: 14,
@@ -281,7 +297,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF', // Card color remains white
+    backgroundColor: '#FFFFFF',
   },
   visitTitle: {
     fontSize: 14,
@@ -308,6 +324,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 10,
     zIndex: 1000,
+    
+    // Subtle Black Shadow at the Top
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: -4, // Pushes shadow to the top
+    },
+    shadowOpacity: 0.08, // Very subtle as requested
+    shadowRadius: 5,
+    elevation: 20,      // Required for Android shadow
   },
   navBar: {
     flexDirection: 'row',
@@ -320,6 +346,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     padding: 6,
     borderRadius: 35,
+    // Matching shadow for the center button cutout
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 5,
   },
   plusGradientBtn: {
     width: 58,
