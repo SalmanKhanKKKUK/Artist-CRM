@@ -209,7 +209,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
                   size={20} 
                   color={isSelectedActive ? "#F59E0B" : "#10B981"} 
                 />
-                <Text style={styles.menuText}>{isSelectedActive ? "Deactive" : "Active"}</Text>
+                <Text style={styles.menuText}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
               </TouchableOpacity>
 
               <View style={styles.menuSeparator} />

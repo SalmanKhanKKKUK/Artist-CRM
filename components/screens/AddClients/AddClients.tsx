@@ -123,7 +123,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
       )}
 
       <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
-        <NavHeader title="Add New Client !">
+        <NavHeader title="Add New Customer !">
           <TouchableOpacity onPress={handleSave} activeOpacity={0.8} disabled={loading}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
@@ -143,14 +143,14 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.flexOne}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 40}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 60}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: insets.bottom + 80 } // Extra padding so email is visible when typing
+              { paddingBottom: insets.bottom + 60 } // Extra padding so email is visible when typing
             ]}
           >
             <View style={styles.photoSection}>
@@ -301,9 +301,9 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   sectionGap: {
-    height: 20,
+    height: 10,
   },
-  // Success Message (Design copied from Invite.tsx)
+ 
   successNotification: {
     position: 'absolute',
     top: 0,

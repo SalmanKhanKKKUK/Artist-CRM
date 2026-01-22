@@ -16,7 +16,10 @@ import NewVisit from '../NewVisit/NewVisit';
 import Profile from '../Profile/Profile';
 import Teams from '../Teams/Teams';
 
+
+
 // Strictly defined Interface for zero TypeScript errors
+
 interface DashboardProps {
   onBack?: () => void;
   onNavigateToWelcome?: () => void;
@@ -24,7 +27,6 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) => {
   const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | 'invite' | null>(null);
-  
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -33,12 +35,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
         setCurrentScreen(null);
         return true;
       }
+
       if (onBack) {
         onBack();
         return true;
       }
       return false;
     };
+
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, [currentScreen, onBack]);
@@ -50,6 +54,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
   const handleTeamsPress = () => setCurrentScreen('teams');
   const handleAddClientsPress = () => setCurrentScreen('addClients');
   const handleProfilePress = () => setCurrentScreen('profile');
+
+
 
   const visitData = [
     { id: 1, title: "John Doe", img: require('../../../assets/images/icon.png') },
@@ -64,6 +70,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
     { id: 10, title: "Daniel H.", img: require('../../../assets/images/favicon.png') },
   ];
 
+
+
   return (
     <LinearGradient
       colors={THEME_COLORS.bgGradient}
@@ -76,11 +84,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
         {currentScreen === 'newVisit' ? (
           <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
         ) : currentScreen === 'history' ? (
+
           <History 
             onBack={() => setCurrentScreen(null)} 
             onNavigateToNewVisit={() => setCurrentScreen('newVisit')} // Fixed: Passing the required prop
+
           />
+
         ) : currentScreen === 'teams' ? (
+
           <Teams 
             onBack={() => setCurrentScreen(null)} 
             onNavigateToInvite={() => setCurrentScreen('invite')} 
@@ -99,18 +111,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
                   colors={THEME_COLORS.buttonGradient}
                   style={styles.profileGradientIcon}
                 >
+
                   <Ionicons name="person" size={18} color="#FFFFFF" />
                 </LinearGradient>
               </TouchableOpacity>
             </NavHeader>
-
             <ScrollView 
+
               showsVerticalScrollIndicator={false} 
               contentContainerStyle={[
                 styles.mainScroll, 
                 { paddingBottom: 100 + insets.bottom } 
               ]}
+
             >
+
               <View style={styles.statsContainer}>
                 <InfoCard 
                   title="56" 
@@ -123,6 +138,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
                   elevation={0}
                   containerStyle={styles.premiumInfoCard}
                 />
+
                 <InfoCard 
                   title="10" 
                   description="Active Clients"
@@ -136,6 +152,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
                 />
               </View>
 
+
+
               <View style={styles.sectionHeadingWrapper}>
                 <Text style={styles.sectionTitle}>Recent Visits</Text>
                 <TouchableOpacity onPress={handleHistoryPress}>
@@ -145,15 +163,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
                     end={{ x: 1, y: 0 }}
                     style={styles.historyGradientBtn}
                   >
+
                     <Text style={styles.seeAllText}>View History</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
+
               
+
               <View style={styles.visitGrid}>
                 {[0, 2, 4, 6, 8].map((startIndex) => (
                   <View key={startIndex} style={styles.row}>
                     {visitData.slice(startIndex, startIndex + 2).map((item) => (
+
                       <ImageDesCard 
                         key={item.id}
                         imageSource={item.img}
@@ -168,6 +190,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
                         elevation={0}
                         containerStyle={styles.visitCardBorder}
                       />
+
                     ))}
                   </View>
                 ))}
@@ -175,6 +198,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
             </ScrollView>
           </>
         )}
+
+
 
         {/* --- BOTTOM NAVIGATION BAR --- */}
         <View style={[
@@ -191,21 +216,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
               isActive={currentScreen === null}
               onClick={handleHomePress}
             />
+
             <NavButton 
               label="New Visit"
               icon={<MaterialCommunityIcons name="calendar-plus" size={24} />} 
+
               isActive={currentScreen === 'newVisit'}
+
               onClick={handleNewVisitPress}
+
             />
+
             <View style={styles.plusActionWrapper}>
+
               <TouchableOpacity onPress={handleAddClientsPress} activeOpacity={0.8}>
                 <LinearGradient
                   colors={THEME_COLORS.buttonGradient}
                   style={styles.plusGradientBtn}
                 >
+
                   <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
                 </LinearGradient>
               </TouchableOpacity>
+
             </View>
             <NavButton 
               label="History"
@@ -213,6 +246,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
               isActive={currentScreen === 'history'}
               onClick={handleHistoryPress}
             />
+
             <NavButton 
               label="Teams"
               icon={<FontAwesome5 name="users" size={20} />} 
@@ -223,26 +257,35 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
         </View>
       </SafeAreaView>
     </LinearGradient>
+
   );
+
 };
 
+
+
 // ================= STYLES (Properly Organized) =================
+
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
   },
+
   container: {
     flex: 1,
   },
+
   mainScroll: {
     paddingHorizontal: 20,
   },
+
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 15,
     marginTop: 5,
   },
+
   profileGradientIcon: {
     width: 36,
     height: 36,
@@ -250,6 +293,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   premiumInfoCard: {
     width: '47.5%',
     borderRadius: 20,
@@ -258,6 +302,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     backgroundColor: '#FFFFFF',
   },
+
   sectionHeadingWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -265,30 +310,36 @@ const styles = StyleSheet.create({
     marginTop: 35,
     marginBottom: 25,
   },
+
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#5152B3',
   },
+
   historyGradientBtn: {
     paddingHorizontal: 15,
-    paddingVertical: 8, // Slightly increased for better tap area
+    paddingVertical: 6, // Slightly increased for better tap area
     borderRadius: 25,    // Changed to 25 to make it fully rounded
   },
+
   seeAllText: {
     fontSize: 14,
     color: '#FFFFFF',
     fontWeight: '500',
   },
+
   visitGrid: {
     gap: 10,
   },
+
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
     marginBottom: 12,
   },
+
   visitCardBorder: {
     width: '48.2%',
     borderRadius: 16,
@@ -299,6 +350,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
   },
+
   visitTitle: {
     fontSize: 14,
     fontWeight: '700',
@@ -307,12 +359,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
+
   visitDesc: {
     fontSize: 10,
     color: '#94A3B8',
     marginTop: 2,
     textAlign: 'center',
   },
+
   bottomNavContainer: {
     position: 'absolute',
     bottom: 0,
@@ -324,23 +378,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 10,
     zIndex: 1000,
-    
     // Subtle Black Shadow at the Top
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
       height: -4, // Pushes shadow to the top
     },
+
     shadowOpacity: 0.08, // Very subtle as requested
     shadowRadius: 5,
     elevation: 20,      // Required for Android shadow
   },
+
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     height: 50,
   },
+
   plusActionWrapper: {
     marginTop: -55,
     backgroundColor: '#FFFFFF',
@@ -352,10 +408,12 @@ const styles = StyleSheet.create({
       width: 0,
       height: -2,
     },
+
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 5,
   },
+
   plusGradientBtn: {
     width: 58,
     height: 58,
