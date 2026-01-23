@@ -1,16 +1,13 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import DashboardHome from '../../components/screens/Dashboard/DashboardHome';
-import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
+import Dashboard from '../../components/screens/Dashboard/Dashboard';
 
 export default function DashboardScreen() {
   const router = useRouter();
 
-  // Handle Android back button - go to previous page instead of quitting
-  // Handle Android back button - Navigate to Login instead of quitting
-  useSmartBackHandler(() => {
+  const handleBackToLogin = () => {
     router.replace('/(auth)/login');
-  });
+  };
 
-  return <DashboardHome />;
+  return <Dashboard onBack={handleBackToLogin} />;
 }
