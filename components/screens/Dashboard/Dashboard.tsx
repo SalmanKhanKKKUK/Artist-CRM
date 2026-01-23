@@ -16,8 +16,6 @@ import NewVisit from '../NewVisit/NewVisit';
 import Profile from '../Profile/Profile';
 import Teams from '../Teams/Teams';
 
-
-
 // Strictly defined Interface for zero TypeScript errors
 
 interface DashboardProps {

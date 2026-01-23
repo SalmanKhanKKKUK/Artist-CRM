@@ -48,3 +48,42 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+artist-crm/
+├── app/
+│   ├── (auth)/                 # Authentication Group
+│   │   ├── login.tsx          # Login Screen
+│   │   ├── signup.tsx         # Signup Screen  
+│   │   └── company-name.tsx   # Company Name Screen
+│   │   └── _layout.tsx        # Auth Stack Layout
+│   │
+│   ├── (tabs)/                # Main App Tabs Group
+│   │   ├── dashboard.tsx      # Home Tab (Dashboard)
+│   │   ├── new-visit.tsx      # New Visit Tab
+│   │   ├── history.tsx        # History Tab
+│   │   ├── teams.tsx          # Teams Tab
+│   │   └── _layout.tsx        # Tabs Layout
+│   │
+│   ├── (modals)/              # Modal Screens Group
+│   │   ├── profile.tsx        # Profile Modal
+│   │   ├── invite.tsx         # Invite Modal
+│   │   └── add-clients.tsx    # Add Clients Modal
+│   │   └── _layout.tsx        # Modal Stack Layout
+│   │
+│   ├── _layout.tsx            # Root Layout (Navigation Container)
+│   ├── index.tsx              # Initial Splash/Redirect
+│   └── splash.tsx             # Splash Screen
+│
+└── components/
+    └── commons/            #reusable co
+    └── screens/               # Existing Screen Components (Reusable)
+        ├── Login/
+        ├── Signup/
+        ├── Dashboard/
+        ├── Profile/
+        ├── History/
+        ├── Teams/
+        ├── NewVisit/
+        ├── AddClients/
+        └── Invite/
