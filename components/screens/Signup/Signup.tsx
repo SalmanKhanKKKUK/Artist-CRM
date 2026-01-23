@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState, useRef } from 'react';
 import { THEME_COLORS } from '@/constants/Colors';
 import {
-  BackHandler,
   Dimensions,
   Image,
   Keyboard,
@@ -41,11 +40,6 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    const backAction = () => {
-      onBack();
-      return true;
-    };
-
     // Keyboard Hide Listener: Jab typing band hogi, view wapas reset hoga
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
       if (scrollRef.current) {
@@ -53,13 +47,10 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
       }
     });
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
     return () => {
-      backHandler.remove();
       keyboardDidHideListener.remove();
     };
-  }, [onBack]);
+  }, []);
 
   return (
     <LinearGradient

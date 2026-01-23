@@ -3,7 +3,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  BackHandler,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -40,17 +39,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    const backAction = () => {
-      if (onBack) {
-        onBack();
-        return true;
-      }
-      return false;
-    };
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => backHandler.remove();
-  }, [onBack]);
+  // BackHandler is now handled at route level via useSmartBackHandler hook
 
   const showTopSuccessLoader = () => {
     setShowSuccess(true);

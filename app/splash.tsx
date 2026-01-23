@@ -1,11 +1,18 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Animated, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { useSmartBackHandler } from '../hooks/useSmartBackHandler';
 
 export default function Splash() {
   const router = useRouter();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.5)).current;
+
+  // Handle Android back button - on splash, allow exit or go to login
+  useSmartBackHandler(() => {
+    // On splash screen, go directly to login if back is pressed
+    router.replace('/(auth)/login');
+  });
 
   useEffect(() => {
     // Animation for logo appearance
@@ -22,9 +29,9 @@ export default function Splash() {
       }),
     ]).start();
 
-    // Navigation timer - 10 seconds to home page
+    // Navigation timer - redirect to login after splash
     const timer = setTimeout(() => {
-      router.replace('/');
+      router.replace('/(auth)/login');
     }, 5000);
 
     return () => clearTimeout(timer);

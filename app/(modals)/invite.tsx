@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import Signup from '../../components/screens/Signup/Signup';
+import Invite from '../../components/screens/Invite/Invite';
 import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 
-export default function SignupScreen() {
+export default function InviteScreen() {
   const router = useRouter();
   
   // Handle Android back button - go to previous page instead of quitting
@@ -12,9 +12,7 @@ export default function SignupScreen() {
   });
 
   return (
-    <Signup 
-      onNavigateToLogin={() => router.push('/(auth)/login')}
-      onNavigateToCompanyName={() => router.push('/(auth)/company-name')}
+    <Invite
       onBack={() => router.back()}
     />
   );

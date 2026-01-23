@@ -3,7 +3,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  BackHandler,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -38,17 +37,7 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
   const slideAnim = useRef(new Animated.Value(-150)).current;
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    const backAction = () => {
-      if (onBack) {
-        onBack();
-        return true;
-      }
-      return false;
-    };
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => backHandler.remove();
-  }, [onBack]);
+  // BackHandler is now handled at route level via useSmartBackHandler hook
 
   const showTopSuccessLoader = () => {
     setShowSuccess(true);
