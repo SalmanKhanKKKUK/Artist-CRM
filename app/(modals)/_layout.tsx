@@ -11,7 +11,7 @@ export default function ModalsLayout() {
     >
       <Stack.Screen name="profile" />
       <Stack.Screen name="invite" />
-      <Stack.Screen name="add-clients" />
+      <Stack.Screen name="view-history" />
     </Stack>
   );
 }

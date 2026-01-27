@@ -1,12 +1,12 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import AddClients from '../../components/screens/AddClients/AddClients';
+import ViewHistory from '../../components/screens/ViewHistory/ViewHistory';
 import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 
-export default function AddClientsScreen() {
+export default function ViewHistoryModal() {
     const router = useRouter();
 
-    // Handle Android back button - go to previous page instead of quitting
+    // Handle Android back button
     const handleBack = React.useCallback(() => {
         router.back();
     }, [router]);
@@ -14,9 +14,8 @@ export default function AddClientsScreen() {
     useSmartBackHandler(handleBack);
 
     return (
-        <AddClients
+        <ViewHistory
             onBack={() => router.back()}
-            onNavigateToWelcome={() => { }}
         />
     );
 }

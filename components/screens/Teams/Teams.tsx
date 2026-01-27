@@ -113,7 +113,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
   };
 
   const handleSaveEdit = () => {
-    const updated = teams.map((item: TeamMember) => 
+    const updated = teams.map((item: TeamMember) =>
       item.id === selectedId ? { ...item, title: tempTitle, description: tempDesc } : item
     );
     setTeams(updated);
@@ -127,22 +127,22 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
       "Are you sure you want to delete this member?",
       [
         { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
-        { 
-          text: "Delete", 
-          style: "destructive", 
+        {
+          text: "Delete",
+          style: "destructive",
           onPress: () => {
             const filtered = teams.filter((item: TeamMember) => item.id !== selectedId);
             setTeams(filtered);
             persistTeams(filtered);
             setMenuVisible(false);
-          } 
+          }
         }
       ]
     );
   };
 
-  const isSelectedActive = teams.find(t => t.id === selectedId)?.description.toLowerCase().includes("active") && 
-                           !teams.find(t => t.id === selectedId)?.description.toLowerCase().includes("deactive");
+  const isSelectedActive = teams.find(t => t.id === selectedId)?.description.toLowerCase().includes("active") &&
+    !teams.find(t => t.id === selectedId)?.description.toLowerCase().includes("deactive");
 
   return (
     <LinearGradient
@@ -150,7 +150,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
       start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
         <NavHeader title=" Meet Our Team !">
@@ -165,8 +165,8 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableOpacity>
         </NavHeader>
 
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
+        <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.mainScroll, { paddingBottom: 60 + insets.bottom }]}
         >
           <View style={styles.contentFadeIn}>
@@ -179,8 +179,8 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
                   backgroundColor="#FFFFFF"
                   containerStyle={styles.cardMargin}
                 />
-                <TouchableOpacity 
-                  style={styles.threeDotButton} 
+                <TouchableOpacity
+                  style={styles.threeDotButton}
                   onPress={(event) => handleOpenMenu(event, member)}
                 >
                   <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
@@ -200,20 +200,20 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
                 <MaterialCommunityIcons name="pencil" size={20} color="#5152B3" />
                 <Text style={styles.menuText}>Edit</Text>
               </TouchableOpacity>
-              
+
               <View style={styles.menuSeparator} />
 
               <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
-                <MaterialCommunityIcons 
-                  name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"} 
-                  size={20} 
-                  color={isSelectedActive ? "#F59E0B" : "#10B981"} 
+                <MaterialCommunityIcons
+                  name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"}
+                  size={20}
+                  color={isSelectedActive ? "#F59E0B" : "#10B981"}
                 />
                 <Text style={styles.menuText}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
               </TouchableOpacity>
 
               <View style={styles.menuSeparator} />
-              
+
               <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
                 <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
                 <Text style={styles.menuText}>Delete</Text>

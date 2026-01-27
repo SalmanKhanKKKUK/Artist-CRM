@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker'; 
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState, useRef } from 'react';
 import {
@@ -31,7 +31,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [image, setImage] = useState<string | null>(null);
-  
+
   // States for Loading and Success Animation
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
@@ -43,7 +43,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
   const showTopSuccessLoader = () => {
     setShowSuccess(true);
-    
+
     // Slide Down Animation (Same as Invite.tsx)
     Animated.spring(slideAnim, {
       toValue: Platform.OS === 'android' ? 50 : 60,
@@ -97,9 +97,9 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
       {/* Success Notification - Invite.tsx Design */}
       {showSuccess && (
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.successNotification, 
+            styles.successNotification,
             { transform: [{ translateY: slideAnim }] }
           ]}
         >
@@ -111,7 +111,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
         </Animated.View>
       )}
 
-      <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
+      <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <NavHeader title="Add New Customer !">
           <TouchableOpacity onPress={handleSave} activeOpacity={0.8} disabled={loading}>
             <LinearGradient
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   sectionGap: {
     height: 10,
   },
- 
+
   successNotification: {
     position: 'absolute',
     top: 0,

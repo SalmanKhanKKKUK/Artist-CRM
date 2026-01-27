@@ -1,104 +1,74 @@
-import { useEffect } from 'react';
-import { BackHandler, Platform } from 'react-native';
 import { useRouter, useSegments } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { BackHandler } from 'react-native';
 
 export function useSmartBackHandler(customGoBack?: () => void) {
   const router = useRouter();
   const segments = useSegments();
 
+  // Use ref to hold the latest customGoBack callback
+  // This prevents the effect from re-running when the callback identity changes
+  // (e.g. inline arrow functions in components)
+  const customGoBackRef = useRef(customGoBack);
+
+  useEffect(() => {
+    customGoBackRef.current = customGoBack;
+  }, [customGoBack]);
+
+  // Determine current path for stability in dependency array
+  const currentPath = Array.isArray(segments) ? segments.join('/') : '';
+
   useEffect(() => {
     const onBackPress = () => {
-      // If a custom go back function is provided, use it
-      if (customGoBack) {
-        try {
-          customGoBack();
-          return true; // block default behavior (exit app)
-        } catch (error) {
-          // Silently handle error
-          return false;
+      try {
+        // 1. Custom Handler (Highest Priority)
+        // Use the ref current value
+        if (customGoBackRef.current) {
+          try {
+            customGoBackRef.current();
+            return true; // Prevent default behavior
+          } catch (error) {
+            console.warn('Custom back handler error:', error);
+            // Fall through to other checks if custom handler fails
+          }
         }
-      }
 
-      // Check if we have navigation history by checking segments
-      const currentPath = segments.join('/');
-
-      // Define root routes where we should allow app exit
-      const rootRoutes = ['splash', 'index'];
-      const isRootRoute = segments.length <= 1 ||
-        rootRoutes.some(route => currentPath.includes(route));
-
-      // If we're at root routes, allow default behavior (exit app)
-      if (isRootRoute) {
-        return false;
-      }
-
-      // For login screen, allow exit (it's the entry point after splash)
-      if (currentPath.includes('(auth)/login')) {
-        return false;
-      }
-
-      // Otherwise, try to go back safely
-      // Check if we're in a navigable context (not at root)
-      const isInNavigableContext = segments.length > 1 ||
-        segments.some(s => s.includes('(tabs)') ||
-          s.includes('(modals)') ||
-          s.includes('(auth)'));
-
-      if (isInNavigableContext && router && typeof router.back === 'function') {
-        try {
-          // Try to go back - wrap in try-catch to handle "go back was not handled" error
-          router.back();
-          return true; // block default behavior (exit app)
-        } catch (error: any) {
-          // If navigation fails (e.g., "go back was not handled"), 
-          // check if we should navigate to a safe route or allow exit
-
-          // For tabs, navigate to dashboard
-          if (segments.some(s => s.includes('(tabs)'))) {
-            try {
-              router.replace('/(tabs)/dashboard');
-              return true;
-            } catch {
-              return false; // Allow exit if navigation fails
-            }
+        // 2. Navigation Check (router.back)
+        // Standard Android behavior: go back if history exists
+        if (router.canGoBack()) {
+          try {
+            router.back();
+            return true;
+          } catch (error) {
+            console.warn('router.back() failed:', error);
           }
-
-          // For auth, navigate to login
-          if (segments.some(s => s.includes('(auth)'))) {
-            try {
-              router.replace('/(auth)/login');
-              return true;
-            } catch {
-              return false; // Allow exit if navigation fails
-            }
-          }
-
-          // For modals, allow exit (modal will close)
-          if (segments.some(s => s.includes('(modals)'))) {
-            return false;
-          }
-
-          // If all else fails, allow default behavior
-          return false;
         }
-      }
 
-      // If not in navigable context, allow default behavior
-      return false;
+        // Default: Allow partial system handling (exit app if nothing else works)
+        return false;
+
+      } catch (globalError) {
+        console.error('Critical BackHandler Error:', globalError);
+        return false; // Exit app on critical failure
+      }
     };
 
-    let sub: any;
-    if (Platform.OS === 'android') {
-      sub = BackHandler.addEventListener(
+    // Add Listener
+    let subscription: any;
+    try {
+      subscription = BackHandler.addEventListener(
         'hardwareBackPress',
         onBackPress
       );
+    } catch (e) {
+      console.warn('Failed to add BackHandler listener', e);
     }
 
+    // Cleanup
     return () => {
-      if (sub && typeof sub.remove === 'function') {
-        sub.remove();
+      if (subscription && typeof subscription.remove === 'function') {
+        subscription.remove();
       }
     };
-  }, [customGoBack, router, segments]);
+  }, [router, currentPath]); // Removed customGoBack and segments from deps -- relies on currentPath string for updates
 }

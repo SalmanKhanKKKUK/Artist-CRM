@@ -48,47 +48,47 @@ const CUSTOMERS_DATA = [
 
 const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   const insets = useSafeAreaInsets();
-  
+
   // States
   const [expandedSection, setExpandedSection] = useState<string | null>('customer');
   const [customerSearch, setCustomerSearch] = useState<string>('');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  
+
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [serviceInput, setServiceInput] = useState<string>('');
   const [showAllServices, setShowAllServices] = useState<boolean>(false);
-  
+
   const [selectedTags, setSelectedTags] = useState<string[]>(['Color']);
   const [tagInput, setTagInput] = useState<string>('');
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
-  
+
   const [notes, setNotes] = useState<string>('');
   const [images, setImages] = useState<string[]>([]);
-  
+
   // UI Animation States
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const slideAnim = useRef(new Animated.Value(-150)).current;
 
   const allServicesList = [
-    'Haircut', 
-    'Hair Coloring', 
-    'Styling', 
-    'Treatment', 
-    'Shaving', 
+    'Haircut',
+    'Hair Coloring',
+    'Styling',
+    'Treatment',
+    'Shaving',
     'Facial'
   ];
 
   const allTagsList = [
-    'Bleach', 
-    'Toner', 
-    'Color', 
-    'Style', 
+    'Bleach',
+    'Toner',
+    'Color',
+    'Style',
     'Premium'
   ];
 
-  const filteredCustomers = CUSTOMERS_DATA.filter(c => 
-    c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
+  const filteredCustomers = CUSTOMERS_DATA.filter(c =>
+    c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
     c.phone.includes(customerSearch)
   );
 
@@ -99,9 +99,9 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 
   const handleServiceToggle = (serviceName: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setSelectedServices(prev => 
-      prev.includes(serviceName) 
-        ? prev.filter(s => s !== serviceName) 
+    setSelectedServices(prev =>
+      prev.includes(serviceName)
+        ? prev.filter(s => s !== serviceName)
         : [...prev, serviceName]
     );
   };
@@ -117,9 +117,9 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 
   const handleTagToggle = (tag: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag) 
+    setSelectedTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
         : [...prev, tag]
     );
   };
@@ -179,20 +179,20 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   };
 
   return (
-    <LinearGradient 
-      colors={THEME_COLORS.bgGradient} 
+    <LinearGradient
+      colors={THEME_COLORS.bgGradient}
       style={styles.gradientContainer}
     >
-      <StatusBar 
-        barStyle="dark-content" 
-        backgroundColor="transparent" 
-        translucent 
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent
       />
 
       {showSuccess && (
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.successNotification, 
+            styles.successNotification,
             { transform: [{ translateY: slideAnim }] }
           ]}
         >
@@ -204,19 +204,19 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
         </Animated.View>
       )}
 
-      <SafeAreaView 
-        style={styles.masterContainer} 
-        edges={['bottom']}
+      <SafeAreaView
+        style={styles.masterContainer}
+        edges={['top', 'bottom']}
       >
         <NavHeader title="Add New Visit !" showProfileIcon={false}>
-          <TouchableOpacity 
-            onPress={handleSave} 
-            activeOpacity={0.8} 
+          <TouchableOpacity
+            onPress={handleSave}
+            activeOpacity={0.8}
             disabled={loading}
           >
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
-              start={{ x: 0, y: 0 }} 
+              start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.saveHeaderBtn}
             >
@@ -229,43 +229,43 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
           </TouchableOpacity>
         </NavHeader>
 
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flexOne}
         >
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
-              styles.scrollContent, 
+              styles.scrollContent,
               { paddingBottom: 50 + insets.bottom }
             ]}
             keyboardShouldPersistTaps="handled"
           >
-            
+
             {/* 1. CUSTOMER SECTION */}
             <View style={styles.card}>
-              <TouchableOpacity 
-                style={styles.cardHeader} 
+              <TouchableOpacity
+                style={styles.cardHeader}
                 onPress={() => toggleSection('customer')}
               >
                 <View style={styles.headerTitleRow}>
                   <Ionicons name="person-outline" size={20} color="#5152B3" />
                   <Text style={styles.cardTitle}>Customer</Text>
                 </View>
-                <Ionicons 
-                  name={(expandedSection === 'customer' ? "chevron-up" : "chevron-down") as IonIconName} 
-                  size={20} 
-                  color="#94A3B8" 
+                <Ionicons
+                  name={(expandedSection === 'customer' ? "chevron-up" : "chevron-down") as IonIconName}
+                  size={20}
+                  color="#94A3B8"
                 />
               </TouchableOpacity>
-              
+
               {expandedSection === 'customer' && (
                 <View style={styles.cardBody}>
                   <Input
                     value={customerSearch}
                     onChangeText={(val: string) => {
                       setCustomerSearch(val);
-                      if(selectedCustomer) setSelectedCustomer(null);
+                      if (selectedCustomer) setSelectedCustomer(null);
                     }}
                     placeholder="Search by name or phone..."
                     leftIcon="account-search"
@@ -275,12 +275,12 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                   {customerSearch.length > 0 && !selectedCustomer && (
                     <View style={styles.suggestionBox}>
                       {filteredCustomers.map((c) => (
-                        <TouchableOpacity 
-                          key={c.id} 
-                          style={styles.suggestionItem} 
-                          onPress={() => { 
-                            setSelectedCustomer(c); 
-                            setCustomerSearch(c.name); 
+                        <TouchableOpacity
+                          key={c.id}
+                          style={styles.suggestionItem}
+                          onPress={() => {
+                            setSelectedCustomer(c);
+                            setCustomerSearch(c.name);
                           }}
                         >
                           <MaterialCommunityIcons name="account-circle" size={22} color="#64748B" />
@@ -307,29 +307,29 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 
             {/* 2. SERVICES SECTION - Fixed to behave like Tags */}
             <View style={styles.card}>
-              <TouchableOpacity 
-                style={styles.cardHeader} 
+              <TouchableOpacity
+                style={styles.cardHeader}
                 onPress={() => toggleSection('services')}
               >
                 <View style={styles.headerTitleRow}>
                   <MaterialCommunityIcons name="content-cut" size={20} color="#5152B3" />
                   <Text style={styles.cardTitle}>Services</Text>
                 </View>
-                <Ionicons 
-                  name={(expandedSection === 'services' ? "chevron-up" : "chevron-down") as IonIconName} 
-                  size={20} 
-                  color="#94A3B8" 
+                <Ionicons
+                  name={(expandedSection === 'services' ? "chevron-up" : "chevron-down") as IonIconName}
+                  size={20}
+                  color="#94A3B8"
                 />
               </TouchableOpacity>
-              
+
               {expandedSection === 'services' && (
                 <View style={styles.cardBody}>
                   {/* Selected Services - Tag Style row */}
                   <View style={styles.tagsRow}>
                     {selectedServices.map(s => (
-                      <TouchableOpacity 
-                        key={s} 
-                        style={[styles.tagBadge, styles.selectedTagBadge]} 
+                      <TouchableOpacity
+                        key={s}
+                        style={[styles.tagBadge, styles.selectedTagBadge]}
                         onPress={() => handleServiceToggle(s)}
                       >
                         <Text style={[styles.tagBadgeText, styles.selectedTagBadgeText]}>
@@ -339,22 +339,22 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                     ))}
                   </View>
 
-                  <TextInput 
-                    style={styles.tagInput} 
-                    placeholder="Search or add service..." 
+                  <TextInput
+                    style={styles.tagInput}
+                    placeholder="Search or add service..."
                     placeholderTextColor="#94A3B8"
                     value={serviceInput}
                     onChangeText={setServiceInput}
                     onSubmitEditing={addCustomService}
                   />
-                  
+
                   <View style={styles.tagsRow}>
                     {(showAllServices ? allServicesList : allServicesList.slice(0, 5)).map((item) => {
                       if (selectedServices.includes(item)) return null;
                       return (
-                        <TouchableOpacity 
-                          key={item} 
-                          style={styles.tagBadge} 
+                        <TouchableOpacity
+                          key={item}
+                          style={styles.tagBadge}
                           onPress={() => handleServiceToggle(item)}
                         >
                           <Text style={styles.tagBadgeText}>{item}</Text>
@@ -362,9 +362,9 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       );
                     })}
                   </View>
-                  
-                  <TouchableOpacity 
-                    onPress={() => setShowAllServices(!showAllServices)} 
+
+                  <TouchableOpacity
+                    onPress={() => setShowAllServices(!showAllServices)}
                     style={styles.viewMoreBtn}
                   >
                     <Text style={styles.addLinkText}>
@@ -377,28 +377,28 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 
             {/* 3. TAGS SECTION */}
             <View style={styles.card}>
-              <TouchableOpacity 
-                style={styles.cardHeader} 
+              <TouchableOpacity
+                style={styles.cardHeader}
                 onPress={() => toggleSection('tags')}
               >
                 <View style={styles.headerTitleRow}>
                   <MaterialCommunityIcons name="tag-outline" size={20} color="#5152B3" />
                   <Text style={styles.cardTitle}>Tags</Text>
                 </View>
-                <Ionicons 
-                  name={(expandedSection === 'tags' ? "chevron-up" : "chevron-down") as IonIconName} 
-                  size={20} 
-                  color="#94A3B8" 
+                <Ionicons
+                  name={(expandedSection === 'tags' ? "chevron-up" : "chevron-down") as IonIconName}
+                  size={20}
+                  color="#94A3B8"
                 />
               </TouchableOpacity>
-              
+
               {expandedSection === 'tags' && (
                 <View style={styles.cardBody}>
                   <View style={styles.tagsRow}>
                     {selectedTags.map(t => (
-                      <TouchableOpacity 
-                        key={t} 
-                        style={[styles.tagBadge, styles.selectedTagBadge]} 
+                      <TouchableOpacity
+                        key={t}
+                        style={[styles.tagBadge, styles.selectedTagBadge]}
                         onPress={() => handleTagToggle(t)}
                       >
                         <Text style={[styles.tagBadgeText, styles.selectedTagBadgeText]}>
@@ -407,21 +407,21 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       </TouchableOpacity>
                     ))}
                   </View>
-                  <TextInput 
-                    style={styles.tagInput} 
-                    placeholder="Add custom tags..." 
-                    placeholderTextColor="#94A3B8" 
-                    value={tagInput} 
-                    onChangeText={setTagInput} 
-                    onSubmitEditing={addCustomTag} 
+                  <TextInput
+                    style={styles.tagInput}
+                    placeholder="Add custom tags..."
+                    placeholderTextColor="#94A3B8"
+                    value={tagInput}
+                    onChangeText={setTagInput}
+                    onSubmitEditing={addCustomTag}
                   />
                   <View style={styles.tagsRow}>
                     {(showAllTags ? allTagsList : allTagsList.slice(0, 5)).map(t => {
                       if (selectedTags.includes(t)) return null;
                       return (
-                        <TouchableOpacity 
-                          key={t} 
-                          style={styles.tagBadge} 
+                        <TouchableOpacity
+                          key={t}
+                          style={styles.tagBadge}
                           onPress={() => handleTagToggle(t)}
                         >
                           <Text style={styles.tagBadgeText}>{t}</Text>
@@ -429,8 +429,8 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       );
                     })}
                   </View>
-                  <TouchableOpacity 
-                    onPress={() => setShowAllTags(!showAllTags)} 
+                  <TouchableOpacity
+                    onPress={() => setShowAllTags(!showAllTags)}
                     style={styles.viewMoreBtn}
                   >
                     <Text style={styles.addLinkText}>
@@ -443,28 +443,28 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 
             {/* 4. NOTES SECTION */}
             <View style={styles.card}>
-              <TouchableOpacity 
-                style={styles.cardHeader} 
+              <TouchableOpacity
+                style={styles.cardHeader}
                 onPress={() => toggleSection('notes')}
               >
                 <View style={styles.headerTitleRow}>
                   <MaterialCommunityIcons name="notebook-outline" size={20} color="#5152B3" />
                   <Text style={styles.cardTitle}>Notes</Text>
                 </View>
-                <Ionicons 
-                  name={(expandedSection === 'notes' ? "chevron-up" : "chevron-down") as IonIconName} 
-                  size={20} 
-                  color="#94A3B8" 
+                <Ionicons
+                  name={(expandedSection === 'notes' ? "chevron-up" : "chevron-down") as IonIconName}
+                  size={20}
+                  color="#94A3B8"
                 />
               </TouchableOpacity>
               {expandedSection === 'notes' && (
                 <View style={styles.cardBody}>
-                  <TextInput 
-                    style={styles.textArea} 
-                    placeholder="Write Technical Formulas / Notes..." 
-                    multiline 
-                    value={notes} 
-                    onChangeText={setNotes} 
+                  <TextInput
+                    style={styles.textArea}
+                    placeholder="Write Technical Formulas / Notes..."
+                    multiline
+                    value={notes}
+                    onChangeText={setNotes}
                   />
                 </View>
               )}
@@ -472,25 +472,25 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 
             {/* 5. VISIT PHOTOS SECTION */}
             <View style={styles.card}>
-              <TouchableOpacity 
-                style={styles.cardHeader} 
+              <TouchableOpacity
+                style={styles.cardHeader}
                 onPress={() => toggleSection('photos')}
               >
                 <View style={styles.headerTitleRow}>
                   <Ionicons name="images-outline" size={20} color="#5152B3" />
                   <Text style={styles.cardTitle}>Visit Photos</Text>
                 </View>
-                <Ionicons 
-                  name={(expandedSection === 'photos' ? "chevron-up" : "chevron-down") as IonIconName} 
-                  size={20} 
-                  color="#94A3B8" 
+                <Ionicons
+                  name={(expandedSection === 'photos' ? "chevron-up" : "chevron-down") as IonIconName}
+                  size={20}
+                  color="#94A3B8"
                 />
               </TouchableOpacity>
               {expandedSection === 'photos' && (
                 <View style={styles.cardBody}>
                   <View style={styles.photoGrid}>
-                    <TouchableOpacity 
-                      style={styles.addPhotoBox} 
+                    <TouchableOpacity
+                      style={styles.addPhotoBox}
                       onPress={handleImagePick}
                     >
                       <MaterialCommunityIcons name="camera-plus" size={30} color="#5152B3" />
@@ -499,8 +499,8 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                     {images.map((uri, index) => (
                       <View key={index} style={styles.imageWrapper}>
                         <Image source={{ uri }} style={styles.uploadedImg} />
-                        <TouchableOpacity 
-                          style={styles.removeBtn} 
+                        <TouchableOpacity
+                          style={styles.removeBtn}
                           onPress={() => removeImage(index)}
                         >
                           <Ionicons name="close-circle" size={20} color="#EF4444" />

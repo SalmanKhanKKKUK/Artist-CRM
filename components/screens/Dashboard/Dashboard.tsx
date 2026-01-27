@@ -1,7 +1,8 @@
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
-import { BackHandler, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { THEME_COLORS } from '@/constants/Colors';
@@ -9,12 +10,6 @@ import NavButton from '../../common/Buttons/NavButton';
 import NavHeader from '../../common/Buttons/NavHeader';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 import InfoCard from '../../common/Cards/InfoCard';
-import AddClients from '../AddClients/AddClients';
-import History from '../History/History';
-import Invite from '../Invite/Invite';
-import NewVisit from '../NewVisit/NewVisit';
-import Profile from '../Profile/Profile';
-import Teams from '../Teams/Teams';
 
 // Strictly defined Interface for zero TypeScript errors
 
@@ -23,37 +18,35 @@ interface DashboardProps {
   onNavigateToWelcome?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) => {
-  const [currentScreen, setCurrentScreen] = useState<'newVisit' | 'history' | 'teams' | 'addClients' | 'profile' | 'invite' | null>(null);
+const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    const backAction = () => {
-      if (currentScreen !== null) {
-        setCurrentScreen(null);
-        return true;
-      }
-
-      if (onBack) {
-        onBack();
-        return true;
-      }
-      return false;
-    };
-
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => backHandler.remove();
-  }, [currentScreen, onBack]);
-
   // Handlers for Navigation
-  const handleHomePress = () => setCurrentScreen(null);
-  const handleNewVisitPress = () => setCurrentScreen('newVisit');
-  const handleHistoryPress = () => setCurrentScreen('history');
-  const handleTeamsPress = () => setCurrentScreen('teams');
-  const handleAddClientsPress = () => setCurrentScreen('addClients');
-  const handleProfilePress = () => setCurrentScreen('profile');
+  // Note: 'dashboard' is effectively "home" or null in the old logic
+  const handleHomePress = () => {
+    // Already on dashboard, do nothing or scroll to top
+  };
 
+  const handleNewVisitPress = () => {
+    router.push('/(tabs)/new-visit');
+  };
 
+  const handleHistoryPress = () => {
+    router.push('/(tabs)/history');
+  };
+
+  const handleTeamsPress = () => {
+    router.push('/(tabs)/teams');
+  };
+
+  const handleAddClientsPress = () => {
+    router.push('/(tabs)/add-clients');
+  };
+
+  const handleProfilePress = () => {
+    router.push('/(modals)/profile');
+  };
 
   const visitData = [
     { id: 1, title: "John Doe", img: require('../../../assets/images/icon.png') },
@@ -68,8 +61,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
     { id: 10, title: "Daniel H.", img: require('../../../assets/images/favicon.png') },
   ];
 
-
-
   return (
     <LinearGradient
       colors={THEME_COLORS.bgGradient}
@@ -78,177 +69,144 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack, onNavigateToWelcome }) =>
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        {/* --- SCREEN RENDERING LOGIC --- */}
-        {currentScreen === 'newVisit' ? (
-          <NewVisit onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
-        ) : currentScreen === 'history' ? (
-
-          <History 
-            onBack={() => setCurrentScreen(null)} 
-            onNavigateToNewVisit={() => setCurrentScreen('newVisit')} // Fixed: Passing the required prop
-
-          />
-
-        ) : currentScreen === 'teams' ? (
-
-          <Teams 
-            onBack={() => setCurrentScreen(null)} 
-            onNavigateToInvite={() => setCurrentScreen('invite')} 
-          />
-        ) : currentScreen === 'addClients' ? (
-          <AddClients onBack={() => setCurrentScreen(null)} onNavigateToWelcome={onNavigateToWelcome} />
-        ) : currentScreen === 'profile' ? (
-          <Profile onBack={() => setCurrentScreen(null)} />
-        ) : currentScreen === 'invite' ? (
-          <Invite onBack={() => setCurrentScreen(null)} />
-        ) : (
-          <>
-            <NavHeader title="Dashboard !" showProfileIcon={false}>
-              <TouchableOpacity onPress={handleProfilePress}>
-                <LinearGradient
-                  colors={THEME_COLORS.buttonGradient}
-                  style={styles.profileGradientIcon}
-                >
-
-                  <Ionicons name="person" size={18} color="#FFFFFF" />
-                </LinearGradient>
-              </TouchableOpacity>
-            </NavHeader>
-            <ScrollView 
-
-              showsVerticalScrollIndicator={false} 
-              contentContainerStyle={[
-                styles.mainScroll, 
-                { paddingBottom: 100 + insets.bottom } 
-              ]}
-
+        <NavHeader title="Dashboard !" showProfileIcon={false}>
+          <TouchableOpacity onPress={handleProfilePress}>
+            <LinearGradient
+              colors={THEME_COLORS.buttonGradient}
+              style={styles.profileGradientIcon}
             >
 
-              <View style={styles.statsContainer}>
-                <InfoCard 
-                  title="56" 
-                  description="Total Clients"
-                  backgroundColor="#FFFFFF"
-                  titleColor="#1E293B"
-                  descriptionColor="#94A3B8"
-                  titleSize={26}
-                  margin={0}
-                  elevation={0}
-                  containerStyle={styles.premiumInfoCard}
-                />
+              <Ionicons name="person" size={18} color="#FFFFFF" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </NavHeader>
+        <ScrollView
 
-                <InfoCard 
-                  title="10" 
-                  description="Active Clients"
-                  backgroundColor="#FFFFFF"
-                  titleColor="#313867"
-                  descriptionColor="#94A3B8"
-                  titleSize={26}
-                  margin={0}
-                  elevation={0}
-                  containerStyle={styles.premiumInfoCard}
-                />
-              </View>
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.mainScroll,
+            { paddingBottom: 100 + insets.bottom }
+          ]}
+
+        >
+
+          <View style={styles.statsContainer}>
+            <InfoCard
+              title="56"
+              description="Total Clients"
+              backgroundColor="#FFFFFF"
+              titleColor="#1E293B"
+              descriptionColor="#94A3B8"
+              titleSize={26}
+              margin={0}
+              elevation={0}
+              containerStyle={styles.premiumInfoCard}
+            />
+
+            <InfoCard
+              title="10"
+              description="Active Clients"
+              backgroundColor="#FFFFFF"
+              titleColor="#313867"
+              descriptionColor="#94A3B8"
+              titleSize={26}
+              margin={0}
+              elevation={0}
+              containerStyle={styles.premiumInfoCard}
+            />
+          </View>
 
 
 
-              <View style={styles.sectionHeadingWrapper}>
-                <Text style={styles.sectionTitle}>Recent Visits</Text>
-                <TouchableOpacity onPress={handleHistoryPress}>
-                  <LinearGradient
-                    colors={THEME_COLORS.buttonGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.historyGradientBtn}
-                  >
+          <View style={styles.sectionHeadingWrapper}>
+            <Text style={styles.sectionTitle}>Recent Visits</Text>
+            <TouchableOpacity onPress={handleHistoryPress}>
+              <LinearGradient
+                colors={THEME_COLORS.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.historyGradientBtn}
+              >
 
-                    <Text style={styles.seeAllText}>View History</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
+                <Text style={styles.seeAllText}>View History</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
 
-              
 
-              <View style={styles.visitGrid}>
-                {[0, 2, 4, 6, 8].map((startIndex) => (
-                  <View key={startIndex} style={styles.row}>
-                    {visitData.slice(startIndex, startIndex + 2).map((item) => (
 
-                      <ImageDesCard 
-                        key={item.id}
-                        imageSource={item.img}
-                        title={item.title}
-                        description="Last visit: 2 days ago"
-                        backgroundColor="#FFFFFF"
-                        titleStyle={styles.visitTitle}
-                        descriptionStyle={styles.visitDesc}
-                        cardMargin={0}
-                        cardPadding={12}
-                        imageSize={40}
-                        elevation={0}
-                        containerStyle={styles.visitCardBorder}
-                      />
+          <View style={styles.visitGrid}>
+            {[0, 2, 4, 6, 8].map((startIndex) => (
+              <View key={startIndex} style={styles.row}>
+                {visitData.slice(startIndex, startIndex + 2).map((item) => (
 
-                    ))}
-                  </View>
+                  <ImageDesCard
+                    key={item.id}
+                    imageSource={item.img}
+                    title={item.title}
+                    description="Last visit: 2 days ago"
+                    backgroundColor="#FFFFFF"
+                    titleStyle={styles.visitTitle}
+                    descriptionStyle={styles.visitDesc}
+                    cardMargin={0}
+                    cardPadding={12}
+                    imageSize={40}
+                    elevation={0}
+                    containerStyle={styles.visitCardBorder}
+                  />
+
                 ))}
               </View>
-            </ScrollView>
-          </>
-        )}
-
+            ))}
+          </View>
+        </ScrollView>
 
 
         {/* --- BOTTOM NAVIGATION BAR --- */}
         <View style={[
-          styles.bottomNavContainer, 
-          { 
-            paddingBottom: Platform.OS === 'ios' ? insets.bottom : 10, 
-            height: 65 + insets.bottom 
+          styles.bottomNavContainer,
+          {
+            paddingBottom: Platform.OS === 'ios' ? insets.bottom : 10,
+            height: 65 + insets.bottom
           }
         ]}>
           <View style={styles.navBar}>
-            <NavButton 
+            <NavButton
               label="Home"
-              icon={<MaterialCommunityIcons name="home-variant" size={24} />} 
-              isActive={currentScreen === null}
+              icon={<MaterialCommunityIcons name="home-variant" size={24} />}
+              isActive={true}
               onClick={handleHomePress}
             />
 
-            <NavButton 
+            <NavButton
               label="New Visit"
-              icon={<MaterialCommunityIcons name="calendar-plus" size={24} />} 
-
-              isActive={currentScreen === 'newVisit'}
-
+              icon={<MaterialCommunityIcons name="calendar-plus" size={24} />}
+              isActive={false}
               onClick={handleNewVisitPress}
-
             />
 
             <View style={styles.plusActionWrapper}>
-
               <TouchableOpacity onPress={handleAddClientsPress} activeOpacity={0.8}>
                 <LinearGradient
                   colors={THEME_COLORS.buttonGradient}
                   style={styles.plusGradientBtn}
                 >
-
                   <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
                 </LinearGradient>
               </TouchableOpacity>
-
             </View>
-            <NavButton 
+
+            <NavButton
               label="History"
-              icon={<MaterialCommunityIcons name="history" size={24} />} 
-              isActive={currentScreen === 'history'}
+              icon={<MaterialCommunityIcons name="history" size={24} />}
+              isActive={false}
               onClick={handleHistoryPress}
             />
 
-            <NavButton 
+            <NavButton
               label="Teams"
-              icon={<FontAwesome5 name="users" size={20} />} 
-              isActive={currentScreen === 'teams'}
+              icon={<FontAwesome5 name="users" size={20} />}
+              isActive={false}
               onClick={handleTeamsPress}
             />
           </View>

@@ -1,8 +1,13 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'expo-router'; // Import useRouter
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  GestureResponderEvent,
   Modal,
   Platform,
   ScrollView,
@@ -13,10 +18,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Alert,
-  ActivityIndicator,
-  Animated,
-  GestureResponderEvent,
 } from 'react-native';
 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,6 +45,7 @@ interface HistoryProps {
 }
 
 const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
+  const router = useRouter(); // Initialize router
   const insets = useSafeAreaInsets();
   const defaultHistory: HistoryItem[] = [
 
@@ -173,8 +175,8 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const filteredData = historyItems.filter((item) => {
 
     const searchMatch = item.name.toLowerCase().includes(searchText.toLowerCase());
-    const categoryMatch = activeFilters.category_filter 
-      ? item.service === activeFilters.category_filter 
+    const categoryMatch = activeFilters.category_filter
+      ? item.service === activeFilters.category_filter
       : true;
     return searchMatch && categoryMatch;
   });
@@ -186,15 +188,15 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       "Are you sure you want to delete this visit record?",
       [
         { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
-        { 
-          text: "Delete", 
-          style: "destructive", 
+        {
+          text: "Delete",
+          style: "destructive",
           onPress: () => {
             const filtered = historyItems.filter((item) => item.id !== selectedId);
             setHistoryItems(filtered);
             persistHistory(filtered);
             setMenuVisible(false);
-          } 
+          }
         }
       ]
     );
@@ -218,13 +220,18 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
 
   };
 
-
+  // Replaces Alert with Navigation logic
+  const handleViewDetails = () => {
+    setMenuVisible(false);
+    // Cast to any to avoid TS errors
+    router.push('/(modals)/view-history' as any);
+  };
 
   return (
 
     <LinearGradient colors={THEME_COLORS.bgGradient} style={styles.gradientContainer}>
 
-      <SafeAreaView style={styles.masterContainer} edges={['bottom']}>
+      <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
 
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
@@ -364,7 +371,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
 
               <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right }]}>
 
-                <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); Alert.alert("View", "Details View coming soon!"); }}>
+                <TouchableOpacity style={styles.menuItem} onPress={handleViewDetails}>
 
                   <MaterialCommunityIcons name="eye" size={20} color="#64748B" />
 
@@ -599,6 +606,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontWeight: 'bold',
     fontSize: 16,
+    marginTop: 10,
   },
 
   saveBtn: {

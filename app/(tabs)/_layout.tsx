@@ -1,11 +1,11 @@
+import NavButton from '@/components/common/Buttons/NavButton';
+import { THEME_COLORS } from '@/constants/Colors';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Tabs, useRouter, usePathname } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { THEME_COLORS } from '@/constants/Colors';
-import NavButton from '@/components/common/Buttons/NavButton';
 
 function CustomTabBar() {
   const router = useRouter();
