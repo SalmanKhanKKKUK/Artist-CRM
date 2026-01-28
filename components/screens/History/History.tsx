@@ -1,8 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router'; // Import useRouter
+import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import {
   ActivityIndicator,
   Alert,
@@ -28,8 +29,6 @@ import ImageDesCard from '../../common/Cards/ImageDesCard';
 import FilterInput, { FilterSection } from '../../common/Inputs/FilterInput';
 import SearchInput from '../../common/Inputs/SearchInput';
 
-// Correcting the Interface for History Items
-
 interface HistoryItem {
   id: number;
   name: string;
@@ -45,23 +44,16 @@ interface HistoryProps {
 }
 
 const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const insets = useSafeAreaInsets();
+  
   const defaultHistory: HistoryItem[] = [
-
     { id: 1, name: "Ahmad Ali", service: "Haircut", date: "14 Jan 2026", time: "10:30 AM", img: 'https://i.pravatar.cc/150?u=1' },
-
     { id: 2, name: "Sara Khan", service: "Color Expert", date: "12 Jan 2026", time: "02:15 PM", img: 'https://i.pravatar.cc/150?u=2' },
-
     { id: 3, name: "Zeenat Malik", service: "Manager", date: "10 Jan 2026", time: "09:00 AM", img: 'https://i.pravatar.cc/150?u=3' },
-
     { id: 4, name: "Hamza Sheikh", service: "Styling", date: "08 Jan 2026", time: "04:45 PM", img: 'https://i.pravatar.cc/150?u=4' },
-
     { id: 5, name: "Danish Ahmed", service: "Haircut", date: "05 Jan 2026", time: "11:20 AM", img: 'https://i.pravatar.cc/150?u=5' },
-
   ];
-
-
 
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>(defaultHistory);
   const [searchText, setSearchText] = useState<string>('');
@@ -70,14 +62,17 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  
   const [tempName, setTempName] = useState<string>("");
   const [tempService, setTempService] = useState<string>("");
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  const [tempImg, setTempImg] = useState<string>("");
 
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const slideAnim = useRef(new Animated.Value(-150)).current;
 
+  // Updated Filter Sections
   const filterSections: FilterSection[] = [
     {
       id: 'category_filter',
@@ -89,9 +84,25 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
         { label: 'Manager', value: 'Manager' },
       ],
     },
+    {
+      id: 'tag_filter',
+      title: 'Filter By Tag',
+      options: [
+        { label: 'New Client', value: 'New' },
+        { label: 'Regular', value: 'Regular' },
+        { label: 'VIP', value: 'VIP' },
+      ],
+    },
+    {
+      id: 'date_filter',
+      title: 'Filter By Date',
+      options: [
+        { label: 'Today', value: '14 Jan 2026' },
+        { label: 'Jan 2026', value: 'Jan 2026' },
+        { label: 'Old Records', value: '2025' },
+      ],
+    },
   ];
-
-
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -108,8 +119,6 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     loadHistory();
   }, []);
 
-
-
   const persistHistory = async (updatedList: HistoryItem[]) => {
     try {
       await AsyncStorage.setItem('permanently_deleted_history', JSON.stringify(updatedList));
@@ -118,302 +127,175 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     }
   };
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setTempImg(result.assets[0].uri);
+    }
+  };
+
+  const handleOpenMenu = (event: GestureResponderEvent, item: HistoryItem) => {
+    const { pageY } = event.nativeEvent;
+    setMenuPosition({ top: pageY - 10, right: 40 });
+    setSelectedId(item.id);
+    setTempName(item.name);
+    setTempService(item.service);
+    setTempImg(item.img);
+    setMenuVisible(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (selectedId === null) return;
+    const updated = historyItems.map((item) =>
+      item.id === selectedId 
+        ? { ...item, name: tempName, service: tempService, img: tempImg } 
+        : item
+    );
+    setHistoryItems(updated);
+    persistHistory(updated);
+    setEditModalVisible(false);
+  };
+
+  const handleViewDetails = () => {
+    setMenuVisible(false);
+    router.push('/(tabs)/view-history' as any);
+  };
+
+  const handleDeleteItem = () => {
+    if (selectedId === null) return;
+    Alert.alert("Confirm Delete", "Are you sure?", [
+      { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          const filtered = historyItems.filter((item) => item.id !== selectedId);
+          setHistoryItems(filtered);
+          persistHistory(filtered);
+          setMenuVisible(false);
+        }
+      }
+    ]);
+  };
+
+  // Expanded Filter Logic
+  const filteredData = historyItems.filter((item) => {
+    const searchMatch = item.name.toLowerCase().includes(searchText.toLowerCase());
+    
+    const categoryMatch = activeFilters.category_filter 
+      ? item.service === activeFilters.category_filter 
+      : true;
+
+    const dateMatch = activeFilters.date_filter 
+      ? item.date.includes(activeFilters.date_filter) 
+      : true;
+
+    const tagMatch = activeFilters.tag_filter
+      ? (activeFilters.tag_filter === 'VIP' ? item.id % 2 === 0 : true)
+      : true;
+
+    return searchMatch && categoryMatch && dateMatch && tagMatch;
+  });
 
   const showTopSuccessLoader = () => {
     setShowSuccess(true);
-
-    Animated.spring(slideAnim, {
-      toValue: Platform.OS === 'android' ? 50 : 60,
-      useNativeDriver: true,
-      bounciness: 10,
-    }).start();
-
+    Animated.spring(slideAnim, { toValue: Platform.OS === 'android' ? 50 : 60, useNativeDriver: true, bounciness: 10 }).start();
     setTimeout(() => {
-      Animated.timing(slideAnim, {
-        toValue: -150,
-        duration: 400,
-        useNativeDriver: true,
-      }).start(() => {
+      Animated.timing(slideAnim, { toValue: -150, duration: 400, useNativeDriver: true }).start(() => {
         setShowSuccess(false);
         if (onNavigateToNewVisit) onNavigateToNewVisit();
       });
-
     }, 2000);
-
   };
 
   const handleNewVisitPress = () => {
     if (loading) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      showTopSuccessLoader();
-    }, 1500);
-  };
-
-
-
-  const handleOpenMenu = (event: GestureResponderEvent, item: HistoryItem) => {
-    const { pageY } = event.nativeEvent;
-    setMenuPosition({
-      top: pageY - 10,
-      right: 40,
-    });
-
-    setSelectedId(item.id);
-
-    setTempName(item.name);
-
-    setTempService(item.service);
-
-    setMenuVisible(true);
-
-  };
-
-
-
-  const filteredData = historyItems.filter((item) => {
-
-    const searchMatch = item.name.toLowerCase().includes(searchText.toLowerCase());
-    const categoryMatch = activeFilters.category_filter
-      ? item.service === activeFilters.category_filter
-      : true;
-    return searchMatch && categoryMatch;
-  });
-
-  const handleDeleteItem = () => {
-    if (selectedId === null) return;
-    Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete this visit record?",
-      [
-        { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            const filtered = historyItems.filter((item) => item.id !== selectedId);
-            setHistoryItems(filtered);
-            persistHistory(filtered);
-            setMenuVisible(false);
-          }
-        }
-      ]
-    );
-  };
-
-  const handleSaveEdit = () => {
-
-    if (selectedId === null) return;
-
-    const updated = historyItems.map((item) =>
-
-      item.id === selectedId ? { ...item, name: tempName, service: tempService } : item
-
-    );
-
-    setHistoryItems(updated);
-
-    persistHistory(updated);
-
-    setEditModalVisible(false);
-
-  };
-
-  // Replaces Alert with Navigation logic
-  const handleViewDetails = () => {
-    setMenuVisible(false);
-    // Cast to any to avoid TS errors
-    router.push('/(modals)/view-history' as any);
+    setTimeout(() => { setLoading(false); showTopSuccessLoader(); }, 1500);
   };
 
   return (
-
     <LinearGradient colors={THEME_COLORS.bgGradient} style={styles.gradientContainer}>
-
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
-
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-
-
         {showSuccess && (
-
           <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
-
             <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
-
             <View>
-
               <Text style={styles.successTitle}>Success!</Text>
-
               <Text style={styles.successMessage}>Loading new visit form...</Text>
-
             </View>
-
           </Animated.View>
-
         )}
 
-
-
         <NavHeader title="Our All History !">
-
           <TouchableOpacity onPress={handleNewVisitPress} activeOpacity={0.8} disabled={loading}>
-
-            <LinearGradient
-
-              colors={THEME_COLORS.buttonGradient}
-
-              start={{ x: 0, y: 0 }}
-
-              end={{ x: 1, y: 0 }}
-
-              style={styles.newVisitHeaderBtn}
-
-            >
-
-              {loading ? (
-
-                <ActivityIndicator size="small" color="#FFFFFF" />
-
-              ) : (
-
-                <Text style={styles.newVisitBtnText}>New Visit</Text>
-
-              )}
-
+            <LinearGradient colors={THEME_COLORS.buttonGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.newVisitHeaderBtn}>
+              {loading ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={styles.newVisitBtnText}>New Visit</Text>}
             </LinearGradient>
-
           </TouchableOpacity>
-
         </NavHeader>
 
-
-
         <View style={styles.searchFixedWrapper}>
-
-          <SearchInput
-
-            value={searchText}
-
-            onChangeText={setSearchText}
-
-            placeholder="Search history..."
-
-            showFilterIcon={true}
-
-            onFilterIconPress={() => setIsFilterVisible(true)}
-
-            containerStyle={styles.searchBar}
-
-          />
-
+          <SearchInput value={searchText} onChangeText={setSearchText} placeholder="Search history..." showFilterIcon={true} onFilterIconPress={() => setIsFilterVisible(true)} containerStyle={styles.searchBar} />
         </View>
 
-
-
-        <ScrollView
-
-          showsVerticalScrollIndicator={false}
-
-          contentContainerStyle={[styles.listContent, { paddingBottom: 80 + insets.bottom }]}
-
-        >
-
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.listContent, { paddingBottom: 80 + insets.bottom }]}>
           {filteredData.map((item) => (
-
             <View key={item.id} style={styles.cardOuterWrapper}>
-
-              <ImageDesCard
-
-                imageSource={{ uri: item.img }}
-
-                title={item.name}
-
-                description={`${item.service}\n${item.date} | ${item.time}`}
-
-                backgroundColor="#FFFFFF"
-
-                containerStyle={styles.cardItem}
-
-                titleStyle={styles.cardTitleText}
-
-              />
-
-              <TouchableOpacity
-
-                style={styles.actionButton}
-
-                onPress={(e) => handleOpenMenu(e, item)}
-
-              >
-
+              <ImageDesCard imageSource={{ uri: item.img }} title={item.name} description={`${item.service}\n${item.date} | ${item.time}`} backgroundColor="#FFFFFF" containerStyle={styles.cardItem} titleStyle={styles.cardTitleText} />
+              <TouchableOpacity style={styles.actionButton} onPress={(e) => handleOpenMenu(e, item)}>
                 <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
-
               </TouchableOpacity>
-
             </View>
-
           ))}
-
         </ScrollView>
 
-
-
-        {/* View Details / Action Menu */}
-
         <Modal visible={menuVisible} transparent animationType="fade">
-
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-
             <View style={styles.modalOverlayDimmed}>
-
               <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right }]}>
-
                 <TouchableOpacity style={styles.menuItem} onPress={handleViewDetails}>
-
                   <MaterialCommunityIcons name="eye" size={20} color="#64748B" />
-
                   <Text style={styles.menuText}>View</Text>
-
                 </TouchableOpacity>
-
                 <View style={styles.menuSeparator} />
-
                 <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); setEditModalVisible(true); }}>
-
                   <MaterialCommunityIcons name="pencil" size={20} color="#5152B3" />
-
                   <Text style={styles.menuText}>Edit</Text>
-
                 </TouchableOpacity>
-
                 <View style={styles.menuSeparator} />
-
                 <TouchableOpacity style={styles.menuItem} onPress={handleDeleteItem}>
-
                   <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
-
                   <Text style={styles.menuText}>Delete</Text>
-
                 </TouchableOpacity>
-
               </View>
-
             </View>
-
           </TouchableWithoutFeedback>
         </Modal>
-
-
-
-        {/* Edit Modal */}
 
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
             <View style={styles.editPopup}>
               <Text style={styles.editTitle}>Edit Visit Info</Text>
+              <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                <TouchableOpacity onPress={pickImage} activeOpacity={0.7}>
+                  <View style={{ position: 'relative' }}>
+                    <View style={styles.editImageContainer}>
+                       <ImageDesCard imageSource={{ uri: tempImg }} title="" description="" containerStyle={styles.editImageStyle} />
+                    </View>
+                    <View style={styles.cameraIconContainer}>
+                      <MaterialCommunityIcons name="camera" size={16} color="white" />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Client Name</Text>
                 <TextInput style={styles.inputField} value={tempName} onChangeText={setTempName} />
@@ -422,7 +304,6 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
                 <Text style={styles.inputLabel}>Service Provided</Text>
                 <TextInput style={styles.inputField} value={tempService} onChangeText={setTempService} />
               </View>
-
               <View style={styles.actionRow}>
                 <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                   <Text style={styles.cancelBtnText}>Cancel</Text>
@@ -435,23 +316,10 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
           </View>
         </Modal>
 
-
-        <FilterInput
-          isVisible={isFilterVisible}
-          onClose={() => setIsFilterVisible(false)}
-          sections={filterSections}
-          onApply={(selections) => {
-            setActiveFilters(selections);
-            setIsFilterVisible(false);
-          }}
-
-          onReset={() => setActiveFilters({})}
-          title="Search Filters"
-        />
+        <FilterInput isVisible={isFilterVisible} onClose={() => setIsFilterVisible(false)} sections={filterSections} onApply={(selections) => { setActiveFilters(selections); setIsFilterVisible(false); }} onReset={() => setActiveFilters({})} title="Search Filters" />
       </SafeAreaView>
     </LinearGradient>
   );
-
 };
 
 const styles = StyleSheet.create({
@@ -481,7 +349,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     zIndex: 10,
   },
-
   searchBar: {
     width: '100%',
     marginBottom: 0,
@@ -494,23 +361,13 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
   },
-
   cardItem: {
     marginBottom: 0,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    ...Platform.select({ ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2 }, android: { elevation: 2 } }),
   },
   cardTitleText: {
     color: '#5152B3',
@@ -564,7 +421,6 @@ const styles = StyleSheet.create({
     padding: 24,
     elevation: 10,
   },
-
   editTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -572,12 +428,33 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#1E293B',
   },
-
+  editImageContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+  },
+  editImageStyle: {
+    width: 80,
+    height: 80,
+    margin: 0,
+    padding: 0,
+  },
+  cameraIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#5152B3',
+    borderRadius: 15,
+    padding: 5,
+    elevation: 5,
+  },
   inputGroup: {
     marginBottom: 15,
     width: '100%',
   },
-
   inputLabel: {
     color: '#64748B',
     marginBottom: 6,
@@ -585,7 +462,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 4,
   },
-
   inputField: {
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
@@ -594,34 +470,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     color: '#1E293B',
   },
-
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 20,
     marginTop: 10,
   },
-
   cancelBtnText: {
     color: '#94A3B8',
     fontWeight: 'bold',
     fontSize: 16,
     marginTop: 10,
   },
-
   saveBtn: {
     backgroundColor: '#5152B3',
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 12,
   },
-
   saveBtnText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
   },
-
   successNotification: {
     position: 'absolute',
     top: 0,
@@ -637,20 +508,15 @@ const styles = StyleSheet.create({
     elevation: 15,
     gap: 12,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
+    shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
-
   successTitle: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
   },
-
   successMessage: {
     color: '#E0F2FE',
     fontSize: 12,
@@ -658,4 +524,3 @@ const styles = StyleSheet.create({
 });
 
 export default History;
-

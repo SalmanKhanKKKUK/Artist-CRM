@@ -6,69 +6,51 @@ export function useSmartBackHandler(customGoBack?: () => void) {
   const router = useRouter();
   const segments = useSegments();
 
-  // Use ref to hold the latest customGoBack callback
-  // This prevents the effect from re-running when the callback identity changes
-  // (e.g. inline arrow functions in components)
+  // Use ref to hold the latest customGoBack callback to avoid re-running effect
   const customGoBackRef = useRef(customGoBack);
 
   useEffect(() => {
     customGoBackRef.current = customGoBack;
   }, [customGoBack]);
 
-  // Determine current path for stability in dependency array
-  const currentPath = Array.isArray(segments) ? segments.join('/') : '';
-
   useEffect(() => {
     const onBackPress = () => {
-      try {
-        // 1. Custom Handler (Highest Priority)
-        // Use the ref current value
-        if (customGoBackRef.current) {
-          try {
-            customGoBackRef.current();
-            return true; // Prevent default behavior
-          } catch (error) {
-            console.warn('Custom back handler error:', error);
-            // Fall through to other checks if custom handler fails
-          }
-        }
+      // 1. Priority: Custom Handler
+      if (customGoBackRef.current) {
+        customGoBackRef.current();
+        return true;
+      }
 
-        // 2. Navigation Check (router.back)
-        // Standard Android behavior: go back if history exists
+      // 2. Identify Current Page
+      // Check if the current screen is 'dashboard'
+      const isDashboard = segments[segments.length - 1] === 'dashboard';
+
+      if (isDashboard) {
+        // User Requirement: Quit app immediately on Dashboard
+        BackHandler.exitApp();
+        return true;
+      } else {
+        // 3. For all other pages (Tabs, Stack, Auth), go back one page
         if (router.canGoBack()) {
-          try {
-            router.back();
-            return true;
-          } catch (error) {
-            console.warn('router.back() failed:', error);
-          }
+          router.back();
+          return true;
+        } else {
+          // If we can't go back and we typically should (stack behavior),
+          // normally we return false to let system handle it (exit),
+          // BUT since we are not on dashboard, we might want to default to dashboard or exit.
+          // Given the request "previous page ana chahiye", if no previous page, exit is standard.
+          return false;
         }
-
-        // Default: Allow partial system handling (exit app if nothing else works)
-        return false;
-
-      } catch (globalError) {
-        console.error('Critical BackHandler Error:', globalError);
-        return false; // Exit app on critical failure
       }
     };
 
-    // Add Listener
-    let subscription: any;
-    try {
-      subscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        onBackPress
-      );
-    } catch (e) {
-      console.warn('Failed to add BackHandler listener', e);
-    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBackPress
+    );
 
-    // Cleanup
     return () => {
-      if (subscription && typeof subscription.remove === 'function') {
-        subscription.remove();
-      }
+      subscription.remove();
     };
-  }, [router, currentPath]); // Removed customGoBack and segments from deps -- relies on currentPath string for updates
+  }, [router, segments]); // Dependencies ensure logic updates on route change
 }

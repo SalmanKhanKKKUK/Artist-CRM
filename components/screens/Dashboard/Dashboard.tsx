@@ -45,7 +45,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
   };
 
   const handleProfilePress = () => {
-    router.push('/(modals)/profile');
+    router.push('/(tabs)/profile' as any);
   };
 
   const visitData = [

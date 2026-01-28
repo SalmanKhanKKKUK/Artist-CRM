@@ -1,9 +1,8 @@
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from "react";
 import {
   Alert,
-  Dimensions,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -22,265 +21,372 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 
 import { useSmartBackHandler } from "../../../hooks/useSmartBackHandler";
-// Reusable Components
 import InfoCard from "../../common/Cards/InfoCard";
+import ImageDesCard from '../../common/Cards/ImageDesCard';
 import NavHeader from "../../common/Buttons/NavHeader";
 import { THEME_COLORS } from '@/constants/Colors';
 
-const { width } = Dimensions.get('window');
-
-interface ProfileProps {
-  onBack?: () => void; // Made optional to prevent crashes if not passed
+// --- Interfaces ---
+interface TeamMember {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onBack }) => {
+interface ProfileProps {
+  onBack?: () => void;
+  onNavigateToInvite?: () => void;
+}
+
+const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const insets = useSafeAreaInsets();
 
-  // Data States
+  // --- Main Tabs State ---
+  const [activeTab, setActiveTab] = useState<'profile' | 'teams'>('profile');
+
+  // --- Profile Data States ---
   const [email] = useState<string>("aqibshoaib@gmail.com");
   const [phone, setPhone] = useState<string>("3118298343");
   const [profileImage, setProfileImage] = useState<string | null>(null);
-
-  // UI States
-  const [menuVisible, setMenuVisible] = useState<boolean>(false);
-  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
-  const [tempValue, setTempValue] = useState<string>("");
-
-  // Single Selection Mode
   const [selectedMode, setSelectedMode] = useState<'active' | 'dark' | 'light'>('active');
 
-  // Load Saved Data
+  // --- Teams Data States ---
+  const [teams, setTeams] = useState<TeamMember[]>([]);
+  const [selectedTeamMember, setSelectedTeamMember] = useState<TeamMember | null>(null);
+
+  // --- Shared UI States ---
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+  const [tempValue, setTempValue] = useState<string>(""); 
+  const [tempTitle, setTempTitle] = useState<string>(""); 
+  const [tempDesc, setTempDesc] = useState<string>("");   
+  const [tempImg, setTempImg] = useState<string>("");     
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+
+  // Load Initial Data
   useEffect(() => {
-    const loadStoredPhone = async () => {
+    const loadData = async () => {
       try {
         const savedPhone = await AsyncStorage.getItem('user_phone');
-        if (savedPhone !== null) setPhone(savedPhone);
-      } catch (error: any) {
-        console.error("Failed to load phone number:", error.message);
+        if (savedPhone) setPhone(savedPhone);
+
+        const savedTeams = await AsyncStorage.getItem('permanently_saved_teams');
+        if (savedTeams) {
+          setTeams(JSON.parse(savedTeams));
+        } else {
+          setTeams([
+            { id: '1', title: "Ahmad Ali", description: "Senior Stylist - Active", image: 'https://i.pravatar.cc/150?u=1' },
+            { id: '2', title: "Sara Khan", description: "Color Expert - Active", image: 'https://i.pravatar.cc/150?u=2' },
+          ]);
+        }
+      } catch (error) {
+        console.error("Load Data Error:", error);
       }
     };
-    loadStoredPhone();
+    loadData();
   }, []);
 
-  // Save Data
   const persistPhone = async (val: string) => {
-    try {
-      await AsyncStorage.setItem('user_phone', val);
-    } catch (error: any) {
-      console.error("Failed to save phone number:", error.message);
-    }
+    await AsyncStorage.setItem('user_phone', val);
   };
 
-  // Image Picker Logic
-  const pickImage = async () => {
-    try {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setProfileImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.log("Image picker error:", error);
-    }
+  const persistTeams = async (updatedTeams: TeamMember[]) => {
+    await AsyncStorage.setItem('permanently_saved_teams', JSON.stringify(updatedTeams));
   };
 
-  // Smart Back Handler - Added Guard Clause
   useSmartBackHandler(() => {
-    if (onBack) {
-      onBack();
-    }
+    if (onBack) onBack();
   });
 
-  const handleOpenPhoneMenu = (): void => {
+  const pickImage = async (type: 'profile' | 'team') => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      if (type === 'profile') setProfileImage(result.assets[0].uri);
+      else setTempImg(result.assets[0].uri);
+    }
+  };
+
+  const handleOpenPhoneMenu = (event: any) => {
+    const { pageY } = event.nativeEvent;
+    setMenuPosition({ top: pageY - 10, right: 40 });
     setTempValue(phone);
     setMenuVisible(true);
   };
 
-  const handleEditInitiate = (): void => {
-    setMenuVisible(false);
-    setEditModalVisible(true);
+  const handleOpenTeamMenu = (event: any, member: TeamMember) => {
+    const { pageY } = event.nativeEvent;
+    setMenuPosition({ top: pageY - 10, right: 40 });
+    setSelectedTeamMember(member);
+    setTempTitle(member.title);
+    setTempDesc(member.description);
+    setTempImg(member.image);
+    setMenuVisible(true);
   };
 
-  const handleSaveEdit = (): void => {
-    setPhone(tempValue);
-    persistPhone(tempValue);
+  const handleEditInitiate = () => {
+    setMenuVisible(false);
+    setTimeout(() => setEditModalVisible(true), 100);
+  };
+
+  const handleSaveEdit = () => {
+    if (activeTab === 'profile') {
+      setPhone(tempValue);
+      persistPhone(tempValue);
+    } else {
+      const updated = teams.map(item =>
+        item.id === selectedTeamMember?.id
+          ? { ...item, title: tempTitle, description: tempDesc, image: tempImg }
+          : item
+      );
+      setTeams(updated);
+      persistTeams(updated);
+    }
     setEditModalVisible(false);
   };
 
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => onBack && onBack(), style: 'destructive' }
+  const handleToggleStatus = () => {
+    if (!selectedTeamMember) return;
+    const updated = teams.map(item => {
+      if (item.id === selectedTeamMember.id) {
+        const isActive = item.description.toLowerCase().includes("active") && !item.description.toLowerCase().includes("deactive");
+        const baseDesc = item.description.split(" - ")[0];
+        return { ...item, description: `${baseDesc} - ${isActive ? "Deactive" : "Active"}` };
+      }
+      return item;
+    });
+    setTeams(updated);
+    persistTeams(updated);
+    setMenuVisible(false);
+  };
+
+  const handleDeleteTeam = () => {
+    Alert.alert("Delete", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          const filtered = teams.filter(t => t.id !== selectedTeamMember?.id);
+          setTeams(filtered);
+          persistTeams(filtered);
+          setMenuVisible(false);
+        }
+      }
     ]);
   };
 
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Logout', onPress: () => onBack?.(), style: 'destructive' }
+    ]);
+  };
+
+  const isSelectedActive = selectedTeamMember?.description.toLowerCase().includes("active") &&
+    !selectedTeamMember?.description.toLowerCase().includes("deactive");
+
   return (
-    <LinearGradient
-      colors={THEME_COLORS.bgGradient}
-      style={styles.gradientContainer}
-    >
+    <LinearGradient colors={THEME_COLORS.bgGradient} style={styles.gradientContainer}>
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        <NavHeader title="Profile" showProfileIcon={false}>
+        <NavHeader title={activeTab === 'profile' ? "Profile" : "Team Members"} showProfileIcon={false}>
           <TouchableOpacity onPress={handleLogout} activeOpacity={0.8}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={styles.logoutBtn}
+              style={styles.headerBtn}
             >
-              <MaterialCommunityIcons name="logout" size={20} color="#FFFFFF" style={{ marginRight: 5 }} />
-              <Text style={styles.logoutText}>Logout</Text>
+              <MaterialCommunityIcons name="logout" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
+              <Text style={styles.headerBtnText}>Logout</Text>
             </LinearGradient>
           </TouchableOpacity>
         </NavHeader>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.flexOne}
-        >
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'profile' && styles.activeTabButton]}
+            onPress={() => setActiveTab('profile')}
+          >
+            <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>My Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'teams' && styles.activeTabButton]}
+            onPress={() => setActiveTab('teams')}
+          >
+            <Text style={[styles.tabText, activeTab === 'teams' && styles.activeTabText]}>Our Team</Text>
+          </TouchableOpacity>
+        </View>
+
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flexOne}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            bounces={false}
             contentContainerStyle={[
-              styles.scrollContent,
-              { paddingBottom: 60 + insets.bottom } // Dynamic padding like Teams.tsx
+              styles.scrollContent, 
+              { paddingBottom: insets.bottom + (activeTab === 'profile' ? 80 : 40) }
             ]}
-            keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.innerContainer}>
-
-              {/* Profile Header Info */}
-              <View style={styles.profileHeader}>
-                <View style={styles.photoSection}>
-                  <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
-                    <View style={styles.imageCircle}>
-                      {profileImage ? (
-                        <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-                      ) : (
-                        <MaterialCommunityIcons name="account-outline" size={60} color="#5152B3" />
-                      )}
-                      <View style={styles.plusIconWrapper}>
-                        <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
-                      </View>
+            {activeTab === 'profile' ? (
+              <View style={styles.innerContainer}>
+                <View style={styles.profileHeader}>
+                  <TouchableOpacity onPress={() => pickImage('profile')} style={styles.imageCircle}>
+                    {profileImage ? (
+                      <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+                    ) : (
+                      <MaterialCommunityIcons name="account-outline" size={60} color="#5152B3" />
+                    )}
+                    <View style={styles.plusIconWrapper}>
+                      <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
                     </View>
                   </TouchableOpacity>
-                  <Text style={styles.addPhotoText}>Tap to change photo</Text>
+                  <Text style={styles.profileName}>Aqib Shoaib</Text>
+                  <Text style={styles.profileBusiness}>Artist CRM</Text>
                 </View>
 
-                <Text style={styles.profileName}>Aqib Shoaib</Text>
-                <Text style={styles.profileBusiness}>Artist CRM</Text>
+                <View style={styles.infoWrapper}>
+                  <InfoCard title="Email" description={email} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={styles.cardBorder} />
+                  
+                  <View style={styles.cardWithMenu}>
+                    <InfoCard title="Phone" description={phone} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={styles.cardBorder} />
+                    <TouchableOpacity style={styles.threeDotButton} onPress={(e) => handleOpenPhoneMenu(e)}>
+                      <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.gridContainer}>
+                    {(['active', 'dark', 'light'] as const).map((mode) => (
+                      <TouchableOpacity
+                        key={mode}
+                        style={[styles.gridButton, selectedMode === mode && styles.gridButtonActive]}
+                        onPress={() => setSelectedMode(mode)}
+                      >
+                        <MaterialCommunityIcons
+                          name={mode === 'active' ? "check-circle-outline" : mode === 'dark' ? "weather-night" : "weather-sunny"}
+                          size={24}
+                          color={selectedMode === mode ? "#FFFFFF" : "#5152B3"}
+                        />
+                        <Text style={[styles.gridButtonText, selectedMode === mode && { color: '#FFFFFF' }]}>
+                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
               </View>
-
-              <View style={styles.infoWrapper}>
-                {/* Email Card */}
-                <InfoCard
-                  title="Email"
-                  description={email}
-                  backgroundColor="#FFFFFF"
-                  borderRadius={20}
-                  margin={0}
-                  elevation={0}
-                  containerStyle={styles.cardBorder}
-                />
-
-                {/* Phone Card with Menu */}
-                <View style={styles.cardWithMenu}>
-                  <InfoCard
-                    title="Phone"
-                    description={phone}
-                    backgroundColor="#FFFFFF"
-                    borderRadius={20}
-                    margin={0}
-                    elevation={0}
-                    containerStyle={styles.cardBorder}
-                  />
-                  <TouchableOpacity
-                    style={styles.threeDotButton}
-                    onPress={handleOpenPhoneMenu}
-                  >
-                    <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Grid Buttons */}
-                <View style={styles.gridContainer}>
-                  {/* Active */}
-                  <TouchableOpacity
-                    style={[styles.gridButton, selectedMode === 'active' ? styles.gridButtonActive : {}]}
-                    onPress={() => setSelectedMode('active')}
-                  >
-                    <MaterialCommunityIcons
-                      name="check-circle-outline"
-                      size={24}
-                      color={selectedMode === 'active' ? "#FFFFFF" : "#5152B3"}
+            ) : (
+              <View style={styles.innerContainer}>
+                {teams.map((member) => (
+                  <View key={member.id} style={styles.teamCardWrapper}>
+                    <ImageDesCard
+                      imageSource={{ uri: member.image }}
+                      title={member.title}
+                      description={member.description}
+                      backgroundColor="#FFFFFF"
+                      containerStyle={styles.teamCard}
                     />
-                    <Text style={[styles.gridButtonText, selectedMode === 'active' ? { color: '#FFFFFF' } : {}]}>Active</Text>
-                  </TouchableOpacity>
-
-                  {/* Dark */}
-                  <TouchableOpacity
-                    style={[styles.gridButton, selectedMode === 'dark' ? styles.gridButtonActive : {}]}
-                    onPress={() => setSelectedMode('dark')}
-                  >
-                    <MaterialCommunityIcons
-                      name="weather-night"
-                      size={24}
-                      color={selectedMode === 'dark' ? "#FFFFFF" : "#5152B3"}
-                    />
-                    <Text style={[styles.gridButtonText, selectedMode === 'dark' ? { color: '#FFFFFF' } : {}]}>Dark</Text>
-                  </TouchableOpacity>
-
-                  {/* Light */}
-                  <TouchableOpacity
-                    style={[styles.gridButton, selectedMode === 'light' ? styles.gridButtonActive : {}]}
-                    onPress={() => setSelectedMode('light')}
-                  >
-                    <MaterialCommunityIcons
-                      name="weather-sunny"
-                      size={24}
-                      color={selectedMode === 'light' ? "#FFFFFF" : "#5152B3"}
-                    />
-                    <Text style={[styles.gridButtonText, selectedMode === 'light' ? { color: '#FFFFFF' } : {}]}>Light</Text>
-                  </TouchableOpacity>
-                </View>
-
+                    <TouchableOpacity
+                      style={styles.teamThreeDot}
+                      onPress={(e) => handleOpenTeamMenu(e, member)}
+                    >
+                      <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
               </View>
-            </View>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
 
-        {/* Modal Logic (Menu & Edit) */}
+        {/* Action Popup Menu */}
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.menuPopup}>
+            <View style={styles.modalOverlayDimmed}>
+              <View style={[styles.menuPopup, { top: menuPosition.top, right: 40 }]}>
                 <TouchableOpacity style={styles.menuItem} onPress={handleEditInitiate}>
                   <MaterialCommunityIcons name="pencil" size={20} color="#5152B3" />
                   <Text style={styles.menuText}>Edit</Text>
                 </TouchableOpacity>
+                {activeTab === 'teams' && (
+                  <>
+                    <View style={styles.menuSeparator} />
+                    <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
+                      <MaterialCommunityIcons
+                        name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"}
+                        size={20}
+                        color={isSelectedActive ? "#F59E0B" : "#10B981"}
+                      />
+                      <Text style={styles.menuText}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
+                    </TouchableOpacity>
+                    <View style={styles.menuSeparator} />
+                    <TouchableOpacity style={styles.menuItem} onPress={handleDeleteTeam}>
+                      <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
+                      <Text style={styles.menuText}>Delete</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             </View>
           </TouchableWithoutFeedback>
         </Modal>
 
+        {/* Enhanced Form Modal for Editing */}
         <Modal visible={editModalVisible} transparent animationType="slide">
-          <View style={styles.modalOverlay}>
+          <View style={styles.modalOverlayCenterDark}>
             <View style={styles.editPopup}>
-              <Text style={styles.editTitle}>Edit Phone</Text>
-              <TextInput
-                style={styles.inputField}
-                value={tempValue}
-                onChangeText={setTempValue}
-                keyboardType="phone-pad"
-                autoFocus
-              />
-              <View style={styles.editActions}>
+              <Text style={styles.editTitle}>
+                {activeTab === 'profile' ? "Update Phone" : "Edit Team Member"}
+              </Text>
+
+              {/* Form Image Section for Teams */}
+              {activeTab === 'teams' && (
+                <View style={styles.formImageContainer}>
+                  <TouchableOpacity onPress={() => pickImage('team')} activeOpacity={0.8}>
+                    <View style={styles.formImageCircle}>
+                      <Image source={{ uri: tempImg }} style={styles.formAvatar} />
+                      <View style={styles.formCameraBadge}>
+                        <MaterialCommunityIcons name="camera" size={16} color="white" />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={styles.formChangeText}>Change Photo</Text>
+                </View>
+              )}
+
+              <View style={styles.formBody}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {activeTab === 'profile' ? "Phone Number" : "Full Name"}
+                  </Text>
+                  <TextInput
+                    style={styles.inputField}
+                    value={activeTab === 'profile' ? tempValue : tempTitle}
+                    onChangeText={activeTab === 'profile' ? setTempValue : setTempTitle}
+                    keyboardType={activeTab === 'profile' ? "phone-pad" : "default"}
+                    placeholder={activeTab === 'profile' ? "Enter phone" : "Enter name"}
+                  />
+                </View>
+
+                {activeTab === 'teams' && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Designation</Text>
+                    <TextInput
+                      style={styles.inputField}
+                      value={tempDesc}
+                      onChangeText={setTempDesc}
+                      placeholder="e.g. Senior Artist"
+                    />
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.actionRow}>
                 <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                   <Text style={styles.cancelBtnText}>Cancel</Text>
                 </TouchableOpacity>
@@ -296,6 +402,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
   );
 };
 
+// --- Multi-line Structured Styles ---
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -307,209 +414,289 @@ const styles = StyleSheet.create({
   flexOne: {
     flex: 1,
   },
+  // Tabs
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginVertical: 12,
+    gap: 12,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTabButton: {
+    backgroundColor: '#5152B3',
+    borderColor: '#5152B3',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  activeTabText: {
+    color: '#FFFFFF',
+  },
+  // Scroll & Alignment
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 15, // Matched Teams.tsx
-    paddingTop: 5,         // Matched Teams.tsx
+    paddingHorizontal: 15,
   },
   innerContainer: {
     width: '100%',
+    paddingRight: 5,
   },
   profileHeader: {
     alignItems: 'center',
-    marginBottom: 30,
-    marginTop: 0, // Reset margin top to align closer like Teams list
-  },
-  photoSection: {
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  imageWrapper: {
-    position: 'relative',
+    marginBottom: 25,
+    marginTop: 10,
   },
   imageCircle: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: '#EEF2FF',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#E2E8F0',
     borderStyle: 'dashed',
+    position: 'relative',
   },
   avatarImage: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   plusIconWrapper: {
     position: 'absolute',
-    bottom: 5,
-    right: 5,
+    bottom: 2,
+    right: 2,
     backgroundColor: '#5152B3',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: '#FFFFFF',
   },
-  addPhotoText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-  },
   profileName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
-    marginTop: 5,
+    color: '#1E293B',
+    marginTop: 10,
   },
   profileBusiness: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#64748B',
-    marginTop: 2,
   },
   infoWrapper: {
     gap: 15,
+    paddingRight: 10,
   },
   cardBorder: {
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    width: '100%',
   },
   cardWithMenu: {
     position: 'relative',
     justifyContent: 'center',
+    width: '100%',
   },
   threeDotButton: {
     position: 'absolute',
     right: 15,
-    padding: 5,
+    padding: 10,
     zIndex: 10,
   },
-  // Grid Styles
+  // Team Card Specifics
+  teamCardWrapper: {
+    position: 'relative',
+    marginBottom: 0,
+  },
+  teamCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  teamThreeDot: {
+    position: 'absolute',
+    right: 15,
+    top: 25,
+    padding: 10,
+    zIndex: 10,
+  },
   gridContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
     gap: 10,
+    marginTop: 10,
   },
   gridButton: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingVertical: 15,
-    borderRadius: 20,
-    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 18,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    gap: 8,
+    gap: 5,
   },
   gridButtonActive: {
     backgroundColor: '#5152B3',
     borderColor: '#5152B3',
   },
   gridButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
     color: '#5152B3',
-    fontWeight: '600',
-    fontSize: 13,
   },
-  // Logout Styles
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 6,
-    borderRadius: 20,
-    elevation: 2,
-  },
-  logoutText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  // Modal Styles
-  modalOverlay: {
+  // Modals & Overlays
+  modalOverlayDimmed: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalOverlayCenterDark: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   menuPopup: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    width: 120,
-    paddingVertical: 5,
     position: 'absolute',
-    right: 40,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    width: 140,
+    paddingVertical: 5,
+    elevation: 8,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
+    padding: 12,
     gap: 10,
   },
   menuText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: 15,
+    color: '#334155',
   },
+  menuSeparator: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginHorizontal: 10,
+  },
+  // Edit Popup Form Styles
   editPopup: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    width: '85%',
-    padding: 20,
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    width: '88%',
+    padding: 24,
+    elevation: 10,
   },
   editTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
+    color: '#1E293B',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  formImageContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  formImageCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 3,
+    borderColor: '#EEF2FF',
+    position: 'relative',
+  },
+  formAvatar: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+  },
+  formCameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#5152B3',
+    padding: 6,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  formChangeText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  formBody: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  inputGroup: {
+    marginBottom: 18,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 8,
+    fontWeight: '600',
   },
   inputField: {
-    width: '100%',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: '#F8FAFC',
     fontSize: 16,
-    marginBottom: 20,
-    color: '#333',
+    color: '#1E293B',
   },
-  editActions: {
+  actionRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    width: '100%',
     alignItems: 'center',
     gap: 20,
+    marginTop: 10,
   },
   cancelBtnText: {
-    color: '#64748B',
-    fontWeight: '600',
+    color: '#94A3B8',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   saveBtn: {
     backgroundColor: '#5152B3',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 15,
+    elevation: 2,
   },
   saveBtnText: {
-    color: 'white',
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  headerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  headerBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });
 

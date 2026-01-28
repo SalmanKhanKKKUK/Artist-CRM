@@ -21,6 +21,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { THEME_COLORS } from '@/constants/Colors';
+import { useRouter } from 'expo-router'; //
 
 import NavHeader from '../../common/Buttons/NavHeader';
 import Input from '../../common/Inputs/Input';
@@ -48,6 +49,7 @@ const CUSTOMERS_DATA = [
 
 const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   const insets = useSafeAreaInsets();
+  const router = useRouter(); // Initialize router
 
   // States
   const [expandedSection, setExpandedSection] = useState<string | null>('customer');
@@ -298,14 +300,19 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       <Text style={styles.selectedCustomerText}>Selected: {selectedCustomer.name}</Text>
                     </View>
                   )}
-                  <TouchableOpacity style={styles.addLink}>
+                  
+                  {/* Updated Navigation logic to add-clients */}
+                  <TouchableOpacity 
+                    style={styles.addLink}
+                    onPress={() => router.push('/(tabs)/add-clients' as any)}
+                  >
                     <Text style={styles.addLinkText}>+ Add New Customer</Text>
                   </TouchableOpacity>
                 </View>
               )}
             </View>
 
-            {/* 2. SERVICES SECTION - Fixed to behave like Tags */}
+            {/* 2. SERVICES SECTION */}
             <View style={styles.card}>
               <TouchableOpacity
                 style={styles.cardHeader}
@@ -324,7 +331,6 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 
               {expandedSection === 'services' && (
                 <View style={styles.cardBody}>
-                  {/* Selected Services - Tag Style row */}
                   <View style={styles.tagsRow}>
                     {selectedServices.map(s => (
                       <TouchableOpacity
@@ -462,6 +468,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                   <TextInput
                     style={styles.textArea}
                     placeholder="Write Technical Formulas / Notes..."
+                    placeholderTextColor="#94A3B8"
                     multiline
                     value={notes}
                     onChangeText={setNotes}

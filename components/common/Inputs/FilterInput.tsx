@@ -44,7 +44,11 @@ const FilterInput: React.FC<FilterInputProps> = ({
   const [selections, setSelections] = useState<Record<string, string>>({});
 
   const handleSelect = (sectionId: string, value: string) => {
-    setSelections((prev) => ({ ...prev, [sectionId]: value }));
+    setSelections((prev) => ({
+      ...prev,
+      // Agar user wahi option dobara select kare to unselect ho jaye
+      [sectionId]: prev[sectionId] === value ? "" : value 
+    }));
   };
 
   const handleReset = () => {
@@ -137,7 +141,6 @@ const FilterInput: React.FC<FilterInputProps> = ({
   );
 };
 
-// ================= STYLES (Properly Organized) =================
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -254,6 +257,8 @@ const styles = StyleSheet.create({
 });
 
 export default FilterInput;
+
+
 // ye reusable component hai
 // s ko hum ne filter k reusable banaya hai
 // ye project k andar search k sath ane wali filter k liye used hoga

@@ -3,6 +3,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker'; // Added Image Picker
 import {
   Modal,
   ScrollView,
@@ -18,7 +19,6 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Removed DynamicButton import to fix unused import error
 import NavHeader from '../../common/Buttons/NavHeader';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 
@@ -54,8 +54,12 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  
+  // States for Editing
   const [tempTitle, setTempTitle] = useState<string>("");
   const [tempDesc, setTempDesc] = useState<string>("");
+  const [tempImg, setTempImg] = useState<string>(""); // New state for Image
+
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   useEffect(() => {
@@ -83,12 +87,26 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
     }
   };
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setTempImg(result.assets[0].uri);
+    }
+  };
+
   const handleOpenMenu = (event: any, member: TeamMember) => {
     const { pageY } = event.nativeEvent;
     setMenuPosition({ top: pageY - 10, right: 40 });
     setSelectedId(member.id);
     setTempTitle(member.title);
     setTempDesc(member.description);
+    setTempImg(member.image); // Initialize temp image
     setMenuVisible(true);
   };
 
@@ -97,6 +115,18 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
     setTimeout(() => setEditModalVisible(true), 100);
   };
 
+  const handleSaveEdit = () => {
+    const updated = teams.map((item: TeamMember) =>
+      item.id === selectedId 
+        ? { ...item, title: tempTitle, description: tempDesc, image: tempImg } 
+        : item
+    );
+    setTeams(updated);
+    persistTeams(updated);
+    setEditModalVisible(false);
+  };
+
+  // Status and Delete functions remain same...
   const handleToggleStatus = () => {
     const updated = teams.map((item: TeamMember) => {
       if (item.id === selectedId) {
@@ -112,33 +142,20 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
     setMenuVisible(false);
   };
 
-  const handleSaveEdit = () => {
-    const updated = teams.map((item: TeamMember) =>
-      item.id === selectedId ? { ...item, title: tempTitle, description: tempDesc } : item
-    );
-    setTeams(updated);
-    persistTeams(updated);
-    setEditModalVisible(false);
-  };
-
   const handleDelete = () => {
-    Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete this member?",
-      [
-        { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            const filtered = teams.filter((item: TeamMember) => item.id !== selectedId);
-            setTeams(filtered);
-            persistTeams(filtered);
-            setMenuVisible(false);
-          }
+    Alert.alert("Confirm Delete", "Are you sure you want to delete this member?", [
+      { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          const filtered = teams.filter((item: TeamMember) => item.id !== selectedId);
+          setTeams(filtered);
+          persistTeams(filtered);
+          setMenuVisible(false);
         }
-      ]
-    );
+      }
+    ]);
   };
 
   const isSelectedActive = teams.find(t => t.id === selectedId)?.description.toLowerCase().includes("active") &&
@@ -191,7 +208,6 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Pop-up Menu */}
       <Modal visible={menuVisible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
           <View style={styles.modalOverlayDimmed}>
@@ -200,9 +216,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
                 <MaterialCommunityIcons name="pencil" size={20} color="#5152B3" />
                 <Text style={styles.menuText}>Edit</Text>
               </TouchableOpacity>
-
               <View style={styles.menuSeparator} />
-
               <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
                 <MaterialCommunityIcons
                   name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"}
@@ -211,9 +225,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
                 />
                 <Text style={styles.menuText}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
               </TouchableOpacity>
-
               <View style={styles.menuSeparator} />
-
               <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
                 <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
                 <Text style={styles.menuText}>Delete</Text>
@@ -223,11 +235,30 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Edit Modal */}
       <Modal visible={editModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlayCenterDark}>
           <View style={styles.editPopup}>
             <Text style={styles.editTitle}>Edit Team Member</Text>
+
+            {/* Centered Image Edit - Same as History */}
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <TouchableOpacity onPress={pickImage} activeOpacity={0.7}>
+                <View style={{ position: 'relative' }}>
+                  <View style={styles.editImageContainer}>
+                    <ImageDesCard 
+                      imageSource={{ uri: tempImg }} 
+                      title="" 
+                      description="" 
+                      containerStyle={styles.editImageStyle} 
+                    />
+                  </View>
+                  <View style={styles.cameraIconContainer}>
+                    <MaterialCommunityIcons name="camera" size={16} color="white" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Full Name</Text>
               <TextInput style={styles.inputField} value={tempTitle} onChangeText={setTempTitle} />
@@ -251,7 +282,6 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
   );
 };
 
-// ================= STYLES (Properly Organized) =================
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -358,6 +388,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#1E293B',
   },
+  editImageContainer: {
+    width: 80, 
+    height: 80, 
+    borderRadius: 40, 
+    overflow: 'hidden', 
+    borderWidth: 2, 
+    borderColor: '#E2E8F0'
+  },
+  editImageStyle: {
+    width: 80, 
+    height: 80, 
+    margin: 0, 
+    padding: 0
+  },
+  cameraIconContainer: {
+    position: 'absolute', 
+    bottom: 0, 
+    right: 0, 
+    backgroundColor: '#5152B3', 
+    borderRadius: 15, 
+    padding: 5, 
+    elevation: 5
+  },
   inputGroup: {
     marginBottom: 15,
     width: '100%',
@@ -386,6 +439,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontWeight: 'bold',
     fontSize: 16,
+    marginTop: 10,
   },
   saveBtn: {
     backgroundColor: '#5152B3',

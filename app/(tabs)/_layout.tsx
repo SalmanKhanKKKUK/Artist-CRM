@@ -30,6 +30,9 @@ function CustomTabBar() {
     router.push('/(tabs)/add-clients' as any);
   };
 
+  // Hide Tab Bar on specific detail screens to maintain "Modal" feel - REMOVED
+
+
   return (
     <View style={[
       styles.bottomNavContainer,
@@ -96,6 +99,9 @@ export default function TabLayout() {
         <Tabs.Screen name="history" />
         <Tabs.Screen name="teams" />
         <Tabs.Screen name="add-clients" />
+        <Tabs.Screen name="invite" />
+        <Tabs.Screen name="profile" />
+        <Tabs.Screen name="view-history" />
       </Tabs>
       <CustomTabBar />
     </>

@@ -5,7 +5,7 @@ import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 
 export default function TeamsScreen() {
   const router = useRouter();
-  
+
   // Handle Android back button - go to previous page instead of quitting
   useSmartBackHandler(() => {
     router.back();
@@ -14,7 +14,7 @@ export default function TeamsScreen() {
   return (
     <Teams
       onBack={() => router.back()}
-      onNavigateToInvite={() => router.push('/(modals)/invite')}
+      onNavigateToInvite={() => router.push('/(tabs)/invite' as any)}
     />
   );
 }
