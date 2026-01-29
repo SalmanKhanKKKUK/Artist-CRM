@@ -1,7 +1,7 @@
 import { THEME_COLORS } from '@/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Dimensions,
   Image,

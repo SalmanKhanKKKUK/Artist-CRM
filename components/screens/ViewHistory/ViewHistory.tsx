@@ -1,111 +1,193 @@
-import { THEME_COLORS } from '@/constants/Colors';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
 import {
+  Dimensions,
   Image,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   View,
+  TouchableOpacity,
+  LayoutAnimation,
   Platform,
+  UIManager,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { THEME_COLORS } from '@/constants/Colors';
 import NavHeader from '../../common/Buttons/NavHeader';
-import ImageDesCard from '../../common/Cards/ImageDesCard';
 
-interface ViewHistoryProps {
-  onBack?: () => void;
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const ViewHistory: React.FC<ViewHistoryProps> = ({ onBack }) => {
+const { width } = Dimensions.get('window');
+type IonIconName = React.ComponentProps<typeof Ionicons>['name'];
+
+interface HistoryVisit {
+  id: string;
+  customer: string;
+  service: string;
+  tags: string[];
+  notes: string;
+  photos: string[];
+  date: string;
+  time: string;
+}
+
+const ViewHistory: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams();
+  const clientName = Array.isArray(params.clientName) ? params.clientName[0] : params.clientName;
 
-  // Sir's Requirement: Most Recent 5 Visits Data
-  const recentVisits = [
-    { id: 1, name: "Salman Khan", service: "Professional Haircut", date: "14 Jan 2026", time: "10:30 AM", img: 'https://i.pravatar.cc/150?u=1', notes: "Fade cut with beard trim." },
-    { id: 2, name: "Salman Khan", service: "Beard Styling", date: "01 Jan 2026", time: "11:00 AM", img: 'https://i.pravatar.cc/150?u=1', notes: "Simple trim." },
-    { id: 3, name: "Salman Khan", service: "Hair Color", date: "15 Dec 2025", time: "02:00 PM", img: 'https://i.pravatar.cc/150?u=1', notes: "Dark brown shade." },
-    { id: 4, name: "Salman Khan", service: "Facial", date: "30 Nov 2025", time: "05:30 PM", img: 'https://i.pravatar.cc/150?u=1', notes: "Gold facial pack." },
-    { id: 5, name: "Salman Khan", service: "Haircut", date: "10 Nov 2025", time: "12:15 PM", img: 'https://i.pravatar.cc/150?u=1', notes: "Trim only." },
-  ];
+  const [historyData] = useState<HistoryVisit[]>([
+    {
+      id: 'v1',
+      customer: clientName || "Salman Khan",
+      service: "Full Hair Color",
+      tags: ['Premium', 'Color'],
+      notes: "Formula: 6.1 + 20vol. Client loved the shine.",
+      photos: ['https://i.pravatar.cc/150?u=1', 'https://i.pravatar.cc/150?u=11'],
+      date: "25 Jan 2026",
+      time: "10:30 AM"
+    },
+    {
+      id: 'v2',
+      customer: clientName || "Salman Khan",
+      service: "Beard Grooming",
+      tags: ['Regular'],
+      notes: "Simple trim with peppermint oil.",
+      photos: ['https://i.pravatar.cc/150?u=12'],
+      date: "10 Jan 2026",
+      time: "11:00 AM"
+    },
+    {
+      id: 'v3',
+      customer: clientName || "Salman Khan",
+      service: "Classic Haircut",
+      tags: ['Fade'],
+      notes: "Skin fade with textured top.",
+      photos: ['https://i.pravatar.cc/150?u=13'],
+      date: "28 Dec 2025",
+      time: "02:00 PM"
+    },
+    {
+      id: 'v4',
+      customer: clientName || "Salman Khan",
+      service: "Facial Therapy",
+      tags: ['VIP'],
+      notes: "Hydra facial performed. Skin was dry.",
+      photos: ['https://i.pravatar.cc/150?u=14'],
+      date: "15 Dec 2025",
+      time: "05:30 PM"
+    },
+    {
+      id: 'v5',
+      customer: clientName || "Salman Khan",
+      service: "Quick Trim",
+      tags: ['Basic'],
+      notes: "Only sides cleaned up.",
+      photos: ['https://i.pravatar.cc/150?u=15'],
+      date: "01 Dec 2025",
+      time: "12:15 PM"
+    }
+  ]);
 
-  const mainVisit = recentVisits[0]; 
+  const [expandedSection, setExpandedSection] = useState<string | null>('v1');
+
+  const toggleSection = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedSection(expandedSection === id ? null : id);
+  };
 
   return (
-    <LinearGradient 
-      colors={THEME_COLORS.bgGradient} 
-      style={styles.gradientContainer}
-    >
-      <SafeAreaView 
-        style={styles.masterContainer} 
-        edges={['top', 'bottom']}
-      >
-        <StatusBar 
-          barStyle="dark-content" 
-          backgroundColor="transparent" 
-          translucent 
-        />
+    <LinearGradient colors={THEME_COLORS.bgGradient} style={styles.gradientContainer}>
+      <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         
-        <NavHeader title="View History Details" />
-        
+        <NavHeader title="Most Recent History !" />
+
         <ScrollView 
           showsVerticalScrollIndicator={false} 
-          contentContainerStyle={[
-            styles.listContent, 
-            { paddingBottom: 60 + insets.bottom }
-          ]}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
         >
-          {/* Main Profile Card */}
-          {mainVisit && (
-            <View style={styles.profileCard}>
-              <Image 
-                source={{ uri: mainVisit.img }} 
-                style={styles.profileImg} 
-              />
-              <Text style={styles.clientName}>{mainVisit.name}</Text>
-              <View style={styles.recentBadge}>
-                <Text style={styles.recentBadgeText}>Latest Visit Information</Text>
-              </View>
-              
-              <View style={styles.mainVisitDetails}>
-                 <View style={styles.detailItem}>
-                    <MaterialCommunityIcons name="content-cut" size={18} color="#5152B3" />
-                    <Text style={styles.detailValue}>{mainVisit.service}</Text>
-                 </View>
-                 <View style={styles.detailItem}>
-                    <MaterialCommunityIcons name="calendar-clock" size={18} color="#5152B3" />
-                    <Text style={styles.detailValue}>{mainVisit.date} | {mainVisit.time}</Text>
-                 </View>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>Last 5 Recent Visits</Text>
-            <View style={styles.lineDivider} />
-          </View>
-
-          {/* History List Without Price Tag */}
-          <View style={styles.historyList}>
-            {recentVisits.map((item) => (
-              <View key={item.id.toString()} style={styles.cardWrapper}>
-                <ImageDesCard 
-                  imageSource={{ uri: item.img }} 
-                  title={item.service} 
-                  description={`${item.date} | ${item.time}\n${item.notes}`} 
-                  backgroundColor="#FFFFFF" 
-                  containerStyle={styles.cardItem} 
-                  titleStyle={styles.cardTitleText} 
+          {historyData.map((visit) => (
+            <View key={visit.id} style={styles.card}>
+              {/* Card Header */}
+              <TouchableOpacity 
+                style={styles.cardHeader} 
+                onPress={() => toggleSection(visit.id)}
+              >
+                <View style={styles.headerTitleRow}>
+                  <MaterialCommunityIcons name="history" size={20} color="#5152B3" />
+                  <Text style={styles.cardTitle}>{visit.date} - {visit.service}</Text>
+                </View>
+                <Ionicons 
+                  name={(expandedSection === visit.id ? 'chevron-up' : 'chevron-down') as IonIconName} 
+                  size={20} 
+                  color="#94A3B8" 
                 />
-                {/* Price tag removed from here */}
-              </View>
-            ))}
-          </View>
+              </TouchableOpacity>
 
-          {/* Bottom Button removed as requested */}
+              {expandedSection === visit.id && (
+                <View style={styles.cardBody}>
+                  
+                  {/* 1. Customer Name [cite: 59, 64] */}
+                  <View style={styles.infoSection}>
+                    <Text style={styles.sectionLabel}>Client Name</Text>
+                    <View style={styles.badge}>
+                      <Ionicons name="person" size={16} color="#10B981" />
+                      <Text style={styles.badgeText}>{visit.customer}</Text>
+                    </View>
+                  </View>
 
+                  {/* 2. Service [cite: 68, 76] */}
+                  <View style={styles.infoSection}>
+                    <Text style={styles.sectionLabel}>Service Provided</Text>
+                    <View style={styles.serviceBox}>
+                      <MaterialCommunityIcons name="content-cut" size={16} color="#5152B3" />
+                      <Text style={styles.serviceText}>{visit.service}</Text>
+                    </View>
+                  </View>
+
+                  {/* 3. Tags [cite: 76] */}
+                  <View style={styles.infoSection}>
+                    <Text style={styles.sectionLabel}>Quick Tags</Text>
+                    <View style={styles.chipsRow}>
+                      {(visit.tags || []).map((tag, index) => (
+                        <View key={`${visit.id}-tag-${index}`} style={styles.tagChip}>
+                          <Text style={styles.tagChipText}>#{tag}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* 4. Notes / Formula [cite: 33, 70, 76] */}
+                  <View style={styles.infoSection}>
+                    <Text style={styles.sectionLabel}>Formula & Notes</Text>
+                    <View style={styles.notesBox}>
+                      <Text style={styles.notesText}>{visit.notes}</Text>
+                    </View>
+                  </View>
+
+                  {/* 5. Visit Photos [cite: 36, 69, 76] */}
+                  <View style={styles.infoSection}>
+                    <Text style={styles.sectionLabel}>Visit Photos</Text>
+                    <View style={styles.photoGrid}>
+                      {(visit.photos || []).map((uri, index) => (
+                        <View key={`${visit.id}-img-${index}`} style={styles.imageWrapper}>
+                          <Image source={{ uri }} style={styles.uploadedImg} />
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+
+                </View>
+              )}
+            </View>
+          ))}
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>
@@ -120,106 +202,129 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  listContent: {
-    paddingHorizontal: 15,
-    paddingTop: 5,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
-  profileCard: {
+  card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 25,
-    padding: 20,
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    marginBottom: 25,
-    marginTop: 10,
+    borderRadius: 20,
+    marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F1F5F9',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    overflow: 'hidden',
   },
-  profileImg: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 3,
-    borderColor: '#E2E8F0',
-    marginBottom: 10,
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 18,
+    backgroundColor: '#FFFFFF',
   },
-  clientName: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
     color: '#1E293B',
   },
-  recentBadge: {
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginTop: 5,
-    marginBottom: 15,
-  },
-  recentBadgeText: {
-    color: '#0284C7',
-    fontSize: 11,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  mainVisitDetails: {
-    width: '100%',
+  cardBody: {
+    padding: 18,
+    paddingTop: 0,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingTop: 15,
-    gap: 10,
+    borderTopColor: '#F8FAFC',
   },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#475569',
-    fontWeight: '500',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    gap: 10,
+  infoSection: {
+    marginTop: 15,
   },
   sectionLabel: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#5152B3',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#64748B',
+    marginBottom: 8,
     textTransform: 'uppercase',
   },
-  lineDivider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E2E8F0',
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    padding: 10,
+    borderRadius: 12,
+    gap: 8,
+    alignSelf: 'flex-start',
   },
-  historyList: {
-    gap: 5,
+  badgeText: {
+    fontSize: 13,
+    color: '#065F46',
+    fontWeight: '600',
   },
-  cardWrapper: {
-    position: 'relative',
-    justifyContent: 'center',
+  serviceBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F3FF',
+    padding: 10,
+    borderRadius: 12,
+    gap: 8,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
   },
-  cardItem: {
-    marginBottom: 0,
-    borderRadius: 20,
+  serviceText: {
+    fontSize: 13,
+    color: '#5152B3',
+    fontWeight: '600',
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tagChip: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
-    ...Platform.select({ 
-      ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2 }, 
-      android: { elevation: 2 } 
-    }) 
   },
-  cardTitleText: {
-    color: '#5152B3',
-    fontWeight: 'bold',
+  tagChipText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  notesBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 15,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  notesText: {
+    fontSize: 13,
+    color: '#334155',
+    lineHeight: 20,
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  imageWrapper: {
+    width: (width - 100) / 2,
+    height: 110,
+    position: 'relative',
+  },
+  uploadedImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
   },
 });
 

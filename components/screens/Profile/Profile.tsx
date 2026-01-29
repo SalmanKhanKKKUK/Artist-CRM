@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Alert,
   Image,
@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Animated,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -58,11 +59,18 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   // --- Shared UI States ---
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+  const [inviteModalVisible, setInviteModalVisible] = useState<boolean>(false); // New Invite Modal State
+  const [inviteEmail, setInviteEmail] = useState<string>(""); // New Email State
+  
   const [tempValue, setTempValue] = useState<string>(""); 
   const [tempTitle, setTempTitle] = useState<string>(""); 
   const [tempDesc, setTempDesc] = useState<string>("");   
   const [tempImg, setTempImg] = useState<string>("");     
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+
+  // Success Notification Animation
+  const slideAnim = useRef(new Animated.Value(-150)).current;
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Load Initial Data
   useEffect(() => {
@@ -189,6 +197,26 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     ]);
   };
 
+  // --- Invite Invitation Handle ---
+  const handleSendInvitation = () => {
+    if (!inviteEmail) {
+      Alert.alert("Error", "Please enter an email address");
+      return;
+    }
+    setInviteModalVisible(false);
+    setInviteEmail("");
+    
+    // Show Success Notification
+    setShowSuccess(true);
+    Animated.spring(slideAnim, { toValue: 60, useNativeDriver: true, bounciness: 10 }).start();
+    
+    setTimeout(() => {
+      Animated.timing(slideAnim, { toValue: -150, duration: 400, useNativeDriver: true }).start(() => {
+        setShowSuccess(false);
+      });
+    }, 2500);
+  };
+
   const isSelectedActive = selectedTeamMember?.description.toLowerCase().includes("active") &&
     !selectedTeamMember?.description.toLowerCase().includes("deactive");
 
@@ -197,17 +225,41 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
+        {/* Success Alert Header */}
+        {showSuccess && (
+          <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
+            <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
+            <View>
+              <Text style={styles.successTitle}>Success!</Text>
+              <Text style={styles.successMessage}>Invitation sent successfully.</Text>
+            </View>
+          </Animated.View>
+        )}
+
         <NavHeader title={activeTab === 'profile' ? "Profile" : "Team Members"} showProfileIcon={false}>
-          <TouchableOpacity onPress={handleLogout} activeOpacity={0.8}>
-            <LinearGradient
-              colors={THEME_COLORS.buttonGradient}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={styles.headerBtn}
-            >
-              <MaterialCommunityIcons name="logout" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
-              <Text style={styles.headerBtnText}>Logout</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          {activeTab === 'profile' ? (
+            <TouchableOpacity onPress={handleLogout} activeOpacity={0.8}>
+              <LinearGradient
+                colors={THEME_COLORS.buttonGradient}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={styles.headerBtn}
+              >
+                <MaterialCommunityIcons name="logout" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
+                <Text style={styles.headerBtnText}>Logout</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={() => setInviteModalVisible(true)} activeOpacity={0.8}>
+              <LinearGradient
+                colors={THEME_COLORS.buttonGradient}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={styles.headerBtn}
+              >
+                <MaterialCommunityIcons name="account-plus" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
+                <Text style={styles.headerBtnText}>Invite</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
         </NavHeader>
 
         <View style={styles.tabContainer}>
@@ -336,7 +388,38 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Enhanced Form Modal for Editing */}
+        {/* Invite Team Member Modal - Outside Click Close & No Cancel Button */}
+        <Modal visible={inviteModalVisible} transparent animationType="slide">
+          <TouchableWithoutFeedback onPress={() => setInviteModalVisible(false)}>
+            <View style={styles.modalOverlayCenterDark}>
+              <TouchableWithoutFeedback onPress={() => {}}> 
+                <View style={styles.editPopup}>
+                  <Text style={styles.editTitle}>Invite Team</Text>
+                  <View style={styles.formBody}>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Team Member Email</Text>
+                      <TextInput
+                        style={styles.inputField}
+                        value={inviteEmail}
+                        onChangeText={setInviteEmail}
+                        keyboardType="email-address"
+                        placeholder="Enter email address"
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.actionRowInvite}>
+                    <TouchableOpacity style={styles.saveBtnFull} onPress={handleSendInvitation}>
+                      <Text style={styles.saveBtnText}>Send Invitation</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        {/* Edit Modal */}
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
             <View style={styles.editPopup}>
@@ -344,7 +427,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                 {activeTab === 'profile' ? "Update Phone" : "Edit Team Member"}
               </Text>
 
-              {/* Form Image Section for Teams */}
               {activeTab === 'teams' && (
                 <View style={styles.formImageContainer}>
                   <TouchableOpacity onPress={() => pickImage('team')} activeOpacity={0.8}>
@@ -402,7 +484,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   );
 };
 
-// --- Multi-line Structured Styles ---
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -414,7 +495,6 @@ const styles = StyleSheet.create({
   flexOne: {
     flex: 1,
   },
-  // Tabs
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -443,7 +523,6 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: '#FFFFFF',
   },
-  // Scroll & Alignment
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 15,
@@ -498,7 +577,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   infoWrapper: {
-    gap: 15,
+    gap: 5,
     paddingRight: 10,
   },
   cardBorder: {
@@ -513,11 +592,10 @@ const styles = StyleSheet.create({
   },
   threeDotButton: {
     position: 'absolute',
-    right: 15,
+    right: 0,
     padding: 10,
     zIndex: 10,
   },
-  // Team Card Specifics
   teamCardWrapper: {
     position: 'relative',
     marginBottom: 0,
@@ -537,7 +615,8 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 10,
+    marginTop: 0,
+    marginLeft: 10,
   },
   gridButton: {
     flex: 1,
@@ -558,7 +637,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#5152B3',
   },
-  // Modals & Overlays
   modalOverlayDimmed: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -592,7 +670,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     marginHorizontal: 10,
   },
-  // Edit Popup Form Styles
   editPopup: {
     backgroundColor: '#FFFFFF',
     borderRadius: 30,
@@ -669,6 +746,10 @@ const styles = StyleSheet.create({
     gap: 20,
     marginTop: 10,
   },
+  actionRowInvite: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
   cancelBtnText: {
     color: '#94A3B8',
     fontWeight: 'bold',
@@ -680,6 +761,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 15,
     elevation: 2,
+  },
+  saveBtnFull: {
+    backgroundColor: '#5152B3',
+    paddingVertical: 14,
+    borderRadius: 15,
+    width: '100%',
+    alignItems: 'center',
   },
   saveBtnText: {
     color: '#FFFFFF',
@@ -697,6 +785,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 12,
+  },
+  successNotification: {
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    right: 20,
+    backgroundColor: '#10B981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18,
+    borderRadius: 20,
+    zIndex: 9999,
+    gap: 15,
+    elevation: 10,
+  },
+  successTitle: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  successMessage: {
+    color: '#E0F2FE',
+    fontSize: 13,
   },
 });
 

@@ -1,9 +1,9 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import * as ImagePicker from 'expo-image-picker';
 import {
   ActivityIndicator,
   Alert,
@@ -25,17 +25,24 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { THEME_COLORS } from '@/constants/Colors';
 import NavHeader from '../../common/Buttons/NavHeader';
-import ImageDesCard from '../../common/Cards/ImageDesCard';
+import HistoryCard from '../../common/Cards/HistoryCard';
+import ImageDesCard from '../../common/Cards/ImageDesCard'; // Keep for Edit Modal Preview
 import FilterInput, { FilterSection } from '../../common/Inputs/FilterInput';
 import SearchInput from '../../common/Inputs/SearchInput';
 
 interface HistoryItem {
   id: number;
-  name: string;
-  service: string;
+  customer: {
+    name: string;
+    phone: string;
+    img?: string;
+  };
+  services: string[];
+  tags: string[];
+  notes?: string;
+  photos?: string[];
   date: string;
   time: string;
-  img: string;
 }
 
 interface HistoryProps {
@@ -46,13 +53,108 @@ interface HistoryProps {
 const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  
+
   const defaultHistory: HistoryItem[] = [
-    { id: 1, name: "Ahmad Ali", service: "Haircut", date: "14 Jan 2026", time: "10:30 AM", img: 'https://i.pravatar.cc/150?u=1' },
-    { id: 2, name: "Sara Khan", service: "Color Expert", date: "12 Jan 2026", time: "02:15 PM", img: 'https://i.pravatar.cc/150?u=2' },
-    { id: 3, name: "Zeenat Malik", service: "Manager", date: "10 Jan 2026", time: "09:00 AM", img: 'https://i.pravatar.cc/150?u=3' },
-    { id: 4, name: "Hamza Sheikh", service: "Styling", date: "08 Jan 2026", time: "04:45 PM", img: 'https://i.pravatar.cc/150?u=4' },
-    { id: 5, name: "Danish Ahmed", service: "Haircut", date: "05 Jan 2026", time: "11:20 AM", img: 'https://i.pravatar.cc/150?u=5' },
+    {
+      id: 1,
+      customer: { name: "Ahmad Ali", phone: "0300-1234567", img: 'https://i.pravatar.cc/150?u=1' },
+      services: ["Haircut", "Shaving"],
+      tags: ["Regular", "Premium"],
+      notes: "Prefer shorter sides, sharp fade.",
+      photos: ["https://picsum.photos/200/300", "https://picsum.photos/200/301"],
+      date: "14 Jan 2026",
+      time: "10:30 AM"
+    },
+    {
+      id: 2,
+      customer: { name: "Sara Khan", phone: "0312-7654321", img: 'https://i.pravatar.cc/150?u=2' },
+      services: ["Color Expert", "Styling"],
+      tags: ["VIP", "Color"],
+      notes: "Ash blonde toner used.",
+      photos: [],
+      date: "12 Jan 2026",
+      time: "02:15 PM"
+    },
+    {
+      id: 3,
+      customer: { name: "Zeenat Malik", phone: "0345-1122334", img: 'https://i.pravatar.cc/150?u=3' },
+      services: ["Facial", "Treatment"],
+      tags: ["New"],
+      notes: "Sensitive skin, use organic products.",
+      photos: ["https://picsum.photos/200/302"],
+      date: "10 Jan 2026",
+      time: "09:00 AM"
+    },
+    {
+      id: 4,
+      customer: { name: "Hamza Sheikh", phone: "0321-9988776", img: 'https://i.pravatar.cc/150?u=4' },
+      services: ["Styling", "Beard Trim"],
+      tags: ["Regular"],
+      notes: "",
+      photos: ["https://picsum.photos/200/303", "https://picsum.photos/200/304", "https://picsum.photos/200/305"],
+      date: "08 Jan 2026",
+      time: "04:45 PM"
+    },
+    {
+      id: 5,
+      customer: { name: "Danish Ahmed", phone: "0333-5544332", img: 'https://i.pravatar.cc/150?u=5' },
+      services: ["Haircut"],
+      tags: ["Student"],
+      notes: "Simple crew cut.",
+      photos: [],
+      date: "05 Jan 2026",
+      time: "11:20 AM"
+    },
+    {
+      id: 6,
+      customer: { name: "Bilal Khan", phone: "0301-2233445", img: 'https://i.pravatar.cc/150?u=6' },
+      services: ["Hair Coloring", "Treatment"],
+      tags: ["VIP"],
+      notes: "Keratin treatment session 1.",
+      photos: ["https://picsum.photos/200/306"],
+      date: "03 Jan 2026",
+      time: "01:00 PM"
+    },
+    {
+      id: 7,
+      customer: { name: "Usman Ghani", phone: "0344-5566778", img: 'https://i.pravatar.cc/150?u=7' },
+      services: ["Shaving", "Facial"],
+      tags: ["Regular"],
+      notes: "Hot towel shave.",
+      photos: [],
+      date: "01 Jan 2026",
+      time: "06:30 PM"
+    },
+    {
+      id: 8,
+      customer: { name: "Hassan Raza", phone: "0322-8877665", img: 'https://i.pravatar.cc/150?u=8' },
+      services: ["Styling"],
+      tags: ["Wedding"],
+      notes: "Groom styling package.",
+      photos: ["https://picsum.photos/200/307", "https://picsum.photos/200/308"],
+      date: "30 Dec 2025",
+      time: "12:00 PM"
+    },
+    {
+      id: 9,
+      customer: { name: "Ali Ahmed", phone: "0311-9988770", img: 'https://i.pravatar.cc/150?u=9' },
+      services: ["Haircut", "Beard Trim"],
+      tags: ["New"],
+      notes: "",
+      photos: [],
+      date: "28 Dec 2025",
+      time: "10:00 AM"
+    },
+    {
+      id: 10,
+      customer: { name: "Fahad Mustafa", phone: "0333-1122339", img: 'https://i.pravatar.cc/150?u=10' },
+      services: ["Facial"],
+      tags: ["Sponsor"],
+      notes: "Monthly facial routine.",
+      photos: ["https://picsum.photos/200/309"],
+      date: "25 Dec 2025",
+      time: "03:45 PM"
+    }
   ];
 
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>(defaultHistory);
@@ -62,9 +164,10 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  
+
+  // Temporary edit states
   const [tempName, setTempName] = useState<string>("");
-  const [tempService, setTempService] = useState<string>("");
+  const [tempService, setTempService] = useState<string>(""); // Comma separated for editing
   const [tempImg, setTempImg] = useState<string>("");
 
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
@@ -76,12 +179,12 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const filterSections: FilterSection[] = [
     {
       id: 'category_filter',
-      title: 'Filter By Category',
+      title: 'Filter By Service',
       options: [
         { label: 'Haircut', value: 'Haircut' },
-        { label: 'Color Expert', value: 'Color Expert' },
+        { label: 'Color Expert', value: 'Color' },
         { label: 'Styling', value: 'Styling' },
-        { label: 'Manager', value: 'Manager' },
+        { label: 'Facial', value: 'Facial' },
       ],
     },
     {
@@ -109,8 +212,15 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       try {
         const savedString = await AsyncStorage.getItem('permanently_deleted_history');
         if (savedString) {
-          const parsedData: HistoryItem[] = JSON.parse(savedString);
-          setHistoryItems(parsedData);
+          const parsedData = JSON.parse(savedString);
+          // Check if data is an array and the first item has the new 'customer' property
+          if (Array.isArray(parsedData) && parsedData.length > 0 && parsedData[0].customer) {
+            setHistoryItems(parsedData);
+          } else {
+            // If old data format is detected, we ignore it and use defaultHistory
+            // Optionally we could clear it: await AsyncStorage.removeItem('permanently_deleted_history');
+            console.log("Old data format detected, using default new data.");
+          }
         }
       } catch (err) {
         console.error("Error loading storage", err);
@@ -143,17 +253,21 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     const { pageY } = event.nativeEvent;
     setMenuPosition({ top: pageY - 10, right: 40 });
     setSelectedId(item.id);
-    setTempName(item.name);
-    setTempService(item.service);
-    setTempImg(item.img);
+    setTempName(item.customer.name);
+    setTempService(item.services.join(', '));
+    setTempImg(item.customer.img || '');
     setMenuVisible(true);
   };
 
   const handleSaveEdit = () => {
     if (selectedId === null) return;
     const updated = historyItems.map((item) =>
-      item.id === selectedId 
-        ? { ...item, name: tempName, service: tempService, img: tempImg } 
+      item.id === selectedId
+        ? {
+          ...item,
+          customer: { ...item.customer, name: tempName, img: tempImg },
+          services: tempService.split(',').map(s => s.trim()).filter(s => s.length > 0)
+        }
         : item
     );
     setHistoryItems(updated);
@@ -183,20 +297,28 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     ]);
   };
 
-  // Expanded Filter Logic
+  // Expanded Filter Logic matching new structure
   const filteredData = historyItems.filter((item) => {
-    const searchMatch = item.name.toLowerCase().includes(searchText.toLowerCase());
-    
-    const categoryMatch = activeFilters.category_filter 
-      ? item.service === activeFilters.category_filter 
+    // Safety check for old data
+    if (!item || !item.customer) return false;
+
+    const name = item.customer.name || "";
+    const phone = item.customer.phone || "";
+
+    const searchMatch = name.toLowerCase().includes(searchText.toLowerCase()) ||
+      phone.includes(searchText);
+
+    const categoryMatch = activeFilters.category_filter
+      ? (item.services || []).some(s => s.includes(activeFilters.category_filter))
       : true;
 
-    const dateMatch = activeFilters.date_filter 
-      ? item.date.includes(activeFilters.date_filter) 
+    const dateMatch = activeFilters.date_filter
+      ? (item.date || "").includes(activeFilters.date_filter)
       : true;
 
+    // Simplified custom tag logic for demo - in real app would match actual tags
     const tagMatch = activeFilters.tag_filter
-      ? (activeFilters.tag_filter === 'VIP' ? item.id % 2 === 0 : true)
+      ? (item.tags || []).some(t => t.includes(activeFilters.tag_filter))
       : true;
 
     return searchMatch && categoryMatch && dateMatch && tagMatch;
@@ -249,7 +371,18 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.listContent, { paddingBottom: 80 + insets.bottom }]}>
           {filteredData.map((item) => (
             <View key={item.id} style={styles.cardOuterWrapper}>
-              <ImageDesCard imageSource={{ uri: item.img }} title={item.name} description={`${item.service}\n${item.date} | ${item.time}`} backgroundColor="#FFFFFF" containerStyle={styles.cardItem} titleStyle={styles.cardTitleText} />
+              {/* Updated to use HistoryCard with new data structure */}
+              <HistoryCard
+                customer={item.customer}
+                services={item.services}
+                tags={item.tags}
+                notes={item.notes}
+                photos={item.photos}
+                date={item.date}
+                time={item.time}
+                onPress={() => router.push('/(tabs)/view-history' as any)}
+                containerStyle={styles.cardItem}
+              />
               <TouchableOpacity style={styles.actionButton} onPress={(e) => handleOpenMenu(e, item)}>
                 <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
               </TouchableOpacity>
@@ -288,7 +421,8 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
                 <TouchableOpacity onPress={pickImage} activeOpacity={0.7}>
                   <View style={{ position: 'relative' }}>
                     <View style={styles.editImageContainer}>
-                       <ImageDesCard imageSource={{ uri: tempImg }} title="" description="" containerStyle={styles.editImageStyle} />
+                      {/* Used original helper card for preview consistency */}
+                      <ImageDesCard imageSource={{ uri: tempImg }} title="" description="" containerStyle={styles.editImageStyle} />
                     </View>
                     <View style={styles.cameraIconContainer}>
                       <MaterialCommunityIcons name="camera" size={16} color="white" />
