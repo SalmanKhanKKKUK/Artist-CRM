@@ -60,8 +60,8 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   // --- Shared UI States ---
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
-  const [inviteModalVisible, setInviteModalVisible] = useState<boolean>(false); // New Invite Modal State
-  const [inviteEmail, setInviteEmail] = useState<string>(""); // New Email State
+  const [inviteModalVisible, setInviteModalVisible] = useState<boolean>(false);
+  const [inviteEmail, setInviteEmail] = useState<string>("");
 
   const [tempValue, setTempValue] = useState<string>("");
   const [tempTitle, setTempTitle] = useState<string>("");
@@ -69,11 +69,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [tempImg, setTempImg] = useState<string>("");
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
 
-  // Success Notification Animation
+  // --- Animation States ---
   const slideAnim = useRef(new Animated.Value(-150)).current;
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Load Initial Data
+  // --- Data Loading Effect ---
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -96,6 +96,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     loadData();
   }, []);
 
+  // --- Persistence Handlers ---
   const persistPhone = async (val: string) => {
     await AsyncStorage.setItem('user_phone', val);
   };
@@ -108,6 +109,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     if (onBack) onBack();
   });
 
+  // --- Action Handlers ---
   const pickImage = async (type: 'profile' | 'team') => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -198,7 +200,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     ]);
   };
 
-  // --- Invite Invitation Handle ---
   const handleSendInvitation = () => {
     if (!inviteEmail) {
       Alert.alert("Error", "Please enter an email address");
@@ -207,7 +208,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     setInviteModalVisible(false);
     setInviteEmail("");
 
-    // Show Success Notification
     setShowSuccess(true);
     Animated.spring(slideAnim, { toValue: 60, useNativeDriver: true, bounciness: 10 }).start();
 
@@ -226,7 +226,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        {/* Success Alert Header */}
+        {/* --- Header Success Alert --- */}
         {showSuccess && (
           <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
             <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
@@ -237,8 +237,9 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </Animated.View>
         )}
 
+        {/* --- Navigation Header --- */}
         <NavHeader title={activeTab === 'profile' ? "Profile" : "Team Members"} showProfileIcon={false}>
-          {activeTab === 'profile' ? (
+          {activeTab === 'profile' && (
             <TouchableOpacity onPress={handleLogout} activeOpacity={0.8}>
               <LinearGradient
                 colors={THEME_COLORS.buttonGradient}
@@ -249,35 +250,38 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                 <Text style={styles.headerBtnText}>Logout</Text>
               </LinearGradient>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={() => setInviteModalVisible(true)} activeOpacity={0.8}>
-              <LinearGradient
-                colors={THEME_COLORS.buttonGradient}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={styles.headerBtn}
-              >
-                <MaterialCommunityIcons name="account-plus" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
-                <Text style={styles.headerBtnText}>Invite</Text>
-              </LinearGradient>
-            </TouchableOpacity>
           )}
         </NavHeader>
 
+        {/* --- Tab Selector --- */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tabButton, { backgroundColor: colors.card, borderColor: colors.border }, activeTab === 'profile' && styles.activeTabButton]}
+            style={[
+              styles.tabButton, 
+              { backgroundColor: colors.card, borderColor: colors.border }, 
+              activeTab === 'profile' && styles.activeTabButton
+            ]}
             onPress={() => setActiveTab('profile')}
           >
-            <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>My Profile</Text>
+            <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>
+              My Profile
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tabButton, { backgroundColor: colors.card, borderColor: colors.border }, activeTab === 'teams' && styles.activeTabButton]}
+            style={[
+              styles.tabButton, 
+              { backgroundColor: colors.card, borderColor: colors.border }, 
+              activeTab === 'teams' && styles.activeTabButton
+            ]}
             onPress={() => setActiveTab('teams')}
           >
-            <Text style={[styles.tabText, activeTab === 'teams' && styles.activeTabText]}>Our Team</Text>
+            <Text style={[styles.tabText, activeTab === 'teams' && styles.activeTabText]}>
+              Our Team
+            </Text>
           </TouchableOpacity>
         </View>
 
+        {/* --- Main Content Area --- */}
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flexOne}>
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -288,8 +292,12 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           >
             {activeTab === 'profile' ? (
               <View style={styles.innerContainer}>
+                {/* Profile Section */}
                 <View style={styles.profileHeader}>
-                  <TouchableOpacity onPress={() => pickImage('profile')} style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                  <TouchableOpacity 
+                    onPress={() => pickImage('profile')} 
+                    style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}
+                  >
                     {profileImage ? (
                       <Image source={{ uri: profileImage }} style={styles.avatarImage} />
                     ) : (
@@ -303,30 +311,42 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <Text style={[styles.profileBusiness, { color: colors.textSecondary }]}>Artist CRM</Text>
                 </View>
 
+                {/* Profile Fields */}
                 <View style={styles.infoWrapper}>
-                  <InfoCard title="Email" description={email} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={[styles.cardBorder, { borderColor: colors.border }]} titleColor="#1E293B" descriptionColor="#64748B" />
+                  <InfoCard 
+                    title="Email" 
+                    description={email} 
+                    backgroundColor="#FFFFFF" 
+                    borderRadius={20} 
+                    containerStyle={[styles.cardBorder, { borderColor: colors.border }]} 
+                    titleColor="#1E293B" 
+                    descriptionColor="#64748B" 
+                  />
 
                   <View style={styles.cardWithMenu}>
-                    <InfoCard title="Phone" description={phone} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={[styles.cardBorder, { borderColor: colors.border }]} titleColor="#1E293B" descriptionColor="#64748B" />
+                    <InfoCard 
+                      title="Phone" 
+                      description={phone} 
+                      backgroundColor="#FFFFFF" 
+                      borderRadius={20} 
+                      containerStyle={[styles.cardBorder, { borderColor: colors.border }]} 
+                      titleColor="#1E293B" 
+                      descriptionColor="#64748B" 
+                    />
                     <TouchableOpacity style={styles.threeDotButton} onPress={(e) => handleOpenPhoneMenu(e)}>
                       <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
 
+                  {/* Mode Grid Buttons */}
                   <View style={styles.gridContainer}>
                     {(['active', 'dark', 'light'] as const).map((mode) => (
                       <TouchableOpacity
                         key={mode}
                         style={[
                           styles.gridButton,
-                          {
-                            backgroundColor: colors.card,
-                            borderColor: colors.border
-                          },
-                          themeMode === mode && {
-                            backgroundColor: colors.primary,
-                            borderColor: colors.primary
-                          }
+                          { backgroundColor: colors.card, borderColor: colors.border },
+                          themeMode === mode && { backgroundColor: colors.primary, borderColor: colors.primary }
                         ]}
                         onPress={() => setThemeMode(mode)}
                       >
@@ -340,7 +360,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                           { color: colors.primary },
                           themeMode === mode && { color: '#FFFFFF' }
                         ]}>
-                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                          {mode === 'active' ? 'Auto' : mode.charAt(0).toUpperCase() + mode.slice(1)}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -349,6 +369,24 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
               </View>
             ) : (
               <View style={styles.innerContainer}>
+                {/* Relocated Invite Section in Team Tab */}
+                <View style={styles.inviteSectionWrapper}>
+                  <Text style={[styles.inviteInstructionText, { color: colors.textSecondary }]}>
+                    Invite your team member
+                  </Text>
+                  <TouchableOpacity onPress={() => setInviteModalVisible(true)} activeOpacity={0.8} style={styles.inlineInviteBtn}>
+                    <LinearGradient
+                      colors={THEME_COLORS.buttonGradient}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                      style={styles.headerBtn}
+                    >
+                      <MaterialCommunityIcons name="account-plus" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
+                      <Text style={styles.headerBtnText}>Invite</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Team Members List */}
                 {teams.map((member) => (
                   <View key={member.id} style={styles.teamCardWrapper}>
                     <ImageDesCard
@@ -373,7 +411,9 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </ScrollView>
         </KeyboardAvoidingView>
 
-        {/* Action Popup Menu */}
+        {/* --- Modals Section --- */}
+        
+        {/* Context Menu Modal */}
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={styles.modalOverlayDimmed}>
@@ -391,7 +431,9 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                         size={20}
                         color={isSelectedActive ? "#F59E0B" : "#10B981"}
                       />
-                      <Text style={[styles.menuText, { color: colors.text }]}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
+                      <Text style={[styles.menuText, { color: colors.text }]}>
+                        {isSelectedActive ? "Deactivate" : "Activate"}
+                      </Text>
                     </TouchableOpacity>
                     <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
                     <TouchableOpacity style={styles.menuItem} onPress={handleDeleteTeam}>
@@ -405,7 +447,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Invite Team Member Modal - Outside Click Close & No Cancel Button */}
+        {/* Invite Modal */}
         <Modal visible={inviteModalVisible} transparent animationType="slide">
           <TouchableWithoutFeedback onPress={() => setInviteModalVisible(false)}>
             <View style={styles.modalOverlayCenterDark}>
@@ -436,14 +478,13 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Edit Modal */}
+        {/* Generic Edit Modal */}
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
             <View style={styles.editPopup}>
               <Text style={styles.editTitle}>
                 {activeTab === 'profile' ? "Update Phone" : "Edit Team Member"}
               </Text>
-
               {activeTab === 'teams' && (
                 <View style={styles.formImageContainer}>
                   <TouchableOpacity onPress={() => pickImage('team')} activeOpacity={0.8}>
@@ -457,7 +498,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <Text style={styles.formChangeText}>Change Photo</Text>
                 </View>
               )}
-
               <View style={styles.formBody}>
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>
@@ -471,20 +511,18 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                     placeholder={activeTab === 'profile' ? "Enter phone" : "Enter name"}
                   />
                 </View>
-
                 {activeTab === 'teams' && (
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Designation</Text>
-                    <TextInput
-                      style={styles.inputField}
-                      value={tempDesc}
-                      onChangeText={setTempDesc}
-                      placeholder="e.g. Senior Artist"
+                    <TextInput 
+                      style={styles.inputField} 
+                      value={tempDesc} 
+                      onChangeText={setTempDesc} 
+                      placeholder="e.g. Senior Artist" 
                     />
                   </View>
                 )}
               </View>
-
               <View style={styles.actionRow}>
                 <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                   <Text style={styles.cancelBtnText}>Cancel</Text>
@@ -501,331 +539,343 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   );
 };
 
+// --- Stylesheet ---
 const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
+  gradientContainer: { 
+    flex: 1 
   },
-  masterContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
+  masterContainer: { 
+    flex: 1, 
+    backgroundColor: 'transparent' 
   },
-  flexOne: {
-    flex: 1,
+  flexOne: { 
+    flex: 1 
   },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginVertical: 12,
-    gap: 12,
+  tabContainer: { 
+    flexDirection: 'row', 
+    paddingHorizontal: 20, 
+    marginVertical: 12, 
+    gap: 12 
   },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 15,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
+  tabButton: { 
+    flex: 1, 
+    paddingVertical: 12, 
+    borderRadius: 15, 
+    backgroundColor: '#FFFFFF', 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
   },
-  activeTabButton: {
-    backgroundColor: '#5152B3',
-    borderColor: '#5152B3',
+  activeTabButton: { 
+    backgroundColor: '#5152B3', 
+    borderColor: '#5152B3' 
   },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#64748B',
+  tabText: { 
+    fontSize: 14, 
+    fontWeight: '700', 
+    color: '#64748B' 
   },
-  activeTabText: {
-    color: '#FFFFFF',
+  activeTabText: { 
+    color: '#FFFFFF' 
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 15,
+  scrollContent: { 
+    flexGrow: 1, 
+    paddingHorizontal: 15 
   },
-  innerContainer: {
-    width: '100%',
-    paddingRight: 5,
+  innerContainer: { 
+    width: '100%', 
+    paddingRight: 5 
   },
-  profileHeader: {
-    alignItems: 'center',
-    marginBottom: 25,
+  profileHeader: { 
+    alignItems: 'center', 
+    marginBottom: 25, 
+    marginTop: 10 
+  },
+  imageCircle: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    backgroundColor: '#EEF2FF', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderWidth: 2, 
+    borderColor: '#E2E8F0', 
+    borderStyle: 'dashed', 
+    position: 'relative' 
+  },
+  avatarImage: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60 
+  },
+  plusIconWrapper: { 
+    position: 'absolute', 
+    bottom: 2, 
+    right: 2, 
+    backgroundColor: '#5152B3', 
+    width: 30, 
+    height: 30, 
+    borderRadius: 15, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderWidth: 2, 
+    borderColor: '#FFFFFF' 
+  },
+  profileName: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#1E293B', 
+    marginTop: 10 
+  },
+  profileBusiness: { 
+    fontSize: 15, 
+    color: '#64748B' 
+  },
+  infoWrapper: { 
+    gap: 5, 
+    paddingRight: 10 
+  },
+  cardBorder: { 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0', 
+    width: '100%' 
+  },
+  cardWithMenu: { 
+    position: 'relative', 
+    justifyContent: 'center', 
+    width: '100%' 
+  },
+  threeDotButton: { 
+    position: 'absolute', 
+    right: 0, 
+    padding: 10, 
+    zIndex: 10 
+  },
+  teamCardWrapper: { 
+    position: 'relative', 
+    marginBottom: 12 
+  },
+  teamCard: { 
+    borderRadius: 20, 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0' 
+  },
+  teamThreeDot: { 
+    position: 'absolute', 
+    right: 15, 
+    top: 25, 
+    padding: 10, 
+    zIndex: 10 
+  },
+  gridContainer: { 
+    flexDirection: 'row', 
+    gap: 10, 
+    marginTop: 0, 
+    marginLeft: 10 
+  },
+  gridButton: { 
+    flex: 1, 
+    backgroundColor: '#FFFFFF', 
+    paddingVertical: 16, 
+    borderRadius: 18, 
+    alignItems: 'center', 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0', 
+    gap: 5 
+  },
+  gridButtonText: { 
+    fontSize: 12, 
+    fontWeight: '700', 
+    color: '#5152B3' 
+  },
+  modalOverlayDimmed: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.4)' 
+  },
+  modalOverlayCenterDark: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  menuPopup: { 
+    position: 'absolute', 
+    backgroundColor: '#FFFFFF', 
+    borderRadius: 12, 
+    width: 140, 
+    paddingVertical: 5, 
+    elevation: 8 
+  },
+  menuItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 12, 
+    gap: 10 
+  },
+  menuText: { 
+    fontSize: 15, 
+    color: '#334155' 
+  },
+  menuSeparator: { 
+    height: 1, 
+    backgroundColor: '#F1F5F9', 
+    marginHorizontal: 10 
+  },
+  editPopup: { 
+    backgroundColor: '#FFFFFF', 
+    borderRadius: 30, 
+    width: '88%', 
+    padding: 24, 
+    elevation: 10 
+  },
+  editTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: '#1E293B', 
+    textAlign: 'center', 
+    marginBottom: 20 
+  },
+  formImageContainer: { 
+    alignItems: 'center', 
+    marginBottom: 20 
+  },
+  formImageCircle: { 
+    width: 90, 
+    height: 90, 
+    borderRadius: 45, 
+    borderWidth: 3, 
+    borderColor: '#EEF2FF', 
+    position: 'relative' 
+  },
+  formAvatar: { 
+    width: 84, 
+    height: 84, 
+    borderRadius: 42 
+  },
+  formCameraBadge: { 
+    position: 'absolute', 
+    bottom: 0, 
+    right: 0, 
+    backgroundColor: '#5152B3', 
+    padding: 6, 
+    borderRadius: 15, 
+    borderWidth: 2, 
+    borderColor: 'white' 
+  },
+  formChangeText: { 
+    fontSize: 12, 
+    color: '#64748B', 
+    marginTop: 8, 
+    fontWeight: '600' 
+  },
+  formBody: { 
+    width: '100%', 
+    marginBottom: 10 
+  },
+  inputGroup: { 
+    marginBottom: 18 
+  },
+  inputLabel: { 
+    fontSize: 14, 
+    color: '#64748B', 
+    marginBottom: 8, 
+    fontWeight: '600' 
+  },
+  inputField: { 
+    borderWidth: 1.5, 
+    borderColor: '#E2E8F0', 
+    borderRadius: 12, 
+    padding: 14, 
+    backgroundColor: '#F8FAFC', 
+    fontSize: 16, 
+    color: '#1E293B' 
+  },
+  actionRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'flex-end', 
+    alignItems: 'center', 
+    gap: 20, 
+    marginTop: 10 
+  },
+  actionRowInvite: { 
+    marginTop: 10, 
+    alignItems: 'center' 
+  },
+  cancelBtnText: { 
+    color: '#94A3B8', 
+    fontWeight: 'bold', 
+    fontSize: 16 
+  },
+  saveBtn: { 
+    backgroundColor: '#5152B3', 
+    paddingVertical: 12, 
+    paddingHorizontal: 24, 
+    borderRadius: 15, 
+    elevation: 2 
+  },
+  saveBtnFull: { 
+    backgroundColor: '#5152B3', 
+    paddingVertical: 14, 
+    borderRadius: 15, 
+    width: '100%', 
+    alignItems: 'center' 
+  },
+  saveBtnText: { 
+    color: '#FFFFFF', 
+    fontWeight: 'bold', 
+    fontSize: 16 
+  },
+  headerBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 12 
+  },
+  headerBtnText: { 
+    color: '#FFFFFF', 
+    fontWeight: 'bold', 
+    fontSize: 12 
+  },
+  successNotification: { 
+    position: 'absolute', 
+    top: 0, 
+    left: 20, 
+    right: 20, 
+    backgroundColor: '#10B981', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 18, 
+    borderRadius: 20, 
+    zIndex: 9999, 
+    gap: 15, 
+    elevation: 10 
+  },
+  successTitle: { 
+    color: '#FFFFFF', 
+    fontWeight: 'bold', 
+    fontSize: 16 
+  },
+  successMessage: { 
+    color: '#E0F2FE', 
+    fontSize: 13 
+  },
+  inviteSectionWrapper: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 20, 
     marginTop: 10,
+    paddingHorizontal: 5
   },
-  imageCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#EEF2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    borderStyle: 'dashed',
-    position: 'relative',
+  inviteInstructionText: { 
+    fontSize: 14, 
+    fontWeight: '600' 
   },
-  avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  plusIconWrapper: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    backgroundColor: '#5152B3',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  profileName: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginTop: 10,
-  },
-  profileBusiness: {
-    fontSize: 15,
-    color: '#64748B',
-  },
-  infoWrapper: {
-    gap: 5,
-    paddingRight: 10,
-  },
-  cardBorder: {
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    width: '100%',
-  },
-  cardWithMenu: {
-    position: 'relative',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  threeDotButton: {
-    position: 'absolute',
-    right: 0,
-    padding: 10,
-    zIndex: 10,
-  },
-  teamCardWrapper: {
-    position: 'relative',
-    marginBottom: 0,
-  },
-  teamCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  teamThreeDot: {
-    position: 'absolute',
-    right: 15,
-    top: 25,
-    padding: 10,
-    zIndex: 10,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 0,
-    marginLeft: 10,
-  },
-  gridButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    borderRadius: 18,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 5,
-  },
-  gridButtonActive: {
-    backgroundColor: '#5152B3',
-    borderColor: '#5152B3',
-  },
-  gridButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#5152B3',
-  },
-  modalOverlayDimmed: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  modalOverlayCenterDark: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuPopup: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    width: 140,
-    paddingVertical: 5,
-    elevation: 8,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    gap: 10,
-  },
-  menuText: {
-    fontSize: 15,
-    color: '#334155',
-  },
-  menuSeparator: {
-    height: 1,
-    backgroundColor: '#F1F5F9',
-    marginHorizontal: 10,
-  },
-  editPopup: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 30,
-    width: '88%',
-    padding: 24,
-    elevation: 10,
-  },
-  editTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  formImageContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  formImageCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 3,
-    borderColor: '#EEF2FF',
-    position: 'relative',
-  },
-  formAvatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-  },
-  formCameraBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#5152B3',
-    padding: 6,
-    borderRadius: 15,
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  formChangeText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 8,
-    fontWeight: '600',
-  },
-  formBody: {
-    width: '100%',
-    marginBottom: 10,
-  },
-  inputGroup: {
-    marginBottom: 18,
-  },
-  inputLabel: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  inputField: {
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 14,
-    backgroundColor: '#F8FAFC',
-    fontSize: 16,
-    color: '#1E293B',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: 20,
-    marginTop: 10,
-  },
-  actionRowInvite: {
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  cancelBtnText: {
-    color: '#94A3B8',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  saveBtn: {
-    backgroundColor: '#5152B3',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 15,
-    elevation: 2,
-  },
-  saveBtnFull: {
-    backgroundColor: '#5152B3',
-    paddingVertical: 14,
-    borderRadius: 15,
-    width: '100%',
-    alignItems: 'center',
-  },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  headerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  headerBtnText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  successNotification: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    backgroundColor: '#10B981',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 20,
-    zIndex: 9999,
-    gap: 15,
-    elevation: 10,
-  },
-  successTitle: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  successMessage: {
-    color: '#E0F2FE',
-    fontSize: 13,
-  },
+  inlineInviteBtn: { 
+    alignSelf: 'flex-end' 
+  }
 });
 
 export default Profile;

@@ -1,5 +1,6 @@
 import NavButton from '@/components/common/Buttons/NavButton';
 import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs, usePathname, useRouter } from 'expo-router';
@@ -11,6 +12,7 @@ function CustomTabBar() {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { isDark, colors } = useTheme();
 
   // Get current active tab from pathname
   const getActiveRoute = () => {
@@ -38,7 +40,9 @@ function CustomTabBar() {
       styles.bottomNavContainer,
       {
         paddingBottom: Platform.OS === 'ios' ? insets.bottom : 10,
-        height: 65 + insets.bottom
+        height: 65 + insets.bottom,
+        backgroundColor: isDark ? "#1e293b" : "#FFFFFF",
+        borderTopColor: isDark ? "#334155" : "#F1F5F9"
       }
     ]}>
       <View style={styles.navBar}>
@@ -47,6 +51,7 @@ function CustomTabBar() {
           icon={<MaterialCommunityIcons name="home-variant" size={24} />}
           isActive={currentRoute === 'dashboard'}
           onClick={() => handleTabPress('dashboard')}
+          isDark={isDark}
         />
 
         <NavButton
@@ -54,9 +59,10 @@ function CustomTabBar() {
           icon={<MaterialCommunityIcons name="calendar-plus" size={24} />}
           isActive={currentRoute === 'new-visit'}
           onClick={() => handleTabPress('new-visit')}
+          isDark={isDark}
         />
 
-        <View style={styles.plusActionWrapper}>
+        <View style={[styles.plusActionWrapper, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", shadowColor: colors.shadow }]}>
           <TouchableOpacity onPress={handleAddClientsPress} activeOpacity={0.8}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
@@ -72,6 +78,7 @@ function CustomTabBar() {
           icon={<MaterialCommunityIcons name="history" size={24} />}
           isActive={currentRoute === 'history'}
           onClick={() => handleTabPress('history')}
+          isDark={isDark}
         />
 
         <NavButton
@@ -79,6 +86,7 @@ function CustomTabBar() {
           icon={<FontAwesome5 name="users" size={20} />}
           isActive={currentRoute === 'teams'}
           onClick={() => handleTabPress('teams')}
+          isDark={isDark}
         />
       </View>
     </View>
@@ -115,7 +123,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor: '#FFFFFF', // Removed to allow dynamic styling
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
     paddingHorizontal: 10,
@@ -138,7 +146,7 @@ const styles = StyleSheet.create({
   },
   plusActionWrapper: {
     marginTop: -55,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor: '#FFFFFF', // Removed to allow dynamic styling
     padding: 6,
     borderRadius: 35,
     shadowColor: '#000000',
