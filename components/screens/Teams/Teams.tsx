@@ -1,11 +1,14 @@
 import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker'; // Added Image Picker
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
-import * as ImagePicker from 'expo-image-picker'; // Added Image Picker
 import {
+  Alert,
   Modal,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -14,8 +17,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Platform,
-  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -36,6 +37,7 @@ interface TeamsProps {
 
 const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
 
   const defaultTeams: TeamMember[] = [
     { id: '1', title: "Ahmad Ali", description: "Senior Stylist - Active", image: 'https://i.pravatar.cc/150?u=1' },
@@ -54,7 +56,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  
+
   // States for Editing
   const [tempTitle, setTempTitle] = useState<string>("");
   const [tempDesc, setTempDesc] = useState<string>("");
@@ -117,8 +119,8 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
 
   const handleSaveEdit = () => {
     const updated = teams.map((item: TeamMember) =>
-      item.id === selectedId 
-        ? { ...item, title: tempTitle, description: tempDesc, image: tempImg } 
+      item.id === selectedId
+        ? { ...item, title: tempTitle, description: tempDesc, image: tempImg }
         : item
     );
     setTeams(updated);
@@ -163,12 +165,12 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
 
   return (
     <LinearGradient
-      colors={THEME_COLORS.bgGradient}
+      colors={colors.bgGradient}
       start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
         <NavHeader title=" Meet Our Team !">
           <TouchableOpacity onPress={() => onNavigateToInvite?.()} activeOpacity={0.8}>
@@ -194,7 +196,9 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
                   title={member.title}
                   description={member.description}
                   backgroundColor="#FFFFFF"
-                  containerStyle={styles.cardMargin}
+                  containerStyle={[styles.cardMargin, { borderColor: colors.border }]}
+                  titleStyle={{ color: "#1E293B" }}
+                  descriptionStyle={{ color: "#64748B" }}
                 />
                 <TouchableOpacity
                   style={styles.threeDotButton}
@@ -211,10 +215,10 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
       <Modal visible={menuVisible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
           <View style={styles.modalOverlayDimmed}>
-            <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right }]}>
+            <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right, backgroundColor: colors.card }]}>
               <TouchableOpacity style={styles.menuItem} onPress={handleEditInitiate}>
-                <MaterialCommunityIcons name="pencil" size={20} color="#5152B3" />
-                <Text style={styles.menuText}>Edit</Text>
+                <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
+                <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
               </TouchableOpacity>
               <View style={styles.menuSeparator} />
               <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
@@ -223,12 +227,12 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
                   size={20}
                   color={isSelectedActive ? "#F59E0B" : "#10B981"}
                 />
-                <Text style={styles.menuText}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
+                <Text style={[styles.menuText, { color: colors.text }]}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
               </TouchableOpacity>
               <View style={styles.menuSeparator} />
               <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
                 <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
-                <Text style={styles.menuText}>Delete</Text>
+                <Text style={[styles.menuText, { color: colors.text }]}>Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -237,19 +241,19 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
 
       <Modal visible={editModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlayCenterDark}>
-          <View style={styles.editPopup}>
-            <Text style={styles.editTitle}>Edit Team Member</Text>
+          <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+            <Text style={[styles.editTitle, { color: colors.text }]}>Edit Team Member</Text>
 
             {/* Centered Image Edit - Same as History */}
             <View style={{ alignItems: 'center', marginBottom: 20 }}>
               <TouchableOpacity onPress={pickImage} activeOpacity={0.7}>
                 <View style={{ position: 'relative' }}>
                   <View style={styles.editImageContainer}>
-                    <ImageDesCard 
-                      imageSource={{ uri: tempImg }} 
-                      title="" 
-                      description="" 
-                      containerStyle={styles.editImageStyle} 
+                    <ImageDesCard
+                      imageSource={{ uri: tempImg }}
+                      title=""
+                      description=""
+                      containerStyle={styles.editImageStyle}
                     />
                   </View>
                   <View style={styles.cameraIconContainer}>
@@ -260,12 +264,12 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name</Text>
-              <TextInput style={styles.inputField} value={tempTitle} onChangeText={setTempTitle} />
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Full Name</Text>
+              <TextInput style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]} value={tempTitle} onChangeText={setTempTitle} />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Designation</Text>
-              <TextInput style={styles.inputField} value={tempDesc} onChangeText={setTempDesc} />
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Designation</Text>
+              <TextInput style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]} value={tempDesc} onChangeText={setTempDesc} />
             </View>
             <View style={styles.actionRow}>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
@@ -389,26 +393,26 @@ const styles = StyleSheet.create({
     color: '#1E293B',
   },
   editImageContainer: {
-    width: 80, 
-    height: 80, 
-    borderRadius: 40, 
-    overflow: 'hidden', 
-    borderWidth: 2, 
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: 'hidden',
+    borderWidth: 2,
     borderColor: '#E2E8F0'
   },
   editImageStyle: {
-    width: 80, 
-    height: 80, 
-    margin: 0, 
+    width: 80,
+    height: 80,
+    margin: 0,
     padding: 0
   },
   cameraIconContainer: {
-    position: 'absolute', 
-    bottom: 0, 
-    right: 0, 
-    backgroundColor: '#5152B3', 
-    borderRadius: 15, 
-    padding: 5, 
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#5152B3',
+    borderRadius: 15,
+    padding: 5,
     elevation: 5
   },
   inputGroup: {

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Text, TextStyle, View, ViewStyle } from 'react-native';
+import { StyleProp, Text, TextStyle, View, ViewStyle } from 'react-native';
 
 export interface InfoCardProps {
   title?: string;
   description?: string;
-  containerStyle?: ViewStyle;
-  titleStyle?: TextStyle;
-  descriptionStyle?: TextStyle;
+  containerStyle?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
+  descriptionStyle?: StyleProp<TextStyle>;
   padding?: number;
   margin?: number;
   backgroundColor?: string;
@@ -79,7 +79,7 @@ const InfoCard: React.FC<InfoCardProps> = ({
           {title}
         </Text>
       )}
-      
+
       {description && (
         <Text
           style={[

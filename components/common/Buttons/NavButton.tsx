@@ -1,5 +1,7 @@
 import React from 'react';
-import { Text, TouchableOpacity, StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// Using relative path to be absolutely safe against alias issues
+import { useTheme } from '../../../contexts/ThemeContext';
 
 interface NavButtonProps {
   label: string;
@@ -7,20 +9,39 @@ interface NavButtonProps {
   isActive?: boolean;
   onClick?: () => void;
   isCenterButton?: boolean;
+  activeColor?: string;
+  inactiveColor?: string;
+  isDark?: boolean;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ 
-  label, 
-  icon, 
-  isActive, 
-  onClick, 
-  isCenterButton 
+const NavButton: React.FC<NavButtonProps> = ({
+  label,
+  icon,
+  isActive,
+  onClick,
+  isCenterButton,
+  activeColor,
+  inactiveColor,
+  isDark: isDarkProp
 }) => {
-  const activeColor = "#5152B3";
-  const inactiveColor = "#CBD5E1"; // Matching your Dashboard's inactive color
+  // Use the theme hook to get current mode, but allow prop override
+  const { isDark: isDarkContext } = useTheme();
+  // If isDarkProp is passed, use it; otherwise fallback to context
+  const isDark = isDarkProp ?? isDarkContext;
+
+  // Resolve colors based on props or theme defaults
+  // Active: White in dark mode, Purple in light mode (default)
+  const resolvedActiveColor = activeColor || (isDark ? "#FFFFFF" : "#5152B3");
+  // Inactive: Gray in both, but specific shade
+  const resolvedInactiveColor = inactiveColor || (isDark ? "#94A3B8" : "#CBD5E1");
+
+  // Style for the circular background of the center button
+  const centerBtnStyle = isCenterButton ? {
+    backgroundColor: isDark ? "#1e293b" : "#FFFFFF"
+  } : undefined;
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={onClick}
       activeOpacity={0.7}
       style={[
@@ -30,22 +51,23 @@ const NavButton: React.FC<NavButtonProps> = ({
     >
       <View style={[
         styles.iconWrapper,
-        isCenterButton && styles.centerIconWrapper
+        isCenterButton && styles.centerIconBase,
+        centerBtnStyle
       ]}>
         {/* We clone the icon to inject the correct color and size automatically */}
-        {React.isValidElement(icon) ? 
-          React.cloneElement(icon as React.ReactElement<any>, { 
-            color: isActive ? activeColor : inactiveColor,
-            size: 24 
-          }) 
+        {React.isValidElement(icon) ?
+          React.cloneElement(icon as React.ReactElement<any>, {
+            color: isActive ? resolvedActiveColor : resolvedInactiveColor,
+            size: 24
+          })
           : icon
         }
       </View>
-      
+
       {!isCenterButton && (
         <Text style={[
-          styles.label, 
-          { color: isActive ? activeColor : inactiveColor }
+          styles.label,
+          { color: isActive ? resolvedActiveColor : resolvedInactiveColor }
         ]}>
           {label}
         </Text>
@@ -61,15 +83,14 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   centerButtonContainer: {
-    // This handles the overlap if needed, but since you use PlusButton 
-    // separately in Dashboard, we keep this simple.
+    // Container specific styles if needed
   },
   iconWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  centerIconWrapper: {
-    backgroundColor: 'white',
+  // Base style for center button shape/shadow (without color)
+  centerIconBase: {
     padding: 12,
     borderRadius: 30,
     elevation: 4,
@@ -86,6 +107,6 @@ const styles = StyleSheet.create({
 });
 
 export default NavButton;
-//ye reusable component hai 
+//ye reusable component hai
 // s ko project k andar jo neeche navmenu hai os k liye banai hai
 // ye get kareinga icons ko text k sath get karienga

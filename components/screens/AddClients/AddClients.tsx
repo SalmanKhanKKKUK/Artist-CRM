@@ -1,8 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Animated,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -12,12 +14,11 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  Animated,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import NavHeader from '../../common/Buttons/NavHeader';
 import Input from '../../common/Inputs/Input';
 
@@ -27,6 +28,7 @@ interface AddClientsProps {
 }
 
 const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
+  const { colors, isDark } = useTheme();
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -90,10 +92,10 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
 
   return (
     <LinearGradient
-      colors={THEME_COLORS.bgGradient}
+      colors={colors.bgGradient}
       style={styles.gradientContainer}
     >
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
       {/* Success Notification - Invite.tsx Design */}
       {showSuccess && (
@@ -144,22 +146,22 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
           >
             <View style={styles.photoSection}>
               <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
-                <View style={styles.imageCircle}>
+                <View style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}>
                   {image ? (
                     <Image source={{ uri: image }} style={styles.profileImage} />
                   ) : (
-                    <MaterialCommunityIcons name="account-outline" size={60} color="#5152B3" />
+                    <MaterialCommunityIcons name="account-outline" size={60} color={colors.primary} />
                   )}
-                  <View style={styles.plusIconWrapper}>
+                  <View style={[styles.plusIconWrapper, { backgroundColor: colors.primary, borderColor: colors.card }]}>
                     <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
                   </View>
                 </View>
               </TouchableOpacity>
-              <Text style={styles.addPhotoText}>Add profile photo</Text>
+              <Text style={[styles.addPhotoText, { color: colors.textSecondary }]}>Add profile photo</Text>
             </View>
 
             <View style={styles.formContainer}>
-              <Text style={styles.inputLabel}>Client Name</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>Client Name</Text>
               <Input
                 value={name}
                 onChangeText={setName}
@@ -167,11 +169,13 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
+                inputStyle={{ color: colors.text }}
+                placeholderTextColor={colors.textSecondary}
               />
 
               <View style={styles.sectionGap} />
 
-              <Text style={styles.inputLabel}>Phone Number</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>Phone Number</Text>
               <Input
                 value={phone}
                 onChangeText={setPhone}
@@ -180,12 +184,14 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
+                inputStyle={{ color: colors.text }}
+                placeholderTextColor={colors.textSecondary}
               />
 
               <View style={styles.sectionGap} />
 
               {/* Email Input Fix: Scrolling ensures this is visible */}
-              <Text style={styles.inputLabel}>Email Address</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>Email Address</Text>
               <Input
                 value={email}
                 onChangeText={setEmail}
@@ -195,6 +201,8 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 containerStyle={styles.fullWidthInput}
                 size="large"
                 variant="outlined"
+                inputStyle={{ color: colors.text }}
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
           </ScrollView>

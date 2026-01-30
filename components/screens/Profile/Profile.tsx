@@ -1,8 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState, useRef } from "react";
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -15,17 +18,15 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Animated,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from 'expo-linear-gradient';
-import * as ImagePicker from 'expo-image-picker';
 
-import { useSmartBackHandler } from "../../../hooks/useSmartBackHandler";
-import InfoCard from "../../common/Cards/InfoCard";
-import ImageDesCard from '../../common/Cards/ImageDesCard';
-import NavHeader from "../../common/Buttons/NavHeader";
 import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useSmartBackHandler } from "../../../hooks/useSmartBackHandler";
+import NavHeader from "../../common/Buttons/NavHeader";
+import ImageDesCard from '../../common/Cards/ImageDesCard';
+import InfoCard from "../../common/Cards/InfoCard";
 
 // --- Interfaces ---
 interface TeamMember {
@@ -50,7 +51,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [email] = useState<string>("aqibshoaib@gmail.com");
   const [phone, setPhone] = useState<string>("3118298343");
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [selectedMode, setSelectedMode] = useState<'active' | 'dark' | 'light'>('active');
+  const { themeMode, setThemeMode, colors } = useTheme();
 
   // --- Teams Data States ---
   const [teams, setTeams] = useState<TeamMember[]>([]);
@@ -61,11 +62,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [inviteModalVisible, setInviteModalVisible] = useState<boolean>(false); // New Invite Modal State
   const [inviteEmail, setInviteEmail] = useState<string>(""); // New Email State
-  
-  const [tempValue, setTempValue] = useState<string>(""); 
-  const [tempTitle, setTempTitle] = useState<string>(""); 
-  const [tempDesc, setTempDesc] = useState<string>("");   
-  const [tempImg, setTempImg] = useState<string>("");     
+
+  const [tempValue, setTempValue] = useState<string>("");
+  const [tempTitle, setTempTitle] = useState<string>("");
+  const [tempDesc, setTempDesc] = useState<string>("");
+  const [tempImg, setTempImg] = useState<string>("");
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
 
   // Success Notification Animation
@@ -205,11 +206,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     }
     setInviteModalVisible(false);
     setInviteEmail("");
-    
+
     // Show Success Notification
     setShowSuccess(true);
     Animated.spring(slideAnim, { toValue: 60, useNativeDriver: true, bounciness: 10 }).start();
-    
+
     setTimeout(() => {
       Animated.timing(slideAnim, { toValue: -150, duration: 400, useNativeDriver: true }).start(() => {
         setShowSuccess(false);
@@ -221,7 +222,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     !selectedTeamMember?.description.toLowerCase().includes("deactive");
 
   return (
-    <LinearGradient colors={THEME_COLORS.bgGradient} style={styles.gradientContainer}>
+    <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
@@ -264,13 +265,13 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'profile' && styles.activeTabButton]}
+            style={[styles.tabButton, { backgroundColor: colors.card, borderColor: colors.border }, activeTab === 'profile' && styles.activeTabButton]}
             onPress={() => setActiveTab('profile')}
           >
             <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>My Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'teams' && styles.activeTabButton]}
+            style={[styles.tabButton, { backgroundColor: colors.card, borderColor: colors.border }, activeTab === 'teams' && styles.activeTabButton]}
             onPress={() => setActiveTab('teams')}
           >
             <Text style={[styles.tabText, activeTab === 'teams' && styles.activeTabText]}>Our Team</Text>
@@ -281,34 +282,34 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
-              styles.scrollContent, 
+              styles.scrollContent,
               { paddingBottom: insets.bottom + (activeTab === 'profile' ? 80 : 40) }
             ]}
           >
             {activeTab === 'profile' ? (
               <View style={styles.innerContainer}>
                 <View style={styles.profileHeader}>
-                  <TouchableOpacity onPress={() => pickImage('profile')} style={styles.imageCircle}>
+                  <TouchableOpacity onPress={() => pickImage('profile')} style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}>
                     {profileImage ? (
                       <Image source={{ uri: profileImage }} style={styles.avatarImage} />
                     ) : (
-                      <MaterialCommunityIcons name="account-outline" size={60} color="#5152B3" />
+                      <MaterialCommunityIcons name="account-outline" size={60} color={colors.primary} />
                     )}
-                    <View style={styles.plusIconWrapper}>
+                    <View style={[styles.plusIconWrapper, { backgroundColor: colors.primary, borderColor: colors.background }]}>
                       <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
                     </View>
                   </TouchableOpacity>
-                  <Text style={styles.profileName}>Aqib Shoaib</Text>
-                  <Text style={styles.profileBusiness}>Artist CRM</Text>
+                  <Text style={[styles.profileName, { color: colors.text }]}>Aqib Shoaib</Text>
+                  <Text style={[styles.profileBusiness, { color: colors.textSecondary }]}>Artist CRM</Text>
                 </View>
 
                 <View style={styles.infoWrapper}>
-                  <InfoCard title="Email" description={email} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={styles.cardBorder} />
-                  
+                  <InfoCard title="Email" description={email} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={[styles.cardBorder, { borderColor: colors.border }]} titleColor="#1E293B" descriptionColor="#64748B" />
+
                   <View style={styles.cardWithMenu}>
-                    <InfoCard title="Phone" description={phone} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={styles.cardBorder} />
+                    <InfoCard title="Phone" description={phone} backgroundColor="#FFFFFF" borderRadius={20} containerStyle={[styles.cardBorder, { borderColor: colors.border }]} titleColor="#1E293B" descriptionColor="#64748B" />
                     <TouchableOpacity style={styles.threeDotButton} onPress={(e) => handleOpenPhoneMenu(e)}>
-                      <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
+                      <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
 
@@ -316,15 +317,29 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                     {(['active', 'dark', 'light'] as const).map((mode) => (
                       <TouchableOpacity
                         key={mode}
-                        style={[styles.gridButton, selectedMode === mode && styles.gridButtonActive]}
-                        onPress={() => setSelectedMode(mode)}
+                        style={[
+                          styles.gridButton,
+                          {
+                            backgroundColor: colors.card,
+                            borderColor: colors.border
+                          },
+                          themeMode === mode && {
+                            backgroundColor: colors.primary,
+                            borderColor: colors.primary
+                          }
+                        ]}
+                        onPress={() => setThemeMode(mode)}
                       >
                         <MaterialCommunityIcons
                           name={mode === 'active' ? "check-circle-outline" : mode === 'dark' ? "weather-night" : "weather-sunny"}
                           size={24}
-                          color={selectedMode === mode ? "#FFFFFF" : "#5152B3"}
+                          color={themeMode === mode ? "#FFFFFF" : colors.primary}
                         />
-                        <Text style={[styles.gridButtonText, selectedMode === mode && { color: '#FFFFFF' }]}>
+                        <Text style={[
+                          styles.gridButtonText,
+                          { color: colors.primary },
+                          themeMode === mode && { color: '#FFFFFF' }
+                        ]}>
                           {mode.charAt(0).toUpperCase() + mode.slice(1)}
                         </Text>
                       </TouchableOpacity>
@@ -341,13 +356,15 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                       title={member.title}
                       description={member.description}
                       backgroundColor="#FFFFFF"
-                      containerStyle={styles.teamCard}
+                      containerStyle={[styles.teamCard, { borderColor: colors.border }]}
+                      titleStyle={{ color: "#1E293B" }}
+                      descriptionStyle={{ color: "#64748B" }}
                     />
                     <TouchableOpacity
                       style={styles.teamThreeDot}
                       onPress={(e) => handleOpenTeamMenu(e, member)}
                     >
-                      <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
+                      <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -360,26 +377,26 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={styles.modalOverlayDimmed}>
-              <View style={[styles.menuPopup, { top: menuPosition.top, right: 40 }]}>
+              <View style={[styles.menuPopup, { top: menuPosition.top, right: 40, backgroundColor: colors.card }]}>
                 <TouchableOpacity style={styles.menuItem} onPress={handleEditInitiate}>
-                  <MaterialCommunityIcons name="pencil" size={20} color="#5152B3" />
-                  <Text style={styles.menuText}>Edit</Text>
+                  <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
+                  <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
                 </TouchableOpacity>
                 {activeTab === 'teams' && (
                   <>
-                    <View style={styles.menuSeparator} />
+                    <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
                     <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
                       <MaterialCommunityIcons
                         name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"}
                         size={20}
                         color={isSelectedActive ? "#F59E0B" : "#10B981"}
                       />
-                      <Text style={styles.menuText}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
+                      <Text style={[styles.menuText, { color: colors.text }]}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
                     </TouchableOpacity>
-                    <View style={styles.menuSeparator} />
+                    <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
                     <TouchableOpacity style={styles.menuItem} onPress={handleDeleteTeam}>
                       <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
-                      <Text style={styles.menuText}>Delete</Text>
+                      <Text style={[styles.menuText, { color: colors.text }]}>Delete</Text>
                     </TouchableOpacity>
                   </>
                 )}
@@ -392,7 +409,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
         <Modal visible={inviteModalVisible} transparent animationType="slide">
           <TouchableWithoutFeedback onPress={() => setInviteModalVisible(false)}>
             <View style={styles.modalOverlayCenterDark}>
-              <TouchableWithoutFeedback onPress={() => {}}> 
+              <TouchableWithoutFeedback onPress={() => { }}>
                 <View style={styles.editPopup}>
                   <Text style={styles.editTitle}>Invite Team</Text>
                   <View style={styles.formBody}>

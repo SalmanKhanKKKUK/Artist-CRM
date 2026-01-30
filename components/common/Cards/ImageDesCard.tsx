@@ -1,15 +1,15 @@
 import React from 'react';
-import { Image, ImageStyle, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { Image, ImageStyle, StyleProp, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 export interface ImageDesCardProps {
   imageSource: any;
   title: string;
   description?: string;
   onPress?: () => void;
-  containerStyle?: ViewStyle;
-  imageStyle?: ImageStyle;
-  titleStyle?: TextStyle;
-  descriptionStyle?: TextStyle;
+  containerStyle?: StyleProp<ViewStyle>;
+  imageStyle?: StyleProp<ImageStyle>;
+  titleStyle?: StyleProp<TextStyle>;
+  descriptionStyle?: StyleProp<TextStyle>;
   imageSize?: number;
   imageBorderRadius?: number;
   cardPadding?: number;
