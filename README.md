@@ -62,7 +62,7 @@ artist-crm/
 │   │   ├── dashboard.tsx      # Home Tab (Dashboard)
 │   │   ├── new-visit.tsx      # New Visit Tab
 │   │   ├── history.tsx        # History Tab
-│   │   ├── teams.tsx          # Teams Tab
+│   │   ├── customers.tsx      # Customers Tab
 │   │   └── _layout.tsx        # Tabs Layout
 │   │
 │   ├── (modals)/              # Modal Screens Group
@@ -83,7 +83,7 @@ artist-crm/
         ├── Dashboard/
         ├── Profile/
         ├── History/
-        ├── Teams/
+        ├── Customers/
         ├── NewVisit/
         ├── AddClients/
         └── Invite/

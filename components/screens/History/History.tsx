@@ -62,17 +62,103 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const defaultHistory: HistoryItem[] = [
     {
       id: 1,
-      customer: {
-        name: "Ahmad Ali",
-        phone: "0300-1234567",
-        img: 'https://i.pravatar.cc/150?u=1'
-      },
+      customer: { name: "Ahmad Ali", phone: "0300-1234567", img: 'https://i.pravatar.cc/150?u=1' },
       services: ["Haircut", "Shaving"],
-      tags: ["Regular", "Premium"],
+      tags: ["Regular"],
       notes: "Prefer shorter sides, sharp fade.",
-      photos: ["https://picsum.photos/200/300", "https://picsum.photos/200/301"],
+      photos: ["https://picsum.photos/200/300"],
       date: "14 Jan 2026",
       time: "10:30 AM"
+    },
+    {
+      id: 2,
+      customer: { name: "Bilal Khan", phone: "0301-7654321", img: 'https://i.pravatar.cc/150?u=2' },
+      services: ["Facial", "Massage"],
+      tags: ["VIP"],
+      notes: "Sensitive skin, use herbal products.",
+      photos: ["https://picsum.photos/200/301"],
+      date: "15 Jan 2026",
+      time: "11:00 AM"
+    },
+    {
+      id: 3,
+      customer: { name: "Hamza Ahmed", phone: "0321-9876543", img: 'https://i.pravatar.cc/150?u=3' },
+      services: ["Styling", "Color"],
+      tags: ["New"],
+      notes: "Looking for a modern ash grey look.",
+      photos: ["https://picsum.photos/200/302"],
+      date: "16 Jan 2026",
+      time: "12:15 PM"
+    },
+    {
+      id: 4,
+      customer: { name: "Usman Ghani", phone: "0333-1122334", img: 'https://i.pravatar.cc/150?u=4' },
+      services: ["Haircut"],
+      tags: ["Regular"],
+      notes: "Standard crew cut.",
+      photos: [],
+      date: "17 Jan 2026",
+      time: "01:00 PM"
+    },
+    {
+      id: 5,
+      customer: { name: "Zain Malik", phone: "0345-4455667", img: 'https://i.pravatar.cc/150?u=5' },
+      services: ["Beard Trim", "Haircut"],
+      tags: ["VIP"],
+      notes: "Line up beard carefully.",
+      photos: ["https://picsum.photos/200/303"],
+      date: "18 Jan 2026",
+      time: "02:30 PM"
+    },
+    {
+      id: 6,
+      customer: { name: "Fahad Mustafa", phone: "0312-5566778", img: 'https://i.pravatar.cc/150?u=6' },
+      services: ["Massage", "Steam"],
+      tags: ["New"],
+      notes: "Requires shoulder relaxation.",
+      photos: [],
+      date: "19 Jan 2026",
+      time: "04:00 PM"
+    },
+    {
+      id: 7,
+      customer: { name: "Yasir Hussain", phone: "0302-8899001", img: 'https://i.pravatar.cc/150?u=7' },
+      services: ["Color", "Highlights"],
+      tags: ["Premium"],
+      notes: "Golden highlights on top.",
+      photos: ["https://picsum.photos/200/304"],
+      date: "20 Jan 2026",
+      time: "05:15 PM"
+    },
+    {
+      id: 8,
+      customer: { name: "Omer Shah", phone: "0344-2233445", img: 'https://i.pravatar.cc/150?u=8' },
+      services: ["Haircut", "Facial"],
+      tags: ["Regular"],
+      notes: "Before wedding prep.",
+      photos: ["https://picsum.photos/200/305"],
+      date: "21 Jan 2026",
+      time: "06:00 PM"
+    },
+    {
+      id: 9,
+      customer: { name: "Saad Qureshi", phone: "0322-1112223", img: 'https://i.pravatar.cc/150?u=9' },
+      services: ["Shaving"],
+      tags: ["Regular"],
+      notes: "Clean shave with hot towel.",
+      photos: [],
+      date: "22 Jan 2026",
+      time: "10:00 AM"
+    },
+    {
+      id: 10,
+      customer: { name: "Rizwan Baig", phone: "0300-9988776", img: 'https://i.pravatar.cc/150?u=10' },
+      services: ["Styling", "Beard Trim"],
+      tags: ["VIP"],
+      notes: "High volume quiff.",
+      photos: ["https://picsum.photos/200/306"],
+      date: "23 Jan 2026",
+      time: "11:45 AM"
     },
   ];
 
@@ -84,18 +170,14 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  // Temporary edit states
   const [tempName, setTempName] = useState<string>("");
   const [tempPhone, setTempPhone] = useState<string>("");
   const [tempService, setTempService] = useState<string>("");
   const [tempTags, setTempTags] = useState<string>("");
   const [tempNotes, setTempNotes] = useState<string>("");
-  const [tempPhotos, setTempPhotos] = useState<string[]>([]); // Array for multiple photos
+  const [tempPhotos, setTempPhotos] = useState<string[]>([]);
 
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showSuccess, setShowSuccess] = useState<boolean>(false);
-  const slideAnim = useRef(new Animated.Value(-150)).current;
 
   const filterSections: FilterSection[] = [
     {
@@ -134,9 +216,13 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
         const savedString = await AsyncStorage.getItem('permanently_deleted_history');
         if (savedString) {
           const parsedData = JSON.parse(savedString);
-          if (Array.isArray(parsedData) && parsedData.length > 0) {
-            setHistoryItems(parsedData.slice(0, 10));
+          if (Array.isArray(parsedData) && parsedData.length >= 10) {
+            setHistoryItems(parsedData);
+          } else {
+            setHistoryItems(defaultHistory);
           }
+        } else {
+          setHistoryItems(defaultHistory);
         }
       } catch (err) {
         console.error("Error loading storage", err);
@@ -147,7 +233,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
 
   const persistHistory = async (updatedList: HistoryItem[]) => {
     try {
-      await AsyncStorage.setItem('permanently_deleted_history', JSON.stringify(updatedList.slice(0, 10)));
+      await AsyncStorage.setItem('permanently_deleted_history', JSON.stringify(updatedList));
     } catch (err) {
       console.error("Error saving storage", err);
     }
@@ -158,7 +244,6 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true
     });
-
     if (!result.canceled) {
       setTempPhotos(prev => [...prev, ...result.assets.map(a => a.uri)]);
     }
@@ -177,7 +262,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     setTempService(item.services.join(', '));
     setTempTags(item.tags.join(', '));
     setTempNotes(item.notes || "");
-    setTempPhotos(item.photos || []); // Load existing photos into temp state
+    setTempPhotos(item.photos || []);
     setMenuVisible(true);
   };
 
@@ -191,7 +276,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
           services: tempService.split(',').map(s => s.trim()).filter(s => s.length > 0),
           tags: tempTags.split(',').map(t => t.trim()).filter(t => t.length > 0),
           notes: tempNotes,
-          photos: tempPhotos // Save updated array
+          photos: tempPhotos
         }
         : item
     );
@@ -222,60 +307,27 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     ]);
   };
 
-  const filteredData = historyItems
-    .filter((item) => {
-      if (!item || !item.customer) return false;
-      const query = searchText.toLowerCase();
-      const nameMatch = (item.customer.name || "").toLowerCase().includes(query);
-      const phoneMatch = (item.customer.phone || "").includes(query);
-      const serviceMatch = (item.services || []).some(s => s.toLowerCase().includes(query));
-      const notesMatch = (item.notes || "").toLowerCase().includes(query);
-      const tagsMatch = (item.tags || []).some(t => t.toLowerCase().includes(query));
-      const searchMatch = nameMatch || phoneMatch || serviceMatch || notesMatch || tagsMatch;
+  const filteredData = historyItems.filter((item) => {
+    if (!item || !item.customer) return false;
+    const query = searchText.toLowerCase();
+    const searchMatch = (item.customer.name || "").toLowerCase().includes(query) ||
+      (item.customer.phone || "").includes(query) ||
+      (item.services || []).some(s => s.toLowerCase().includes(query)) ||
+      (item.notes || "").toLowerCase().includes(query) ||
+      (item.tags || []).some(t => t.toLowerCase().includes(query));
 
-      const categoryMatch = activeFilters.category_filter
-        ? (item.services || []).some(s => s.includes(activeFilters.category_filter))
-        : true;
+    const categoryMatch = activeFilters.category_filter ? (item.services || []).some(s => s.includes(activeFilters.category_filter)) : true;
+    const dateMatch = activeFilters.date_filter ? (item.date || "").includes(activeFilters.date_filter) : true;
+    const tagMatch = activeFilters.tag_filter ? (item.tags || []).some(t => t.includes(activeFilters.tag_filter)) : true;
 
-      const dateMatch = activeFilters.date_filter
-        ? (item.date || "").includes(activeFilters.date_filter)
-        : true;
-
-      const tagMatch = activeFilters.tag_filter
-        ? (item.tags || []).some(t => t.includes(activeFilters.tag_filter))
-        : true;
-
-      return searchMatch && categoryMatch && dateMatch && tagMatch;
-    })
-    .slice(0, 10);
-
-  const showTopSuccessLoader = () => {
-    setShowSuccess(true);
-    Animated.spring(slideAnim, {
-      toValue: Platform.OS === 'android' ? 50 : 60,
-      useNativeDriver: true,
-      bounciness: 10
-    }).start();
-
-    setTimeout(() => {
-      Animated.timing(slideAnim, {
-        toValue: -150,
-        duration: 400,
-        useNativeDriver: true
-      }).start(() => {
-        setShowSuccess(false);
-        if (onNavigateToNewVisit) onNavigateToNewVisit();
-      });
-    }, 2000);
-  };
+    return searchMatch && categoryMatch && dateMatch && tagMatch;
+  });
 
   const handleNewVisitPress = () => {
-    if (loading) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      showTopSuccessLoader();
-    }, 1500);
+    // Navigate immediately - No loader, no success message
+    if (onNavigateToNewVisit) {
+      onNavigateToNewVisit();
+    }
   };
 
   return (
@@ -283,29 +335,15 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
-        {showSuccess && (
-          <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
-            <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
-            <View>
-              <Text style={styles.successTitle}>Success!</Text>
-              <Text style={styles.successMessage}>Loading new visit form...</Text>
-            </View>
-          </Animated.View>
-        )}
-
         <NavHeader title="Our All History !">
-          <TouchableOpacity onPress={handleNewVisitPress} activeOpacity={0.8} disabled={loading}>
+          <TouchableOpacity onPress={handleNewVisitPress} activeOpacity={0.8}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.newVisitHeaderBtn}
             >
-              {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.newVisitBtnText}>New Visit</Text>
-              )}
+              <Text style={styles.newVisitBtnText}>New Visit</Text>
             </LinearGradient>
           </TouchableOpacity>
         </NavHeader>
@@ -318,6 +356,10 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
             showFilterIcon={true}
             onFilterIconPress={() => setIsFilterVisible(true)}
             containerStyle={styles.searchBar}
+            backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+            textColor={isDark ? "#FFFFFF" : "#333333"}
+            iconColor={isDark ? "#94A3B8" : "#888888"}
+            showFilterSort={false}
           />
         </View>
 
@@ -337,7 +379,11 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
                 time={item.time}
                 onPress={() => router.push('/(tabs)/view-history' as any)}
                 containerStyle={[styles.cardItem, { borderColor: colors.border }]}
-                backgroundColor="#FFFFFF"
+                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                titleColor={isDark ? "#FFFFFF" : "#1E293B"}
+                phoneColor={isDark ? "#94A3B8" : "#64748B"}
+                noteColor={isDark ? "#CBD5E1" : "#475569"}
+                dateColor={isDark ? "#818CF8" : "#5152B3"}
               />
               <TouchableOpacity
                 style={styles.actionButton}
@@ -349,7 +395,6 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
           ))}
         </ScrollView>
 
-        {/* --- Options Menu Modal --- */}
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={styles.modalOverlayDimmed}>
@@ -379,14 +424,12 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* --- Edit Visit Modal --- */}
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
             <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 <Text style={[styles.editTitle, { color: colors.text }]}>Edit Visit Info</Text>
 
-                {/* Multiple Photo Grid - Similar to NewVisit */}
                 <View style={styles.photoGrid}>
                   <TouchableOpacity style={[styles.addPhotoBox, { backgroundColor: colors.background, borderColor: colors.primary }]} onPress={handleImagePick}>
                     <MaterialCommunityIcons name="camera-plus" size={24} color={colors.primary} />
@@ -474,6 +517,9 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
         <FilterInput
           isVisible={isFilterVisible}
           onClose={() => setIsFilterVisible(false)}
+          backgroundColor={isDark ? "#1e293b" : "#F8FAFC"}
+          textColor={isDark ? "#FFFFFF" : "#334155"}
+          chipInactiveBackgroundColor={isDark ? "#334155" : "#FFFFFF"}
           sections={filterSections}
           onApply={(selections) => {
             setActiveFilters(selections);
@@ -532,7 +578,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2 },
       android: { elevation: 2 }
@@ -678,30 +723,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 15
-  },
-  successNotification: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    backgroundColor: '#10B981',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    zIndex: 9999,
-    elevation: 15,
-    gap: 12
-  },
-  successTitle: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16
-  },
-  successMessage: {
-    color: '#E0F2FE',
-    fontSize: 12
   },
 });
 

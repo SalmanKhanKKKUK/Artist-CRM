@@ -109,5 +109,5 @@ export default NavHeader;
 
 // ye aik reusable component hai
 // ye navigation header ko reusable karne ke liye banaya gaya hai
-// s ko dashboard, history, teams, add clients, profile ke saath use kar sakte hain
+// s ko dashboard, history, Customer, add clients, profile ke saath use kar sakte hain
 // ye kia karienga title, with icon k sath get karienga

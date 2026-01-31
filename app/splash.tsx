@@ -1,10 +1,12 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Animated, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 import { useSmartBackHandler } from '../hooks/useSmartBackHandler';
 
 export default function Splash() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.5)).current;
 
@@ -38,9 +40,13 @@ export default function Splash() {
   }, [router, fadeAnim, scaleAnim]);
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" hidden={false} backgroundColor="#FFFFFF" />
-      
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        hidden={false}
+        backgroundColor={colors.background}
+      />
+
       <Animated.View
         style={[
           styles.logoContainer,
@@ -50,12 +56,12 @@ export default function Splash() {
           },
         ]}
       >
-        <Image 
+        <Image
           source={require('../assets/homeimages/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.artistName}>ARTIST CRM</Text>
+        <Text style={[styles.artistName, { color: isDark ? colors.text : '#5152B3' }]}>ARTIST CRM</Text>
       </Animated.View>
     </View>
   );
@@ -84,6 +90,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
-    
+
   },
 });

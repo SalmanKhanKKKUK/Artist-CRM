@@ -1,7 +1,8 @@
+import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState, useRef } from 'react';
-import { THEME_COLORS } from '@/constants/Colors';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -31,11 +32,12 @@ type SignupProps = {
 };
 
 const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupProps) => {
+  const { colors, isDark } = useTheme();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [agreeTerms, setAgreeTerms] = useState<boolean>(false);
-  
+
   // Reset scroll karne ke liye ref use kiya hai
   const scrollRef = useRef<ScrollView>(null);
 
@@ -54,13 +56,13 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
 
   return (
     <LinearGradient
-       colors={THEME_COLORS.bgGradient} 
+      colors={colors.bgGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" translucent backgroundColor="rgba(0,0,0,0)" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} translucent backgroundColor="rgba(0,0,0,0)" />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -76,9 +78,9 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
             scrollEnabled={true}
           >
             {/* Background click par keyboard band karne ke liye TouchableOpacity */}
-            <TouchableOpacity 
-              activeOpacity={1} 
-              onPress={Keyboard.dismiss} 
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={Keyboard.dismiss}
               style={styles.innerContainer}
             >
               <Image
@@ -87,7 +89,7 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                 resizeMode="contain"
               />
 
-              <Text style={styles.title}>Signup</Text>
+              <Text style={[styles.title, { color: colors.text }]}>Signup</Text>
 
               <View style={styles.formContainer}>
                 <Input
@@ -96,8 +98,12 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   placeholder="Email Address"
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  leftIcon={"email" as IconNames} 
+                  leftIcon={"email" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  inputStyle={{ color: colors.text }}
+                  placeholderTextColor={isDark ? '#94a3b8' : '#888'}
+                  iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
                 />
@@ -111,6 +117,10 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   secureTextEntry={true}
                   leftIcon={"lock" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  inputStyle={{ color: colors.text }}
+                  placeholderTextColor={isDark ? '#94a3b8' : '#888'}
+                  iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
                 />
@@ -124,6 +134,10 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   secureTextEntry={true}
                   leftIcon={"lock" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  inputStyle={{ color: colors.text }}
+                  placeholderTextColor={isDark ? '#94a3b8' : '#888'}
+                  iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
                 />
@@ -138,7 +152,7 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                       size={22}
                       color="#5152B3"
                     />
-                    <Text style={styles.optionText}>I agree to Term & Services</Text>
+                    <Text style={[styles.optionText, { color: colors.textSecondary }]}>I agree to Term & Services</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -157,10 +171,10 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   </LinearGradient>
                 </TouchableOpacity>
 
-                <Text style={styles.socialText}>Signup using</Text>
+                <Text style={[styles.socialText, { color: colors.textSecondary }]}>Signup using</Text>
 
                 <View style={styles.socialContainer}>
-                  <TouchableOpacity style={styles.socialIconCircle}>
+                  <TouchableOpacity style={[styles.socialIconCircle, { backgroundColor: isDark ? '#1e293b' : '#FFFFFF', borderColor: colors.border }]}>
                     <Svg width={24} height={24} viewBox="126.445 2.281 589 589">
                       <Circle cx="420.945" cy="296.781" r="294.5" fill="#3c5a9a" />
                       <Path d="M516.704 92.677h-65.239c-38.715 0-81.777 16.283-81.777 72.402.189 19.554 0 38.281 0 59.357H324.9v71.271h46.174v205.177h84.847V294.353h56.002l5.067-70.117h-62.531s.14-31.191 0-40.249c0-22.177 23.076-20.907 24.464-20.907 10.981 0 32.332.032 37.813 0V92.677h-.032z" fill="#ffffff" />
@@ -169,7 +183,7 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
 
                   <View style={styles.socialGap} />
 
-                  <TouchableOpacity style={styles.socialIconCircle}>
+                  <TouchableOpacity style={[styles.socialIconCircle, { backgroundColor: isDark ? '#1e293b' : '#FFFFFF', borderColor: colors.border }]}>
                     <Svg width={24} height={24} viewBox="-3 0 262 262">
                       <Path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4" />
                       <Path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853" />
@@ -180,7 +194,7 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                 </View>
 
                 <TouchableOpacity onPress={onNavigateToLogin} style={styles.loginLinkContainer}>
-                  <Text style={styles.optionText}>Already have an Account?</Text>
+                  <Text style={[styles.optionText, { color: colors.textSecondary }]}>Already have an Account?</Text>
                   <Text style={styles.forgotText}> Login</Text>
                 </TouchableOpacity>
 
@@ -198,8 +212,8 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   mainContainer: { flex: 1 },
   scrollView: { flex: 1 },
-  scrollViewContent: { 
-    flexGrow: 1, 
+  scrollViewContent: {
+    flexGrow: 1,
     justifyContent: 'center' // Elements center mein fix rakhta hai
   },
   innerContainer: {

@@ -25,6 +25,8 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   required?: boolean;
   secureTextEntry?: boolean;
   onToggleSecure?: () => void;
+  backgroundColor?: string;
+  iconColor?: string;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -55,6 +57,8 @@ const Input: React.FC<InputProps> = ({
   maxLength,
   onFocus,
   onBlur,
+  backgroundColor,
+  iconColor,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -112,7 +116,7 @@ const Input: React.FC<InputProps> = ({
           borderColor: borderColor,
           backgroundColor: '#fff',
           // boxShadow: "rgba(0, 0, 0, 0.1) 0px 1px 5px -1px, rgba(0, 0, 0, 0.06) 0px 1px 2px -1px",
-          
+
         };
       case 'filled':
         return {
@@ -142,11 +146,12 @@ const Input: React.FC<InputProps> = ({
           </Text>
         </View>
       )}
-      
+
       <View style={[
         styles.inputContainer,
         { height: inputHeight },
         variantStyles,
+        backgroundColor ? { backgroundColor } : {},
         !editable && styles.disabled,
       ]}>
         {leftIcon && (
@@ -158,7 +163,7 @@ const Input: React.FC<InputProps> = ({
             <MaterialCommunityIcons
               name={leftIcon}
               size={iconSize}
-              color={error ? '#ff4444' : isFocused ? '#5152B3' : '#5152B3'}
+              color={iconColor || (error ? '#ff4444' : isFocused ? '#5152B3' : '#5152B3')}
             />
           </TouchableOpacity>
         )}
@@ -195,7 +200,7 @@ const Input: React.FC<InputProps> = ({
             <MaterialCommunityIcons
               name={secureTextEntry ? (showPassword ? 'eye-off' : 'eye') : rightIcon}
               size={iconSize}
-              color={error ? '#ff4444' : isFocused ? '#5152B3' : '#d6d6d6ff'}
+              color={iconColor || (error ? '#ff4444' : isFocused ? '#5152B3' : '#d6d6d6ff')}
             />
           </TouchableOpacity>
         )}

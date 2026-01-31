@@ -27,7 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
   const handleHomePress = () => { };
   const handleNewVisitPress = () => router.push('/(tabs)/new-visit');
   const handleHistoryPress = () => router.push('/(tabs)/history');
-  const handleTeamsPress = () => router.push('/(tabs)/teams');
+  const handleCustomersPress = () => router.push('/(tabs)/customers');
   const handleAddClientsPress = () => router.push('/(tabs)/add-clients');
   const handleProfilePress = () => router.push('/(tabs)/profile');
 
@@ -101,8 +101,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
             <InfoCard
               title="56"
               description="Total Clients"
-              backgroundColor="#FFFFFF"
-              titleColor="#1E293B"
+              backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+              titleColor={isDark ? "#FFFFFF" : "#1E293B"}
               descriptionColor="#94A3B8"
               titleSize={26}
               margin={0}
@@ -112,8 +112,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
             <InfoCard
               title="10"
               description="Active Clients"
-              backgroundColor="#FFFFFF"
-              titleColor="#313867"
+              backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+              titleColor={isDark ? "#FFFFFF" : "#313867"}
               descriptionColor="#94A3B8"
               titleSize={26}
               margin={0}
@@ -145,14 +145,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
                     imageSource={item.img}
                     title={item.title}
                     description="Last visit: 2 days ago"
-                    backgroundColor="#FFFFFF"
-                    titleStyle={[styles.visitTitle, { color: "#1E293B" }]}
+                    backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                    titleStyle={[styles.visitTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}
                     descriptionStyle={[styles.visitDesc, { color: "#94A3B8" }]}
                     cardMargin={0}
                     cardPadding={12}
                     imageSize={40}
                     elevation={0}
-                    containerStyle={[styles.visitCardBorder, { borderColor: colors.border }]}
+                    containerStyle={[styles.visitCardBorder, { borderColor: colors.border, backgroundColor: isDark ? "#1e293b" : "#FFFFFF" }]}
                   />
                 ))}
               </View>
@@ -197,10 +197,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
               isDark={isDark}
             />
             <NavButton
-              label="Teams"
+              label="Customers"
               icon={<FontAwesome5 name="users" size={20} />}
               isActive={false}
-              onClick={handleTeamsPress}
+              onClick={handleCustomersPress}
               isDark={isDark}
             />
           </View>
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9',
     paddingVertical: 20,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor: '#FFFFFF', // Removed to allow prop override
   },
   sectionHeadingWrapper: {
     flexDirection: 'row',

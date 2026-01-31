@@ -18,7 +18,7 @@ function CustomTabBar() {
   const getActiveRoute = () => {
     if (pathname?.includes('new-visit')) return 'new-visit';
     if (pathname?.includes('history')) return 'history';
-    if (pathname?.includes('teams')) return 'teams';
+    if (pathname?.includes('customers')) return 'customers';
     return 'dashboard';
   };
 
@@ -82,10 +82,10 @@ function CustomTabBar() {
         />
 
         <NavButton
-          label="Teams"
+          label="Customers"
           icon={<FontAwesome5 name="users" size={20} />}
-          isActive={currentRoute === 'teams'}
-          onClick={() => handleTabPress('teams')}
+          isActive={currentRoute === 'customers'}
+          onClick={() => handleTabPress('customers')}
           isDark={isDark}
         />
       </View>
@@ -105,7 +105,7 @@ export default function TabLayout() {
         <Tabs.Screen name="dashboard" />
         <Tabs.Screen name="new-visit" />
         <Tabs.Screen name="history" />
-        <Tabs.Screen name="teams" />
+        <Tabs.Screen name="customers" />
         <Tabs.Screen name="add-clients" />
         <Tabs.Screen name="invite" />
         <Tabs.Screen name="profile" />

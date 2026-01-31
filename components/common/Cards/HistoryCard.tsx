@@ -1,3 +1,4 @@
+import { useTheme } from '@/contexts/ThemeContext';
 import React from 'react';
 import {
   Image,
@@ -27,6 +28,10 @@ export interface HistoryCardProps {
   backgroundColor?: string;
   shadowColor?: string;
   elevation?: number;
+  titleColor?: string;
+  phoneColor?: string;
+  noteColor?: string;
+  dateColor?: string;
 }
 
 const HistoryCard: React.FC<HistoryCardProps> = ({
@@ -42,7 +47,12 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
   backgroundColor = '#FFFFFF',
   shadowColor = '#000',
   elevation = 2,
+  titleColor = '#1E293B',
+  phoneColor = '#64748B',
+  noteColor = '#475569',
+  dateColor = '#5152B3',
 }) => {
+  const { isDark } = useTheme();
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -62,18 +72,24 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         {/* 1. Header: Name & Phone (More Compact) */}
         <View style={styles.headerRow}>
           <View style={styles.nameBlock}>
-            <Text style={styles.nameText} numberOfLines={1}>
+            <Text style={[styles.nameText, { color: titleColor }]} numberOfLines={1}>
               {customer.name}
             </Text>
-            <Text style={styles.phoneText}>{customer.phone}</Text>
+            <Text style={[styles.phoneText, { color: phoneColor }]}>{customer.phone}</Text>
           </View>
         </View>
 
         {/* 2. Services Line (Smaller Gaps) */}
         <View style={styles.chipsRow}>
           {services.map((service, index) => (
-            <View key={`s-${index}`} style={styles.serviceChip}>
-              <Text style={styles.serviceChipText}>{service}</Text>
+            <View key={`s-${index}`} style={[
+              styles.serviceChip,
+              isDark && { backgroundColor: '#312e81', borderColor: '#4338ca' }
+            ]}>
+              <Text style={[
+                styles.serviceChipText,
+                isDark && { color: '#e0e7ff' }
+              ]}>{service}</Text>
             </View>
           ))}
         </View>
@@ -81,16 +97,22 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         {/* 3. Tags Line */}
         <View style={styles.chipsRow}>
           {tags.map((tag, index) => (
-            <View key={`t-${index}`} style={styles.tagChip}>
-              <Text style={styles.tagChipText}>{tag}</Text>
+            <View key={`t-${index}`} style={[
+              styles.tagChip,
+              isDark && { backgroundColor: '#064e3b', borderColor: '#065f46' }
+            ]}>
+              <Text style={[
+                styles.tagChipText,
+                isDark && { color: '#d1fae5' }
+              ]}>{tag}</Text>
             </View>
           ))}
         </View>
 
         {/* 4. Notes (Compact Text) */}
         {notes ? (
-          <Text style={styles.notesText} numberOfLines={1}>
-            <Text style={styles.noteLabel}>Note: </Text>
+          <Text style={[styles.notesText, { color: noteColor }]} numberOfLines={1}>
+            <Text style={[styles.noteLabel, isDark && { color: '#e2e8f0' }]}>Note: </Text>
             {notes}
           </Text>
         ) : null}
@@ -114,8 +136,8 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         {/* 6. Footer: Date & Time (Aligned Bottom) */}
         <View style={styles.footerRow}>
           <View style={styles.dateBlock}>
-            <Text style={styles.dateText}>{date}</Text>
-            <Text style={styles.timeText}>{time}</Text>
+            <Text style={[styles.dateText, { color: dateColor }]}>{date}</Text>
+            <Text style={[styles.timeText, { color: phoneColor }]}>{time}</Text>
           </View>
         </View>
 

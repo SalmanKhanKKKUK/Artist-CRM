@@ -1,7 +1,8 @@
 import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, {useState } from 'react';
+import React, { useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -27,10 +28,11 @@ interface CompanyNameProps {
   onNavigateToProfile?: () => void;
 }
 
-const CompanyName: React.FC<CompanyNameProps> = ({ 
+const CompanyName: React.FC<CompanyNameProps> = ({
   onNavigateToProfile,
-  onBack 
+  onBack
 }) => {
+  const { colors, isDark } = useTheme();
   const [companyName, setCompanyName] = useState<string>('');
   const [website, setWebsite] = useState<string>('');
 
@@ -44,48 +46,52 @@ const CompanyName: React.FC<CompanyNameProps> = ({
 
   return (
     <LinearGradient
-      colors={THEME_COLORS.bgGradient}  
+      colors={colors.bgGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" />
-        
-        <KeyboardAvoidingView 
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+
+        <KeyboardAvoidingView
           // Typing ke waqt halka sa scroll up karne ke liye offset add kiya hai
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 20}
           style={styles.container}
         >
-          <ScrollView 
+          <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollViewContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            // scrollEnabled ko true rakha hai taake keyboard ane par view move ho sake
+          // scrollEnabled ko true rakha hai taake keyboard ane par view move ho sake
           >
             <View style={styles.innerContainer}>
-              
-              <Image 
+
+              <Image
                 source={require('../../../assets/homeimages/logo.png')}
                 style={styles.topImage}
                 resizeMode="contain"
               />
 
-              <Text style={styles.title}>Company Details</Text>
-              
-              <Text style={styles.subTitle}>
+              <Text style={[styles.title, { color: colors.text }]}>Company Details</Text>
+
+              <Text style={[styles.subTitle, { color: colors.textSecondary }]}>
                 Please provide your company information to{"\n"}continue
               </Text>
-              
+
               <View style={styles.formContainer}>
                 <Input
                   value={companyName}
                   onChangeText={(text: string) => setCompanyName(text)}
                   placeholder="Company Name"
-                  leftIcon={"domain" as IconNames} 
+                  leftIcon={"domain" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  inputStyle={{ color: colors.text }}
+                  placeholderTextColor={isDark ? '#94a3b8' : '#888'}
+                  iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
                 />
@@ -98,15 +104,19 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                   placeholder="Website URL"
                   keyboardType="url"
                   autoCapitalize="none"
-                  leftIcon={"web" as IconNames} 
+                  leftIcon={"web" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  inputStyle={{ color: colors.text }}
+                  placeholderTextColor={isDark ? '#94a3b8' : '#888'}
+                  iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
                 />
 
                 <View style={styles.buttonGap} />
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={handleSubmit}
                   style={styles.buttonWrapper}
                 >
@@ -125,31 +135,31 @@ const CompanyName: React.FC<CompanyNameProps> = ({
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </LinearGradient>
+    </LinearGradient >
   );
 };
 
 const styles = StyleSheet.create({
-  gradientContainer: { 
-    flex: 1 
+  gradientContainer: {
+    flex: 1
   },
   safeArea: {
-    flex: 1 
+    flex: 1
   },
   container: {
-    flex: 1 
+    flex: 1
   },
   scrollView: {
     flex: 1
   },
-  scrollViewContent: { 
+  scrollViewContent: {
     flexGrow: 1,
-    justifyContent: 'center' 
+    justifyContent: 'center'
   },
   innerContainer: {
     alignItems: 'center',
-    paddingVertical: 30, 
-    paddingHorizontal: 20, 
+    paddingVertical: 30,
+    paddingHorizontal: 20,
     width: '100%',
   },
   topImage: {
@@ -171,19 +181,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  formContainer: { 
+  formContainer: {
     width: '100%',
     alignItems: 'center'
   },
   inputContainer: {
-    width: '100%' 
+    width: '100%'
   },
   roundedInput: {
     borderRadius: 25,
-    backgroundColor: '#FFFFFF' 
+    backgroundColor: '#FFFFFF'
   },
-  inputGap: { 
-    height: 15 
+  inputGap: {
+    height: 15
   },
   buttonGap: {
     height: 30,
@@ -199,7 +209,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: { 
+  buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold'

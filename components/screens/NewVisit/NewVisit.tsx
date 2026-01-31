@@ -73,13 +73,13 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   ]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [serviceSearch, setServiceSearch] = useState<string>('');
-  const topServices = allServices.slice(0, 3);
+  const topServices = ['Haircut', 'Coloring', 'Styling'];
 
   // --- 4. Tags States ---
   const [allTags, setAllTags] = useState<string[]>(['Premium', 'Regular', 'VIP', 'New', 'Color']);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagSearch, setTagSearch] = useState<string>('');
-  const topTags = allTags.slice(0, 3);
+  const topTags = ['Premium', 'Regular', 'VIP'];
 
   // --- 5. Media & Notes States ---
   const [notes, setNotes] = useState<string>('');
@@ -183,7 +183,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
       <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
-        {/* --- Success Notification --- */}
+        {/* Success Alert */}
         {showSuccess && (
           <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
             <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
@@ -195,8 +195,6 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
         )}
 
         <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
-
-          {/* --- Navigation Header --- */}
           <NavHeader title="Add New Visit !" showProfileIcon={false}>
             <TouchableOpacity onPress={handleSave} activeOpacity={0.8} disabled={loading}>
               <LinearGradient
@@ -223,19 +221,14 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
               contentContainerStyle={[styles.scrollContent, { paddingBottom: 50 + insets.bottom }]}
               keyboardShouldPersistTaps="handled"
             >
-
               {/* 1. Customer Section */}
-              <View style={[styles.card, { backgroundColor: "#FFFFFF", borderColor: colors.border, zIndex: 3000 }]}>
+              <View style={[styles.card, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, zIndex: 3000 }]}>
                 <TouchableOpacity style={styles.cardHeader} onPress={() => toggleSection('customer')}>
                   <View style={styles.headerTitleRow}>
                     <Ionicons name="person-outline" size={20} color={colors.primary} />
-                    <Text style={[styles.cardTitle, { color: "#1E293B" }]}>Customer</Text>
+                    <Text style={[styles.cardTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Customer</Text>
                   </View>
-                  <Ionicons
-                    name={(expandedSection === 'customer' ? 'chevron-up' : 'chevron-down') as IonIconName}
-                    size={20}
-                    color={colors.textSecondary}
-                  />
+                  <Ionicons name={(expandedSection === 'customer' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
 
                 {expandedSection === 'customer' && (
@@ -252,6 +245,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                         variant="outlined"
                         inputStyle={{ color: colors.text }}
                         placeholderTextColor={colors.textSecondary}
+                        backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                       />
                       {customerSearch.length > 0 && !selectedCustomer && filteredCustomers.length > 0 && (
                         <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -290,11 +284,11 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
               </View>
 
               {/* 2. Services Section */}
-              <View style={[styles.card, { backgroundColor: "#FFFFFF", borderColor: colors.border, zIndex: 2000 }]}>
+              <View style={[styles.card, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, zIndex: 2000 }]}>
                 <TouchableOpacity style={styles.cardHeader} onPress={() => toggleSection('services')}>
                   <View style={styles.headerTitleRow}>
                     <MaterialCommunityIcons name="content-cut" size={20} color={colors.primary} />
-                    <Text style={[styles.cardTitle, { color: "#1E293B" }]}>Services</Text>
+                    <Text style={[styles.cardTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Services</Text>
                   </View>
                   <Ionicons name={(expandedSection === 'services' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
@@ -316,21 +310,21 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       variant="outlined"
                       inputStyle={{ color: colors.text }}
                       placeholderTextColor={colors.textSecondary}
+                      backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                     />
-
-                    {/* Quick Select Top 3 Services */}
                     <View style={styles.quickSelectRow}>
-                      {topServices.map(s => (
-                        <TouchableOpacity
-                          key={s}
-                          style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }, selectedServices.includes(s) && { backgroundColor: colors.primary, borderColor: colors.primary }]}
-                          onPress={() => handleAddItem(s, 'service')}
-                        >
-                          <Text style={[styles.quickChipText, { color: colors.textSecondary }, selectedServices.includes(s) && styles.quickChipTextActive]}>+ {s}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {topServices
+                        .filter(s => !selectedServices.includes(s))
+                        .map(s => (
+                          <TouchableOpacity
+                            key={s}
+                            style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
+                            onPress={() => handleAddItem(s, 'service')}
+                          >
+                            <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>+ {s}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
-
                     {serviceSearch.length > 0 && (
                       <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <TouchableOpacity style={[styles.suggestionItem, { borderBottomColor: colors.border }]} onPress={() => handleAddItem(serviceSearch, 'service')}>
@@ -349,11 +343,11 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
               </View>
 
               {/* 3. Tags Section */}
-              <View style={[styles.card, { backgroundColor: "#FFFFFF", borderColor: colors.border, zIndex: 1000 }]}>
+              <View style={[styles.card, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, zIndex: 1000 }]}>
                 <TouchableOpacity style={styles.cardHeader} onPress={() => toggleSection('tags')}>
                   <View style={styles.headerTitleRow}>
                     <MaterialCommunityIcons name="tag-outline" size={20} color={colors.primary} />
-                    <Text style={[styles.cardTitle, { color: "#1E293B" }]}>Tags</Text>
+                    <Text style={[styles.cardTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Tags</Text>
                   </View>
                   <Ionicons name={(expandedSection === 'tags' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
@@ -375,21 +369,21 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       variant="outlined"
                       inputStyle={{ color: colors.text }}
                       placeholderTextColor={colors.textSecondary}
+                      backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                     />
-
-                    {/* Quick Select Top 3 Tags */}
                     <View style={styles.quickSelectRow}>
-                      {topTags.map(t => (
-                        <TouchableOpacity
-                          key={t}
-                          style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }, selectedTags.includes(t) && { backgroundColor: colors.primary, borderColor: colors.primary }]}
-                          onPress={() => handleAddItem(t, 'tag')}
-                        >
-                          <Text style={[styles.quickChipText, { color: colors.textSecondary }, selectedTags.includes(t) && styles.quickChipTextActive]}># {t}</Text>
-                        </TouchableOpacity>
-                      ))}
+                      {topTags
+                        .filter(t => !selectedTags.includes(t))
+                        .map(t => (
+                          <TouchableOpacity
+                            key={t}
+                            style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
+                            onPress={() => handleAddItem(t, 'tag')}
+                          >
+                            <Text style={[styles.quickChipText, { color: colors.textSecondary }]}># {t}</Text>
+                          </TouchableOpacity>
+                        ))}
                     </View>
-
                     {tagSearch.length > 0 && (
                       <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <TouchableOpacity style={[styles.suggestionItem, { borderBottomColor: colors.border }]} onPress={() => handleAddItem(tagSearch, 'tag')}>
@@ -408,18 +402,18 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
               </View>
 
               {/* 4. Notes Section */}
-              <View style={[styles.card, { backgroundColor: "#FFFFFF", borderColor: colors.border }]}>
+              <View style={[styles.card, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
                 <TouchableOpacity style={styles.cardHeader} onPress={() => toggleSection('notes')}>
                   <View style={styles.headerTitleRow}>
                     <MaterialCommunityIcons name="notebook-outline" size={20} color={colors.primary} />
-                    <Text style={[styles.cardTitle, { color: "#1E293B" }]}>Notes</Text>
+                    <Text style={[styles.cardTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Notes</Text>
                   </View>
                   <Ionicons name={(expandedSection === 'notes' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
                 {expandedSection === 'notes' && (
                   <View style={[styles.cardBody, { borderTopColor: colors.border }]}>
                     <TextInput
-                      style={[styles.textArea, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                      style={[styles.textArea, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, color: colors.text }]}
                       placeholder="Technical formulas/Notes..."
                       placeholderTextColor={colors.textSecondary}
                       multiline
@@ -431,11 +425,11 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
               </View>
 
               {/* 5. Photos Section */}
-              <View style={[styles.card, { backgroundColor: "#FFFFFF", borderColor: colors.border }]}>
+              <View style={[styles.card, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
                 <TouchableOpacity style={styles.cardHeader} onPress={() => toggleSection('photos')}>
                   <View style={styles.headerTitleRow}>
                     <Ionicons name="images-outline" size={20} color={colors.primary} />
-                    <Text style={[styles.cardTitle, { color: "#1E293B" }]}>Visit Photos</Text>
+                    <Text style={[styles.cardTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Visit Photos</Text>
                   </View>
                   <Ionicons name={(expandedSection === 'photos' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
@@ -458,7 +452,6 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                   </View>
                 )}
               </View>
-
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -470,223 +463,191 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
 // --- Stylesheet ---
 const styles = StyleSheet.create({
   gradientContainer: {
-    flex: 1
+    flex: 1,
   },
   masterContainer: {
     flex: 1,
-    backgroundColor: 'transparent'
+    backgroundColor: 'transparent',
   },
   flexOne: {
-    flex: 1
+    flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 10
+    paddingTop: 10,
   },
   saveHeaderBtn: {
     paddingHorizontal: 20,
     paddingVertical: 6,
     borderRadius: 20,
-    elevation: 3
+    elevation: 3,
   },
   saveBtnText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 14,
   },
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    elevation: 2
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 18,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 12,
   },
   cardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B'
   },
   cardBody: {
     padding: 18,
     paddingTop: 0,
     borderTopWidth: 1,
-    borderTopColor: '#F8FAFC'
   },
   inputWrapper: {
     position: 'relative',
     width: '100%',
-    marginTop: 10
+    marginTop: 10,
   },
   dropdownMenu: {
     position: 'absolute',
     top: 60,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
     borderRadius: 15,
     elevation: 8,
     zIndex: 9999,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 5
+    padding: 5,
   },
   suggestionItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 10,
   },
   itemTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B'
   },
   itemSub: {
     fontSize: 12,
-    color: '#64748B'
   },
   chipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginVertical: 10
+    marginVertical: 10,
   },
   chip: {
-    backgroundColor: '#F5F3FF',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#DDD6FE',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   chipText: {
-    color: '#5152B3',
     fontSize: 12,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   tagChip: {
     backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0'
+    borderColor: '#E2E8F0',
   },
   tagChipText: {
-    color: '#64748B'
+    color: '#64748B',
   },
   quickSelectRow: {
     flexDirection: 'row',
     gap: 8,
     marginTop: 12,
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
   },
   quickChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E2E8F0'
-  },
-  quickChipActive: {
-    backgroundColor: '#5152B3',
-    borderColor: '#5152B3'
   },
   quickChipText: {
     fontSize: 11,
-    color: '#64748B',
-    fontWeight: '600'
-  },
-  quickChipTextActive: {
-    color: '#FFFFFF'
+    fontWeight: '600',
   },
   selectedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
     padding: 10,
     borderRadius: 10,
     marginTop: 10,
-    gap: 8
+    gap: 8,
   },
   selectedBadgeText: {
     fontSize: 13,
-    color: '#065F46',
-    fontWeight: '600'
+    fontWeight: '600',
   },
   addLink: {
-    marginTop: 12
+    marginTop: 12,
   },
   addLinkText: {
-    color: '#5152B3',
     fontSize: 13,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   textArea: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
     borderRadius: 15,
     padding: 15,
     height: 120,
     textAlignVertical: 'top',
     marginTop: 12,
-    backgroundColor: '#F8FAFC',
     fontSize: 14,
-    color: '#334155'
   },
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginTop: 15
+    marginTop: 15,
   },
   addPhotoBox: {
     width: (width - 100) / 2,
     height: 110,
     borderWidth: 1.5,
-    borderColor: '#5152B3',
     borderStyle: 'dashed',
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F3FF'
   },
   addPhotoText: {
     fontSize: 13,
-    color: '#5152B3',
     marginTop: 8,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   imageWrapper: {
     width: (width - 100) / 2,
     height: 110,
-    position: 'relative'
+    position: 'relative',
   },
   uploadedImg: {
     width: '100%',
     height: '100%',
-    borderRadius: 18
+    borderRadius: 18,
   },
   removeBtn: {
     position: 'absolute',
     top: -6,
     right: -6,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    elevation: 3
+    elevation: 3,
   },
   successNotification: {
     position: 'absolute',
@@ -700,16 +661,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     zIndex: 9999,
     gap: 15,
-    elevation: 10
+    elevation: 10,
   },
   successTitle: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 16
+    fontSize: 16,
   },
   successMessage: {
     color: '#E0F2FE',
-    fontSize: 13
+    fontSize: 13,
   },
 });
 

@@ -146,7 +146,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
           >
             <View style={styles.photoSection}>
               <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
-                <View style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <View style={[styles.imageCircle, { backgroundColor: isDark ? "#1e293b" : colors.background, borderColor: colors.border }]}>
                   {image ? (
                     <Image source={{ uri: image }} style={styles.profileImage} />
                   ) : (
@@ -171,6 +171,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 variant="outlined"
                 inputStyle={{ color: colors.text }}
                 placeholderTextColor={colors.textSecondary}
+                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
               />
 
               <View style={styles.sectionGap} />
@@ -186,6 +187,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 variant="outlined"
                 inputStyle={{ color: colors.text }}
                 placeholderTextColor={colors.textSecondary}
+                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
               />
 
               <View style={styles.sectionGap} />
@@ -203,6 +205,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 variant="outlined"
                 inputStyle={{ color: colors.text }}
                 placeholderTextColor={colors.textSecondary}
+                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
               />
             </View>
           </ScrollView>

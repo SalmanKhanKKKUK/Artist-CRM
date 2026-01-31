@@ -1,8 +1,12 @@
 import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  Animated,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -13,9 +17,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  Animated,
-  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,10 +31,11 @@ interface InviteProps {
 }
 
 const Invite: React.FC<InviteProps> = ({ onBack }) => {
+  const { colors, isDark } = useTheme();
   const [email, setEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
-  
+
   const slideAnim = useRef(new Animated.Value(-150)).current;
   const insets = useSafeAreaInsets();
 
@@ -41,7 +43,7 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
 
   const showTopSuccessLoader = () => {
     setShowSuccess(true);
-    
+
     // Drop down animation
     Animated.spring(slideAnim, {
       toValue: Platform.OS === 'android' ? 50 : 60,
@@ -73,23 +75,23 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
     setTimeout(() => {
       console.log("Invitation logic completed");
       setLoading(false);
-      setEmail(''); 
+      setEmail('');
       showTopSuccessLoader();
     }, 1500);
   };
 
   return (
     <LinearGradient
-      colors={THEME_COLORS.bgGradient}
+      colors={colors.bgGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
       {/* Success Notification Bar */}
       {showSuccess && (
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.successNotification, 
+            styles.successNotification,
             { transform: [{ translateY: slideAnim }] }
           ]}
         >
@@ -102,7 +104,7 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
       )}
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -124,9 +126,9 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
                 resizeMode="contain"
               />
 
-              <Text style={styles.title}>Invite Team</Text>
+              <Text style={[styles.title, { color: colors.text }]}>Invite Team</Text>
 
-              <Text style={styles.subTitle}>
+              <Text style={[styles.subTitle, { color: colors.textSecondary }]}>
                 Invite team members to join Artist-CRM {"\n"}and manage business together.
               </Text>
 
@@ -139,6 +141,10 @@ const Invite: React.FC<InviteProps> = ({ onBack }) => {
                   autoCapitalize="none"
                   leftIcon={"email-outline" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  inputStyle={{ color: colors.text }}
+                  placeholderTextColor={isDark ? '#94a3b8' : '#888'}
+                  iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
                 />

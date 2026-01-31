@@ -1,17 +1,24 @@
+import { THEME_COLORS } from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
+  LayoutAnimation,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  Platform,
   TouchableWithoutFeedback,
+  UIManager,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { THEME_COLORS } from '@/constants/Colors';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export interface FilterOption {
   label: string;
@@ -31,6 +38,9 @@ interface FilterInputProps {
   onReset: () => void;
   isVisible: boolean;
   onClose: () => void;
+  backgroundColor?: string;
+  textColor?: string;
+  chipInactiveBackgroundColor?: string;
 }
 
 const FilterInput: React.FC<FilterInputProps> = ({
@@ -40,14 +50,23 @@ const FilterInput: React.FC<FilterInputProps> = ({
   onReset,
   isVisible,
   onClose,
+  backgroundColor = '#FFFFFF',
+  textColor = '#334155',
+  chipInactiveBackgroundColor = '#FFFFFF',
 }) => {
   const [selections, setSelections] = useState<Record<string, string>>({});
+  // Track kounsa section open hai (bilkul NewVisit ki tarah)
+  const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.id || null);
+
+  const toggleSection = (sectionId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedSection(expandedSection === sectionId ? null : sectionId);
+  };
 
   const handleSelect = (sectionId: string, value: string) => {
     setSelections((prev) => ({
       ...prev,
-      // Agar user wahi option dobara select kare to unselect ho jaye
-      [sectionId]: prev[sectionId] === value ? "" : value 
+      [sectionId]: prev[sectionId] === value ? "" : value
     }));
   };
 
@@ -58,68 +77,88 @@ const FilterInput: React.FC<FilterInputProps> = ({
 
   const handleApply = () => {
     onApply(selections);
-    onClose(); 
+    onClose();
   };
 
   return (
     <Modal
       visible={isVisible}
-      animationType="fade"
+      animationType="slide" // Slide animation is better for bottom sheets
       transparent={true}
       statusBarTranslucent={true}
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
         <TouchableWithoutFeedback>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor }]}>
             
-            <View style={styles.header}>
+            {/* Header */}
+            <View style={[styles.header, { backgroundColor, borderBottomColor: Platform.OS === 'ios' ? '#E2E8F0' : 'transparent' }]}>
               <View style={styles.dragHandle} />
-              <Text style={styles.headerText}>{title}</Text>
+              <Text style={[styles.headerText, { color: textColor }]}>{title}</Text>
             </View>
 
-            <ScrollView 
-              style={styles.scrollBody} 
+            <ScrollView
+              style={[styles.scrollBody, { backgroundColor }]}
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
               {sections.map((section) => (
-                <View key={section.id} style={styles.sectionContainer}>
-                  <Text style={styles.sectionLabel}>{section.title}</Text>
-                  <View style={styles.optionsWrapper}>
-                    {section.options.map((option) => {
-                      const isSelected = selections[section.id] === option.value;
-                      return (
-                        <TouchableOpacity
-                          key={option.value}
-                          activeOpacity={0.7}
-                          onPress={() => handleSelect(section.id, option.value)}
-                          style={[
-                            styles.chip, 
-                            isSelected ? styles.chipActive : styles.chipInactive
-                          ]}
-                        >
-                          <Text 
+                <View key={section.id} style={[styles.sectionWrapper, { borderColor: Platform.OS === 'ios' ? '#F1F5F9' : '#E2E8F0' }]}>
+                  {/* Dropdown Header */}
+                  <TouchableOpacity 
+                    style={styles.accordionHeader} 
+                    onPress={() => toggleSection(section.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.sectionLabel, { color: textColor }]}>{section.title}</Text>
+                    <Ionicons 
+                      name={expandedSection === section.id ? "chevron-up" : "chevron-down"} 
+                      size={20} 
+                      color={textColor} 
+                    />
+                  </TouchableOpacity>
+
+                  {/* Dropdown Body */}
+                  {expandedSection === section.id && (
+                    <View style={styles.optionsWrapper}>
+                      {section.options.map((option) => {
+                        const isSelected = selections[section.id] === option.value;
+                        return (
+                          <TouchableOpacity
+                            key={option.value}
+                            activeOpacity={0.7}
+                            onPress={() => handleSelect(section.id, option.value)}
                             style={[
-                              styles.chipText, 
-                              isSelected ? styles.textActive : styles.textInactive
+                              styles.chip,
+                              isSelected
+                                ? styles.chipActive
+                                : [styles.chipInactive, { backgroundColor: chipInactiveBackgroundColor, borderColor: textColor }]
                             ]}
                           >
-                            {option.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                            <Text
+                              style={[
+                                styles.chipText,
+                                isSelected ? styles.textActive : [styles.textInactive, { color: textColor }]
+                              ]}
+                            >
+                              {option.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               ))}
             </ScrollView>
 
-            <View style={styles.footer}>
+            {/* Footer Actions */}
+            <View style={[styles.footer, { backgroundColor }]}>
               <TouchableOpacity activeOpacity={0.8} onPress={handleApply}>
                 <LinearGradient
                   colors={THEME_COLORS.buttonGradient}
-                  start={{ x: 0, y: 0 }} 
+                  start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.primaryBtnGradient}
                 >
@@ -130,7 +169,7 @@ const FilterInput: React.FC<FilterInputProps> = ({
               <TouchableOpacity style={styles.secondaryBtn} onPress={handleReset}>
                 <Text style={styles.secondaryBtnText}>Reset Selections</Text>
               </TouchableOpacity>
-              
+
               <View style={styles.safeBottomSpacer} />
             </View>
 
@@ -148,21 +187,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#F8FAFC',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     maxHeight: '80%',
     width: '100%',
-    paddingBottom: Platform.OS === 'android' ? 10 : 0, 
   },
   header: {
     paddingVertical: 15,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
   },
   dragHandle: {
     width: 40,
@@ -172,48 +207,55 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   headerText: {
-    color: '#5152B3',
     fontSize: 18,
     fontWeight: '800',
   },
   scrollBody: {
-    backgroundColor: '#F8FAFC',
+    flex: 0,
   },
   scrollContent: {
-    paddingHorizontal: 25,
-    paddingTop: 20,
-    paddingBottom: 30,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
   },
-  sectionContainer: {
-    marginBottom: 25,
+  sectionWrapper: {
+    marginBottom: 10,
+    borderWidth: 1,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
   },
   sectionLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#334155',
-    marginBottom: 12,
   },
   optionsWrapper: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
+    paddingHorizontal: 15,
+    paddingBottom: 15,
   },
   chip: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   chipInactive: {
     borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
   },
   chipActive: {
     borderColor: '#5152B3',
     backgroundColor: '#5152B3',
   },
   chipText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
   textInactive: {
@@ -225,7 +267,6 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 25,
     paddingTop: 15,
-    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
@@ -252,12 +293,11 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   safeBottomSpacer: {
-    height: Platform.OS === 'ios' ? 40 : 40,
+    height: Platform.OS === 'ios' ? 40 : 20,
   },
 });
 
 export default FilterInput;
-
 
 // ye reusable component hai
 // s ko hum ne filter k reusable banaya hai

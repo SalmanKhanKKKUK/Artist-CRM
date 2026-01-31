@@ -150,7 +150,7 @@ const ViewHistory: React.FC = () => {
                 <View style={styles.showMoreContainer}>
                   <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
                   <Text style={[styles.showMoreText, { color: isDark ? colors.text : "black" }]}>
-                    Show More Previous Visits
+                    See More Previous Visits
                   </Text>
                   <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
                 </View>

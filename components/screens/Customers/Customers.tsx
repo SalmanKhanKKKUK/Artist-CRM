@@ -23,23 +23,23 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import NavHeader from '../../common/Buttons/NavHeader';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
 
-interface TeamMember {
+interface Customer {
   id: string;
   title: string;
   description: string;
   image: string;
 }
 
-interface TeamsProps {
+interface CustomersProps {
   onBack?: () => void;
   onNavigateToInvite?: () => void;
 }
 
-const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
+const Customers: React.FC<CustomersProps> = ({ onBack, onNavigateToInvite }) => {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 
-  const defaultTeams: TeamMember[] = [
+  const defaultCustomers: Customer[] = [
     { id: '1', title: "Ahmad Ali", description: "Senior Stylist - Active", image: 'https://i.pravatar.cc/150?u=1' },
     { id: '2', title: "Sara Khan", description: "Color Expert - Active", image: 'https://i.pravatar.cc/150?u=2' },
     { id: '3', title: "Zeenat Malik", description: "Manager - Active", image: 'https://i.pravatar.cc/150?u=3' },
@@ -52,7 +52,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
     { id: '10', title: "Ayesha Omer", description: "Skin Expert - Active", image: 'https://i.pravatar.cc/150?u=10' },
   ];
 
-  const [teams, setTeams] = useState<TeamMember[]>(defaultTeams);
+  const [customers, setCustomers] = useState<Customer[]>(defaultCustomers);
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -65,27 +65,27 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   useEffect(() => {
-    const loadTeams = async () => {
+    const loadCustomers = async () => {
       try {
-        const savedData = await AsyncStorage.getItem('permanently_saved_teams');
+        const savedData = await AsyncStorage.getItem('permanently_saved_customers');
         if (savedData !== null) {
-          const parsedData = JSON.parse(savedData) as TeamMember[];
+          const parsedData = JSON.parse(savedData) as Customer[];
           if (parsedData.length >= 8) {
-            setTeams(parsedData);
+            setCustomers(parsedData);
           }
         }
       } catch (error) {
-        console.error("Failed to load teams:", error);
+        console.error("Failed to load customers:", error);
       }
     };
-    loadTeams();
+    loadCustomers();
   }, []);
 
-  const persistTeams = async (updatedTeams: TeamMember[]) => {
+  const persistCustomers = async (updatedCustomers: Customer[]) => {
     try {
-      await AsyncStorage.setItem('permanently_saved_teams', JSON.stringify(updatedTeams));
+      await AsyncStorage.setItem('permanently_saved_customers', JSON.stringify(updatedCustomers));
     } catch (error) {
-      console.error("Failed to save teams:", error);
+      console.error("Failed to save customers:", error);
     }
   };
 
@@ -102,7 +102,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
     }
   };
 
-  const handleOpenMenu = (event: any, member: TeamMember) => {
+  const handleOpenMenu = (event: any, member: Customer) => {
     const { pageY } = event.nativeEvent;
     setMenuPosition({ top: pageY - 10, right: 40 });
     setSelectedId(member.id);
@@ -118,19 +118,19 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
   };
 
   const handleSaveEdit = () => {
-    const updated = teams.map((item: TeamMember) =>
+    const updated = customers.map((item: Customer) =>
       item.id === selectedId
         ? { ...item, title: tempTitle, description: tempDesc, image: tempImg }
         : item
     );
-    setTeams(updated);
-    persistTeams(updated);
+    setCustomers(updated);
+    persistCustomers(updated);
     setEditModalVisible(false);
   };
 
   // Status and Delete functions remain same...
   const handleToggleStatus = () => {
-    const updated = teams.map((item: TeamMember) => {
+    const updated = customers.map((item: Customer) => {
       if (item.id === selectedId) {
         const isCurrentlyActive = item.description.toLowerCase().includes("active") && !item.description.toLowerCase().includes("deactive");
         const baseDesc = item.description.split(" - ")[0];
@@ -139,29 +139,29 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
       }
       return item;
     });
-    setTeams(updated);
-    persistTeams(updated);
+    setCustomers(updated);
+    persistCustomers(updated);
     setMenuVisible(false);
   };
 
   const handleDelete = () => {
-    Alert.alert("Confirm Delete", "Are you sure you want to delete this member?", [
+    Alert.alert("Confirm Delete", "Are you sure you want to delete this customer?", [
       { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
       {
         text: "Delete",
         style: "destructive",
         onPress: () => {
-          const filtered = teams.filter((item: TeamMember) => item.id !== selectedId);
-          setTeams(filtered);
-          persistTeams(filtered);
+          const filtered = customers.filter((item: Customer) => item.id !== selectedId);
+          setCustomers(filtered);
+          persistCustomers(filtered);
           setMenuVisible(false);
         }
       }
     ]);
   };
 
-  const isSelectedActive = teams.find(t => t.id === selectedId)?.description.toLowerCase().includes("active") &&
-    !teams.find(t => t.id === selectedId)?.description.toLowerCase().includes("deactive");
+  const isSelectedActive = customers.find(t => t.id === selectedId)?.description.toLowerCase().includes("active") &&
+    !customers.find(t => t.id === selectedId)?.description.toLowerCase().includes("deactive");
 
   return (
     <LinearGradient
@@ -172,7 +172,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
-        <NavHeader title=" Meet Our Team !">
+        <NavHeader title=" Meet Our Customers !">
           <TouchableOpacity onPress={() => onNavigateToInvite?.()} activeOpacity={0.8}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
@@ -189,15 +189,15 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
           contentContainerStyle={[styles.mainScroll, { paddingBottom: 60 + insets.bottom }]}
         >
           <View style={styles.contentFadeIn}>
-            {teams.map((member) => (
+            {customers.map((member) => (
               <View key={member.id} style={styles.cardWrapper}>
                 <ImageDesCard
                   imageSource={{ uri: member.image }}
                   title={member.title}
                   description={member.description}
-                  backgroundColor="#FFFFFF"
+                  backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                   containerStyle={[styles.cardMargin, { borderColor: colors.border }]}
-                  titleStyle={{ color: "#1E293B" }}
+                  titleStyle={{ color: isDark ? "#FFFFFF" : "#1E293B" }}
                   descriptionStyle={{ color: "#64748B" }}
                 />
                 <TouchableOpacity
@@ -242,7 +242,7 @@ const Teams: React.FC<TeamsProps> = ({ onBack, onNavigateToInvite }) => {
       <Modal visible={editModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlayCenterDark}>
           <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-            <Text style={[styles.editTitle, { color: colors.text }]}>Edit Team Member</Text>
+            <Text style={[styles.editTitle, { color: colors.text }]}>Edit Customer</Text>
 
             {/* Centered Image Edit - Same as History */}
             <View style={{ alignItems: 'center', marginBottom: 20 }}>
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+    // backgroundColor: '#FFFFFF', // Removed to allow prop override
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -458,4 +458,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Teams;
+export default Customers;

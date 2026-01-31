@@ -51,7 +51,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [email] = useState<string>("aqibshoaib@gmail.com");
   const [phone, setPhone] = useState<string>("3118298343");
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const { themeMode, setThemeMode, colors } = useTheme();
+  const { themeMode, setThemeMode, colors, isDark } = useTheme();
 
   // --- Teams Data States ---
   const [teams, setTeams] = useState<TeamMember[]>([]);
@@ -80,15 +80,41 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
         const savedPhone = await AsyncStorage.getItem('user_phone');
         if (savedPhone) setPhone(savedPhone);
 
-        const savedTeams = await AsyncStorage.getItem('permanently_saved_teams');
-        if (savedTeams) {
-          setTeams(JSON.parse(savedTeams));
-        } else {
-          setTeams([
-            { id: '1', title: "Ahmad Ali", description: "Senior Stylist - Active", image: 'https://i.pravatar.cc/150?u=1' },
-            { id: '2', title: "Sara Khan", description: "Color Expert - Active", image: 'https://i.pravatar.cc/150?u=2' },
-          ]);
-        }
+        // Requirement: Always load these 5 cards on run
+        const initialTeams = [
+          {
+            id: '1',
+            title: "Ahmad Ali",
+            description: "Senior Stylist - Active",
+            image: 'https://i.pravatar.cc/150?u=1'
+          },
+          {
+            id: '2',
+            title: "Sara Khan",
+            description: "Color Expert - Active",
+            image: 'https://i.pravatar.cc/150?u=2'
+          },
+          {
+            id: '3',
+            title: "Zain Malik",
+            description: "Barber - Active",
+            image: 'https://i.pravatar.cc/150?u=3'
+          },
+          {
+            id: '4',
+            title: "Hina Shah",
+            description: "Manager - Active",
+            image: 'https://i.pravatar.cc/150?u=4'
+          },
+          {
+            id: '5',
+            title: "Omar Farooq",
+            description: "Junior Stylist - Active",
+            image: 'https://i.pravatar.cc/150?u=5'
+          },
+        ];
+        setTeams(initialTeams);
+        await AsyncStorage.setItem('permanently_saved_teams', JSON.stringify(initialTeams));
       } catch (error) {
         console.error("Load Data Error:", error);
       }
@@ -119,8 +145,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     });
 
     if (!result.canceled) {
-      if (type === 'profile') setProfileImage(result.assets[0].uri);
-      else setTempImg(result.assets[0].uri);
+      if (type === 'profile') {
+        setProfileImage(result.assets[0].uri);
+      } else {
+        setTempImg(result.assets[0].uri);
+      }
     }
   };
 
@@ -166,9 +195,13 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     if (!selectedTeamMember) return;
     const updated = teams.map(item => {
       if (item.id === selectedTeamMember.id) {
-        const isActive = item.description.toLowerCase().includes("active") && !item.description.toLowerCase().includes("deactive");
+        const isActive = item.description.toLowerCase().includes("active") &&
+          !item.description.toLowerCase().includes("deactive");
         const baseDesc = item.description.split(" - ")[0];
-        return { ...item, description: `${baseDesc} - ${isActive ? "Deactive" : "Active"}` };
+        return {
+          ...item,
+          description: `${baseDesc} - ${isActive ? "Deactive" : "Active"}`
+        };
       }
       return item;
     });
@@ -226,7 +259,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        {/* --- Header Success Alert --- */}
+        {/* Success Alert */}
         {showSuccess && (
           <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
             <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
@@ -237,13 +270,13 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </Animated.View>
         )}
 
-        {/* --- Navigation Header --- */}
         <NavHeader title={activeTab === 'profile' ? "Profile" : "Team Members"} showProfileIcon={false}>
           {activeTab === 'profile' && (
             <TouchableOpacity onPress={handleLogout} activeOpacity={0.8}>
               <LinearGradient
                 colors={THEME_COLORS.buttonGradient}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={styles.headerBtn}
               >
                 <MaterialCommunityIcons name="logout" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
@@ -253,12 +286,14 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           )}
         </NavHeader>
 
-        {/* --- Tab Selector --- */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[
-              styles.tabButton, 
-              { backgroundColor: colors.card, borderColor: colors.border }, 
+              styles.tabButton,
+              {
+                backgroundColor: activeTab === 'profile' && isDark ? "#1e293b" : colors.card,
+                borderColor: colors.border
+              },
               activeTab === 'profile' && styles.activeTabButton
             ]}
             onPress={() => setActiveTab('profile')}
@@ -269,8 +304,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.tabButton, 
-              { backgroundColor: colors.card, borderColor: colors.border }, 
+              styles.tabButton,
+              {
+                backgroundColor: activeTab === 'teams' && isDark ? "#1e293b" : colors.card,
+                borderColor: colors.border
+              },
               activeTab === 'teams' && styles.activeTabButton
             ]}
             onPress={() => setActiveTab('teams')}
@@ -281,7 +319,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableOpacity>
         </View>
 
-        {/* --- Main Content Area --- */}
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flexOne}>
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -292,10 +329,9 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           >
             {activeTab === 'profile' ? (
               <View style={styles.innerContainer}>
-                {/* Profile Section */}
                 <View style={styles.profileHeader}>
-                  <TouchableOpacity 
-                    onPress={() => pickImage('profile')} 
+                  <TouchableOpacity
+                    onPress={() => pickImage('profile')}
                     style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}
                   >
                     {profileImage ? (
@@ -311,41 +347,42 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <Text style={[styles.profileBusiness, { color: colors.textSecondary }]}>Artist CRM</Text>
                 </View>
 
-                {/* Profile Fields */}
                 <View style={styles.infoWrapper}>
-                  <InfoCard 
-                    title="Email" 
-                    description={email} 
-                    backgroundColor="#FFFFFF" 
-                    borderRadius={20} 
-                    containerStyle={[styles.cardBorder, { borderColor: colors.border }]} 
-                    titleColor="#1E293B" 
-                    descriptionColor="#64748B" 
+                  <InfoCard
+                    title="Email"
+                    description={email}
+                    backgroundColor={themeMode === 'dark' || (themeMode === 'active' && isDark) ? "#1e293b" : "#FFFFFF"}
+                    borderRadius={20}
+                    containerStyle={[styles.cardBorder, { borderColor: colors.border }]}
+                    titleColor={themeMode === 'dark' || (themeMode === 'active' && isDark) ? "#FFFFFF" : "#1E293B"}
+                    descriptionColor="#64748B"
                   />
 
                   <View style={styles.cardWithMenu}>
-                    <InfoCard 
-                      title="Phone" 
-                      description={phone} 
-                      backgroundColor="#FFFFFF" 
-                      borderRadius={20} 
-                      containerStyle={[styles.cardBorder, { borderColor: colors.border }]} 
-                      titleColor="#1E293B" 
-                      descriptionColor="#64748B" 
+                    <InfoCard
+                      title="Phone"
+                      description={phone}
+                      backgroundColor={themeMode === 'dark' || (themeMode === 'active' && isDark) ? "#1e293b" : "#FFFFFF"}
+                      borderRadius={20}
+                      containerStyle={[styles.cardBorder, { borderColor: colors.border }]}
+                      titleColor={themeMode === 'dark' || (themeMode === 'active' && isDark) ? "#FFFFFF" : "#1E293B"}
+                      descriptionColor="#64748B"
                     />
                     <TouchableOpacity style={styles.threeDotButton} onPress={(e) => handleOpenPhoneMenu(e)}>
                       <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
 
-                  {/* Mode Grid Buttons */}
                   <View style={styles.gridContainer}>
                     {(['active', 'dark', 'light'] as const).map((mode) => (
                       <TouchableOpacity
                         key={mode}
                         style={[
                           styles.gridButton,
-                          { backgroundColor: colors.card, borderColor: colors.border },
+                          {
+                            backgroundColor: themeMode === mode ? colors.primary : (isDark ? "#1e293b" : "#FFFFFF"),
+                            borderColor: colors.border
+                          },
                           themeMode === mode && { backgroundColor: colors.primary, borderColor: colors.primary }
                         ]}
                         onPress={() => setThemeMode(mode)}
@@ -369,15 +406,15 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
               </View>
             ) : (
               <View style={styles.innerContainer}>
-                {/* Relocated Invite Section in Team Tab */}
                 <View style={styles.inviteSectionWrapper}>
                   <Text style={[styles.inviteInstructionText, { color: colors.textSecondary }]}>
                     Invite your team member
                   </Text>
-                  <TouchableOpacity onPress={() => setInviteModalVisible(true)} activeOpacity={0.8} style={styles.inlineInviteBtn}>
+                  <TouchableOpacity onPress={() => setInviteModalVisible(true)} activeOpacity={0.8}>
                     <LinearGradient
                       colors={THEME_COLORS.buttonGradient}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
                       style={styles.headerBtn}
                     >
                       <MaterialCommunityIcons name="account-plus" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
@@ -386,16 +423,15 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Team Members List */}
                 {teams.map((member) => (
                   <View key={member.id} style={styles.teamCardWrapper}>
                     <ImageDesCard
                       imageSource={{ uri: member.image }}
                       title={member.title}
                       description={member.description}
-                      backgroundColor="#FFFFFF"
+                      backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                       containerStyle={[styles.teamCard, { borderColor: colors.border }]}
-                      titleStyle={{ color: "#1E293B" }}
+                      titleStyle={{ color: isDark ? "#FFFFFF" : "#1E293B" }}
                       descriptionStyle={{ color: "#64748B" }}
                     />
                     <TouchableOpacity
@@ -411,13 +447,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </ScrollView>
         </KeyboardAvoidingView>
 
-        {/* --- Modals Section --- */}
-        
-        {/* Context Menu Modal */}
+        {/* --- Context Menu Modal --- */}
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={styles.modalOverlayDimmed}>
-              <View style={[styles.menuPopup, { top: menuPosition.top, right: 40, backgroundColor: colors.card }]}>
+              <View style={[styles.menuPopup, { top: menuPosition.top, right: 40, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
                 <TouchableOpacity style={styles.menuItem} onPress={handleEditInitiate}>
                   <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
                   <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
@@ -447,18 +481,19 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Invite Modal */}
+        {/* --- Invite Modal --- */}
         <Modal visible={inviteModalVisible} transparent animationType="slide">
           <TouchableWithoutFeedback onPress={() => setInviteModalVisible(false)}>
             <View style={styles.modalOverlayCenterDark}>
               <TouchableWithoutFeedback onPress={() => { }}>
-                <View style={styles.editPopup}>
-                  <Text style={styles.editTitle}>Invite Team</Text>
+                <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+                  <Text style={[styles.editTitle, { color: colors.text }]}>Invite Team</Text>
                   <View style={styles.formBody}>
                     <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Team Member Email</Text>
+                      <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Team Member Email</Text>
                       <TextInput
-                        style={styles.inputField}
+                        style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                        placeholderTextColor={colors.textSecondary}
                         value={inviteEmail}
                         onChangeText={setInviteEmail}
                         keyboardType="email-address"
@@ -478,11 +513,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Generic Edit Modal */}
+        {/* --- Edit Modal --- */}
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
-            <View style={styles.editPopup}>
-              <Text style={styles.editTitle}>
+            <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+              <Text style={[styles.editTitle, { color: colors.text }]}>
                 {activeTab === 'profile' ? "Update Phone" : "Edit Team Member"}
               </Text>
               {activeTab === 'teams' && (
@@ -500,11 +535,12 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
               )}
               <View style={styles.formBody}>
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
                     {activeTab === 'profile' ? "Phone Number" : "Full Name"}
                   </Text>
                   <TextInput
-                    style={styles.inputField}
+                    style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                    placeholderTextColor={colors.textSecondary}
                     value={activeTab === 'profile' ? tempValue : tempTitle}
                     onChangeText={activeTab === 'profile' ? setTempValue : setTempTitle}
                     keyboardType={activeTab === 'profile' ? "phone-pad" : "default"}
@@ -513,12 +549,13 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                 </View>
                 {activeTab === 'teams' && (
                   <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Designation</Text>
-                    <TextInput 
-                      style={styles.inputField} 
-                      value={tempDesc} 
-                      onChangeText={setTempDesc} 
-                      placeholder="e.g. Senior Artist" 
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Designation</Text>
+                    <TextInput
+                      style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                      placeholderTextColor={colors.textSecondary}
+                      value={tempDesc}
+                      onChangeText={setTempDesc}
+                      placeholder="e.g. Senior Artist"
                     />
                   </View>
                 )}
@@ -534,348 +571,341 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
-    </LinearGradient>
+      </SafeAreaView >
+    </LinearGradient >
   );
 };
 
-// --- Stylesheet ---
 const styles = StyleSheet.create({
-  gradientContainer: { 
-    flex: 1 
+  gradientContainer: {
+    flex: 1
   },
-  masterContainer: { 
-    flex: 1, 
-    backgroundColor: 'transparent' 
+  masterContainer: {
+    flex: 1,
+    backgroundColor: 'transparent'
   },
-  flexOne: { 
-    flex: 1 
+  flexOne: {
+    flex: 1
   },
-  tabContainer: { 
-    flexDirection: 'row', 
-    paddingHorizontal: 20, 
-    marginVertical: 12, 
-    gap: 12 
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginVertical: 12,
+    gap: 12
   },
-  tabButton: { 
-    flex: 1, 
-    paddingVertical: 12, 
-    borderRadius: 15, 
-    backgroundColor: '#FFFFFF', 
-    borderWidth: 1, 
-    borderColor: '#E2E8F0', 
-    alignItems: 'center', 
-    justifyContent: 'center' 
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  activeTabButton: { 
-    backgroundColor: '#5152B3', 
-    borderColor: '#5152B3' 
+  activeTabButton: {
+    backgroundColor: '#5152B3',
+    borderColor: '#5152B3'
   },
-  tabText: { 
-    fontSize: 14, 
-    fontWeight: '700', 
-    color: '#64748B' 
+  tabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B'
   },
-  activeTabText: { 
-    color: '#FFFFFF' 
+  activeTabText: {
+    color: '#FFFFFF'
   },
-  scrollContent: { 
-    flexGrow: 1, 
-    paddingHorizontal: 15 
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 15
   },
-  innerContainer: { 
-    width: '100%', 
-    paddingRight: 5 
+  innerContainer: {
+    width: '100%',
+    paddingRight: 5
   },
-  profileHeader: { 
-    alignItems: 'center', 
-    marginBottom: 25, 
-    marginTop: 10 
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 25,
+    marginTop: 10
   },
-  imageCircle: { 
-    width: 120, 
-    height: 120, 
-    borderRadius: 60, 
-    backgroundColor: '#EEF2FF', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderWidth: 2, 
-    borderColor: '#E2E8F0', 
-    borderStyle: 'dashed', 
-    position: 'relative' 
+  imageCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#EEF2FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    position: 'relative'
   },
-  avatarImage: { 
-    width: 120, 
-    height: 120, 
-    borderRadius: 60 
+  avatarImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60
   },
-  plusIconWrapper: { 
-    position: 'absolute', 
-    bottom: 2, 
-    right: 2, 
-    backgroundColor: '#5152B3', 
-    width: 30, 
-    height: 30, 
-    borderRadius: 15, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderWidth: 2, 
-    borderColor: '#FFFFFF' 
+  plusIconWrapper: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    backgroundColor: '#5152B3',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF'
   },
-  profileName: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#1E293B', 
-    marginTop: 10 
+  profileName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginTop: 10
   },
-  profileBusiness: { 
-    fontSize: 15, 
-    color: '#64748B' 
+  profileBusiness: {
+    fontSize: 15,
+    color: '#64748B'
   },
-  infoWrapper: { 
-    gap: 5, 
-    paddingRight: 10 
+  infoWrapper: {
+    gap: 5,
+    paddingHorizontal: 10,
+    width: '100%'
   },
-  cardBorder: { 
-    borderWidth: 1, 
-    borderColor: '#E2E8F0', 
-    width: '100%' 
+  cardBorder: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    width: '100%'
   },
-  cardWithMenu: { 
-    position: 'relative', 
-    justifyContent: 'center', 
-    width: '100%' 
+  cardWithMenu: {
+    position: 'relative',
+    justifyContent: 'center',
+    width: '100%'
   },
-  threeDotButton: { 
-    position: 'absolute', 
-    right: 0, 
-    padding: 10, 
-    zIndex: 10 
+  threeDotButton: {
+    position: 'absolute',
+    right: 0,
+    padding: 10,
+    zIndex: 10
   },
-  teamCardWrapper: { 
-    position: 'relative', 
-    marginBottom: 12 
+  teamCardWrapper: {
+    position: 'relative',
+    marginBottom: 0
   },
-  teamCard: { 
-    borderRadius: 20, 
-    borderWidth: 1, 
-    borderColor: '#E2E8F0' 
+  teamCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
   },
-  teamThreeDot: { 
-    position: 'absolute', 
-    right: 15, 
-    top: 25, 
-    padding: 10, 
-    zIndex: 10 
+  teamThreeDot: {
+    position: 'absolute',
+    right: 15,
+    top: 25,
+    padding: 10,
+    zIndex: 10
   },
-  gridContainer: { 
-    flexDirection: 'row', 
-    gap: 10, 
-    marginTop: 0, 
-    marginLeft: 10 
+  gridContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%'
   },
-  gridButton: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF', 
-    paddingVertical: 16, 
-    borderRadius: 18, 
-    alignItems: 'center', 
-    borderWidth: 1, 
-    borderColor: '#E2E8F0', 
-    gap: 5 
+  gridButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 18,
+    alignItems: 'center',
+    borderWidth: 1,
+    gap: 5
   },
-  gridButtonText: { 
-    fontSize: 12, 
-    fontWeight: '700', 
-    color: '#5152B3' 
+  gridButtonText: {
+    fontSize: 12,
+    fontWeight: '700'
   },
-  modalOverlayDimmed: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.4)' 
+  modalOverlayDimmed: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)'
   },
-  modalOverlayCenterDark: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.6)', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  modalOverlayCenterDark: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  menuPopup: { 
-    position: 'absolute', 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 12, 
-    width: 140, 
-    paddingVertical: 5, 
-    elevation: 8 
+  menuPopup: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    width: 140,
+    paddingVertical: 5,
+    elevation: 8
   },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    padding: 12, 
-    gap: 10 
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 10
   },
-  menuText: { 
-    fontSize: 15, 
-    color: '#334155' 
+  menuText: {
+    fontSize: 15,
+    color: '#334155'
   },
-  menuSeparator: { 
-    height: 1, 
-    backgroundColor: '#F1F5F9', 
-    marginHorizontal: 10 
+  menuSeparator: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginHorizontal: 10
   },
-  editPopup: { 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 30, 
-    width: '88%', 
-    padding: 24, 
-    elevation: 10 
+  editPopup: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    width: '88%',
+    padding: 24,
+    elevation: 10
   },
-  editTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    color: '#1E293B', 
-    textAlign: 'center', 
-    marginBottom: 20 
+  editTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    textAlign: 'center',
+    marginBottom: 20
   },
-  formImageContainer: { 
-    alignItems: 'center', 
-    marginBottom: 20 
+  formImageContainer: {
+    alignItems: 'center',
+    marginBottom: 20
   },
-  formImageCircle: { 
-    width: 90, 
-    height: 90, 
-    borderRadius: 45, 
-    borderWidth: 3, 
-    borderColor: '#EEF2FF', 
-    position: 'relative' 
+  formImageCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 3,
+    borderColor: '#EEF2FF',
+    position: 'relative'
   },
-  formAvatar: { 
-    width: 84, 
-    height: 84, 
-    borderRadius: 42 
+  formAvatar: {
+    width: 84,
+    height: 84,
+    borderRadius: 42
   },
-  formCameraBadge: { 
-    position: 'absolute', 
-    bottom: 0, 
-    right: 0, 
-    backgroundColor: '#5152B3', 
-    padding: 6, 
-    borderRadius: 15, 
-    borderWidth: 2, 
-    borderColor: 'white' 
+  formCameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#5152B3',
+    padding: 6,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: 'white'
   },
-  formChangeText: { 
-    fontSize: 12, 
-    color: '#64748B', 
-    marginTop: 8, 
-    fontWeight: '600' 
+  formChangeText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 8,
+    fontWeight: '600'
   },
-  formBody: { 
-    width: '100%', 
-    marginBottom: 10 
+  formBody: {
+    width: '100%',
+    marginBottom: 10
   },
-  inputGroup: { 
-    marginBottom: 18 
+  inputGroup: {
+    marginBottom: 18
   },
-  inputLabel: { 
-    fontSize: 14, 
-    color: '#64748B', 
-    marginBottom: 8, 
-    fontWeight: '600' 
+  inputLabel: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 8,
+    fontWeight: '600'
   },
-  inputField: { 
-    borderWidth: 1.5, 
-    borderColor: '#E2E8F0', 
-    borderRadius: 12, 
-    padding: 14, 
-    backgroundColor: '#F8FAFC', 
-    fontSize: 16, 
-    color: '#1E293B' 
+  inputField: {
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: '#F8FAFC',
+    fontSize: 16,
+    color: '#1E293B'
   },
-  actionRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'flex-end', 
-    alignItems: 'center', 
-    gap: 20, 
-    marginTop: 10 
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 10
   },
-  actionRowInvite: { 
-    marginTop: 10, 
-    alignItems: 'center' 
+  actionRowInvite: {
+    marginTop: 10,
+    alignItems: 'center'
   },
-  cancelBtnText: { 
-    color: '#94A3B8', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  cancelBtnText: {
+    color: '#94A3B8',
+    fontWeight: 'bold',
+    fontSize: 16
   },
-  saveBtn: { 
-    backgroundColor: '#5152B3', 
-    paddingVertical: 12, 
-    paddingHorizontal: 24, 
-    borderRadius: 15, 
-    elevation: 2 
+  saveBtn: {
+    backgroundColor: '#5152B3',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 15,
+    elevation: 2
   },
-  saveBtnFull: { 
-    backgroundColor: '#5152B3', 
-    paddingVertical: 14, 
-    borderRadius: 15, 
-    width: '100%', 
-    alignItems: 'center' 
+  saveBtnFull: {
+    backgroundColor: '#5152B3',
+    paddingVertical: 14,
+    borderRadius: 15,
+    width: '100%',
+    alignItems: 'center'
   },
-  saveBtnText: { 
-    color: '#FFFFFF', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16
   },
-  headerBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 12 
+  headerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12
   },
-  headerBtnText: { 
-    color: '#FFFFFF', 
-    fontWeight: 'bold', 
-    fontSize: 12 
+  headerBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 12
   },
-  successNotification: { 
-    position: 'absolute', 
-    top: 0, 
-    left: 20, 
-    right: 20, 
-    backgroundColor: '#10B981', 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    padding: 18, 
-    borderRadius: 20, 
-    zIndex: 9999, 
-    gap: 15, 
-    elevation: 10 
+  successNotification: {
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    right: 20,
+    backgroundColor: '#10B981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18,
+    borderRadius: 20,
+    zIndex: 9999,
+    gap: 15,
+    elevation: 10
   },
-  successTitle: { 
-    color: '#FFFFFF', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  successTitle: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16
   },
-  successMessage: { 
-    color: '#E0F2FE', 
-    fontSize: 13 
+  successMessage: {
+    color: '#E0F2FE',
+    fontSize: 13
   },
-  inviteSectionWrapper: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: 20, 
+  inviteSectionWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
     marginTop: 10,
     paddingHorizontal: 5
   },
-  inviteInstructionText: { 
-    fontSize: 14, 
-    fontWeight: '600' 
+  inviteInstructionText: {
+    fontSize: 14,
+    fontWeight: '600'
   },
-  inlineInviteBtn: { 
-    alignSelf: 'flex-end' 
-  }
 });
 
 export default Profile;
