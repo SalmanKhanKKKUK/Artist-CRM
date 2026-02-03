@@ -1,16 +1,16 @@
+
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
-  Animated,
   Dimensions,
   GestureResponderEvent,
   Image,
+  LayoutAnimation,
   Modal,
   Platform,
   ScrollView,
@@ -20,6 +20,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  UIManager,
   View,
 } from 'react-native';
 
@@ -31,8 +32,20 @@ import NavHeader from '../../common/Buttons/NavHeader';
 import HistoryCard from '../../common/Cards/HistoryCard';
 import FilterInput, { FilterSection } from '../../common/Inputs/FilterInput';
 import SearchInput from '../../common/Inputs/SearchInput';
+import Input from '../../common/Inputs/Input';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const { width } = Dimensions.get('window');
+type IonIconName = React.ComponentProps<typeof Ionicons>['name'];
+
+interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+}
 
 interface HistoryItem {
   id: number;
@@ -54,13 +67,21 @@ interface HistoryProps {
   onNavigateToNewVisit?: () => void;
 }
 
+const CUSTOMERS_DATA: Customer[] = [
+  { id: '1', name: 'Ahmad Ali', phone: '0300-1234567' },
+  { id: '2', name: 'Sara Khan', phone: '0312-7654321' },
+  { id: '3', name: 'Zeenat Malik', phone: '0345-1122334' },
+  { id: '4', name: 'Hamza Sheikh', phone: '0321-9988776' },
+  { id: '5', name: 'Danish Ahmed', phone: '0333-5544332' },
+];
+
 const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 
   const defaultHistory: HistoryItem[] = [
-    {
+       {
       id: 1,
       customer: { name: "Ahmad Ali", phone: "0300-1234567", img: 'https://i.pravatar.cc/150?u=1' },
       services: ["Haircut", "Shaving"],
@@ -170,13 +191,25 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const [tempName, setTempName] = useState<string>("");
-  const [tempPhone, setTempPhone] = useState<string>("");
-  const [tempService, setTempService] = useState<string>("");
-  const [tempTags, setTempTags] = useState<string>("");
-  const [tempNotes, setTempNotes] = useState<string>("");
-  const [tempPhotos, setTempPhotos] = useState<string[]>([]);
+  // Edit Modal Specific UI State
+  const [expandedSection, setExpandedSection] = useState<string | null>('customer');
 
+  // Edit Modal Data States
+  const [customerSearch, setCustomerSearch] = useState<string>('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const [allServices, setAllServices] = useState<string[]>(['Haircut', 'Coloring', 'Styling', 'Facial', 'Treatment', 'Shaving']);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [serviceSearch, setServiceSearch] = useState<string>('');
+  const topServices = ['Haircut', 'Coloring', 'Styling'];
+
+  const [allTags, setAllTags] = useState<string[]>(['Premium', 'Regular', 'VIP', 'New', 'Color']);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagSearch, setTagSearch] = useState<string>('');
+  const topTags = ['Premium', 'Regular', 'VIP'];
+
+  const [tempNotes, setTempNotes] = useState<string>('');
+  const [tempPhotos, setTempPhotos] = useState<string[]>([]);
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   const filterSections: FilterSection[] = [
@@ -239,6 +272,45 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     }
   };
 
+  const filteredCustomers = CUSTOMERS_DATA.filter(c =>
+    c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+    c.phone.includes(customerSearch)
+  );
+
+  const toggleSection = (section: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedSection(expandedSection === section ? null : section);
+  };
+
+  const handleAddItem = (val: string, type: 'service' | 'tag') => {
+    const trimmedVal = val.trim();
+    if (!trimmedVal) return;
+
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (type === 'service') {
+      if (!selectedServices.includes(trimmedVal)) {
+        setSelectedServices([...selectedServices, trimmedVal]);
+        if (!allServices.includes(trimmedVal)) setAllServices([...allServices, trimmedVal]);
+      }
+      setServiceSearch('');
+    } else {
+      if (!selectedTags.includes(trimmedVal)) {
+        setSelectedTags([...selectedTags, trimmedVal]);
+        if (!allTags.includes(trimmedVal)) setAllTags([...allTags, trimmedVal]);
+      }
+      setTagSearch('');
+    }
+  };
+
+  const removeChip = (val: string, type: 'service' | 'tag') => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (type === 'service') {
+      setSelectedServices(selectedServices.filter(s => s !== val));
+    } else {
+      setSelectedTags(selectedTags.filter(t => t !== val));
+    }
+  };
+
   const handleImagePick = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -257,12 +329,14 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     const { pageY } = event.nativeEvent;
     setMenuPosition({ top: pageY - 10, right: 40 });
     setSelectedId(item.id);
-    setTempName(item.customer.name);
-    setTempPhone(item.customer.phone);
-    setTempService(item.services.join(', '));
-    setTempTags(item.tags.join(', '));
+
+    setCustomerSearch(item.customer.name);
+    setSelectedCustomer({ id: '', name: item.customer.name, phone: item.customer.phone });
+    setSelectedServices(item.services);
+    setSelectedTags(item.tags);
     setTempNotes(item.notes || "");
     setTempPhotos(item.photos || []);
+
     setMenuVisible(true);
   };
 
@@ -272,9 +346,13 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       item.id === selectedId
         ? {
           ...item,
-          customer: { ...item.customer, name: tempName, phone: tempPhone },
-          services: tempService.split(',').map(s => s.trim()).filter(s => s.length > 0),
-          tags: tempTags.split(',').map(t => t.trim()).filter(t => t.length > 0),
+          customer: {
+            ...item.customer,
+            name: selectedCustomer?.name || item.customer.name,
+            phone: selectedCustomer?.phone || item.customer.phone
+          },
+          services: selectedServices,
+          tags: selectedTags,
           notes: tempNotes,
           photos: tempPhotos
         }
@@ -323,20 +401,13 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     return searchMatch && categoryMatch && dateMatch && tagMatch;
   });
 
-  const handleNewVisitPress = () => {
-    // Navigate immediately - No loader, no success message
-    if (onNavigateToNewVisit) {
-      onNavigateToNewVisit();
-    }
-  };
-
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
         <NavHeader title="Our All History !">
-          <TouchableOpacity onPress={handleNewVisitPress} activeOpacity={0.8}>
+          <TouchableOpacity onPress={() => onNavigateToNewVisit?.()} activeOpacity={0.8}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
               start={{ x: 0, y: 0 }}
@@ -395,6 +466,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
           ))}
         </ScrollView>
 
+        {/* Menu Popover */}
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={styles.modalOverlayDimmed}>
@@ -424,91 +496,240 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
+        {/* Edit Visit Modal (Synced with NewVisit.tsx UI) */}
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
             <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <View style={styles.modalHeader}>
                 <Text style={[styles.editTitle, { color: colors.text }]}>Edit Visit Info</Text>
+                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
 
-                <View style={styles.photoGrid}>
-                  <TouchableOpacity style={[styles.addPhotoBox, { backgroundColor: colors.background, borderColor: colors.primary }]} onPress={handleImagePick}>
-                    <MaterialCommunityIcons name="camera-plus" size={24} color={colors.primary} />
-                    <Text style={[styles.addPhotoText, { color: colors.primary }]}>Add Photo</Text>
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                
+                {/* 1. Customer Section */}
+                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('customer')}>
+                    <View style={styles.headerTitleRow}>
+                      <Ionicons name="person-outline" size={20} color={colors.primary} />
+                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Customer</Text>
+                    </View>
+                    <Ionicons name={(expandedSection === 'customer' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                   </TouchableOpacity>
 
-                  {tempPhotos.map((uri, i) => (
-                    <View key={i} style={styles.imageWrapper}>
-                      <Image source={{ uri }} style={styles.uploadedImg} />
-                      <TouchableOpacity
-                        style={[styles.removeBtn, { backgroundColor: colors.card }]}
-                        onPress={() => removeImage(i)}
-                      >
-                        <Ionicons name="close-circle" size={20} color="#EF4444" />
-                      </TouchableOpacity>
+                  {expandedSection === 'customer' && (
+                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                      <View style={styles.inputWrapper}>
+                        <Input
+                          value={customerSearch}
+                          onChangeText={(val) => {
+                            setCustomerSearch(val);
+                            if (selectedCustomer) setSelectedCustomer(null);
+                          }}
+                          placeholder="Search customer..."
+                          leftIcon="account-search"
+                          variant="outlined"
+                          backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                        />
+                        {customerSearch.length > 0 && !selectedCustomer && filteredCustomers.length > 0 && (
+                          <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                            <ScrollView style={{ maxHeight: 150 }} keyboardShouldPersistTaps="handled">
+                              {filteredCustomers.map(c => (
+                                <TouchableOpacity
+                                  key={c.id}
+                                  style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
+                                  onPress={() => { setSelectedCustomer(c); setCustomerSearch(c.name); }}
+                                >
+                                  <MaterialCommunityIcons name="account-circle" size={22} color={colors.textSecondary} />
+                                  <View>
+                                    <Text style={[styles.itemTitle, { color: colors.text }]}>{c.name}</Text>
+                                    <Text style={[styles.itemSub, { color: colors.textSecondary }]}>{c.phone}</Text>
+                                  </View>
+                                </TouchableOpacity>
+                              ))}
+                            </ScrollView>
+                          </View>
+                        )}
+                      </View>
+                      {selectedCustomer && (
+                        <View style={[styles.selectedBadge, { backgroundColor: isDark ? colors.border : '#ECFDF5' }]}>
+                          <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                          <Text style={[styles.selectedBadgeText, { color: isDark ? colors.text : '#065F46' }]}>Selected: {selectedCustomer.name}</Text>
+                        </View>
+                      )}
                     </View>
-                  ))}
+                  )}
                 </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Client Name</Text>
-                  <TextInput
-                    style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
-                    value={tempName}
-                    onChangeText={setTempName}
-                    placeholderTextColor={colors.textSecondary}
-                  />
+                {/* 2. Services Section */}
+                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('services')}>
+                    <View style={styles.headerTitleRow}>
+                      <MaterialCommunityIcons name="content-cut" size={20} color={colors.primary} />
+                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Services</Text>
+                    </View>
+                    <Ionicons name={(expandedSection === 'services' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+
+                  {expandedSection === 'services' && (
+                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                      <View style={styles.chipsRow}>
+                        {selectedServices.map(s => (
+                          <TouchableOpacity key={s} style={[styles.chip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(s, 'service')}>
+                            <Text style={[styles.chipText, { color: colors.primary }]}>{s} ✕</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      <Input
+                        value={serviceSearch}
+                        onChangeText={setServiceSearch}
+                        placeholder="Search or add service..."
+                        leftIcon="plus-circle-outline"
+                        variant="outlined"
+                        backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                      />
+                      <View style={styles.quickSelectRow}>
+                        {topServices.filter(s => !selectedServices.includes(s)).map(s => (
+                          <TouchableOpacity
+                            key={s}
+                            style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
+                            onPress={() => handleAddItem(s, 'service')}
+                          >
+                            <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>+ {s}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      {serviceSearch.length > 0 && (
+                        <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                          <TouchableOpacity style={styles.suggestionItem} onPress={() => handleAddItem(serviceSearch, 'service')}>
+                            <Ionicons name="add-circle" size={22} color={colors.primary} />
+                            <Text style={[styles.itemTitle, { color: colors.text }]}>Add "{serviceSearch}"</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Phone Number</Text>
-                  <TextInput
-                    style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
-                    value={tempPhone}
-                    onChangeText={setTempPhone}
-                    keyboardType="phone-pad"
-                    placeholderTextColor={colors.textSecondary}
-                  />
+                {/* 3. Tags Section */}
+                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('tags')}>
+                    <View style={styles.headerTitleRow}>
+                      <MaterialCommunityIcons name="tag-outline" size={20} color={colors.primary} />
+                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Tags</Text>
+                    </View>
+                    <Ionicons name={(expandedSection === 'tags' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+
+                  {expandedSection === 'tags' && (
+                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                      <View style={styles.chipsRow}>
+                        {selectedTags.map(t => (
+                          <TouchableOpacity key={t} style={[styles.chip, styles.tagChip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(t, 'tag')}>
+                            <Text style={[styles.chipText, styles.tagChipText, { color: colors.textSecondary }]}>{t} ✕</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      <Input
+                        value={tagSearch}
+                        onChangeText={setTagSearch}
+                        placeholder="Add custom tags..."
+                        leftIcon="tag-plus-outline"
+                        variant="outlined"
+                        backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                      />
+                      <View style={styles.quickSelectRow}>
+                        {topTags.filter(t => !selectedTags.includes(t)).map(t => (
+                          <TouchableOpacity
+                            key={t}
+                            style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
+                            onPress={() => handleAddItem(t, 'tag')}
+                          >
+                            <Text style={[styles.quickChipText, { color: colors.textSecondary }]}># {t}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      {tagSearch.length > 0 && (
+                        <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                          <TouchableOpacity style={styles.suggestionItem} onPress={() => handleAddItem(tagSearch, 'tag')}>
+                            <Ionicons name="add-circle" size={22} color={colors.primary} />
+                            <Text style={[styles.itemTitle, { color: colors.text }]}>Add "#{tagSearch}"</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Services (comma separated)</Text>
-                  <TextInput
-                    style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
-                    value={tempService}
-                    onChangeText={setTempService}
-                    placeholderTextColor={colors.textSecondary}
-                  />
+                {/* 4. Notes Section */}
+                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('notes')}>
+                    <View style={styles.headerTitleRow}>
+                      <MaterialCommunityIcons name="notebook-outline" size={20} color={colors.primary} />
+                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Notes</Text>
+                    </View>
+                    <Ionicons name={(expandedSection === 'notes' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                  {expandedSection === 'notes' && (
+                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                      <TextInput
+                        style={[styles.textArea, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, color: colors.text }]}
+                        value={tempNotes}
+                        onChangeText={setTempNotes}
+                        multiline
+                        placeholder="Formulas/Notes..."
+                        placeholderTextColor={colors.textSecondary}
+                      />
+                    </View>
+                  )}
                 </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Tags (comma separated)</Text>
-                  <TextInput
-                    style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
-                    value={tempTags}
-                    onChangeText={setTempTags}
-                    placeholderTextColor={colors.textSecondary}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Notes</Text>
-                  <TextInput
-                    style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text, height: 80, textAlignVertical: 'top' }]}
-                    value={tempNotes}
-                    onChangeText={setTempNotes}
-                    multiline={true}
-                    placeholderTextColor={colors.textSecondary}
-                  />
+                {/* 5. Photos Section */}
+                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('photos')}>
+                    <View style={styles.headerTitleRow}>
+                      <Ionicons name="images-outline" size={20} color={colors.primary} />
+                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Photos</Text>
+                    </View>
+                    <Ionicons name={(expandedSection === 'photos' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                  {expandedSection === 'photos' && (
+                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                      <View style={styles.photoGrid}>
+                        <TouchableOpacity style={[styles.addPhotoBox, { backgroundColor: colors.background, borderColor: colors.primary }]} onPress={handleImagePick}>
+                          <MaterialCommunityIcons name="camera-plus" size={24} color={colors.primary} />
+                          <Text style={[styles.addPhotoText, { color: colors.primary }]}>Add</Text>
+                        </TouchableOpacity>
+                        {tempPhotos.map((uri, i) => (
+                          <View key={i} style={styles.imageWrapper}>
+                            <Image source={{ uri }} style={styles.uploadedImg} />
+                            <TouchableOpacity style={[styles.removeBtn, { backgroundColor: colors.card }]} onPress={() => removeImage(i)}>
+                              <Ionicons name="close-circle" size={20} color="#EF4444" />
+                            </TouchableOpacity>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
 
                 <View style={styles.actionRow}>
                   <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                     <Text style={styles.cancelBtnText}>Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.saveBtn} onPress={handleSaveEdit}>
-                    <Text style={styles.saveBtnText}>Save</Text>
+                  <TouchableOpacity onPress={handleSaveEdit}>
+                    <LinearGradient
+                      colors={THEME_COLORS.buttonGradient}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                      style={styles.saveBtn}
+                    >
+                      <Text style={styles.saveBtnText}>Update</Text>
+                    </LinearGradient>
                   </TouchableOpacity>
                 </View>
+
               </ScrollView>
             </View>
           </View>
@@ -535,11 +756,11 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
 
 const styles = StyleSheet.create({
   gradientContainer: {
-    flex: 1
+    flex: 1,
   },
   masterContainer: {
     flex: 1,
-    backgroundColor: 'transparent'
+    backgroundColor: 'transparent',
   },
   newVisitHeaderBtn: {
     paddingHorizontal: 15,
@@ -548,30 +769,30 @@ const styles = StyleSheet.create({
     elevation: 3,
     minWidth: 85,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   newVisitBtnText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 13
+    fontSize: 13,
   },
   searchFixedWrapper: {
     paddingHorizontal: 15,
     paddingVertical: 5,
-    zIndex: 10
+    zIndex: 10,
   },
   searchBar: {
     width: '100%',
-    marginBottom: 0
+    marginBottom: 0,
   },
   listContent: {
     paddingHorizontal: 15,
-    paddingVertical: 10
+    paddingVertical: 10,
   },
   cardOuterWrapper: {
     position: 'relative',
     justifyContent: 'center',
-    marginBottom: 15
+    marginBottom: 15,
   },
   cardItem: {
     marginBottom: 0,
@@ -580,125 +801,220 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2 },
-      android: { elevation: 2 }
-    })
+      android: { elevation: 2 },
+    }),
   },
   actionButton: {
     position: 'absolute',
     right: 15,
     top: 30,
     padding: 10,
-    zIndex: 10
+    zIndex: 10,
   },
   modalOverlayDimmed: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)'
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalOverlayCenterDark: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   menuPopup: {
     position: 'absolute',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     width: 140,
     paddingVertical: 5,
-    elevation: 8
+    elevation: 8,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    gap: 12
+    gap: 12,
   },
   menuSeparator: {
     height: 1,
     backgroundColor: '#F1F5F9',
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   menuText: {
     fontSize: 16,
-    color: '#334155',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   editPopup: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     width: '92%',
-    maxHeight: '85%',
+    maxHeight: '90%',
     padding: 20,
-    elevation: 10
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
   },
   editTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-    color: '#1E293B'
+  },
+  accordionCard: {
+    borderRadius: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    elevation: 1,
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
+    alignItems: 'center',
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  accordionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  accordionBody: {
+    padding: 15,
+    paddingTop: 0,
+    borderTopWidth: 1,
+  },
+  inputWrapper: {
+    position: 'relative',
+    width: '100%',
+    marginTop: 10,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 55,
+    left: 0,
+    right: 0,
+    borderRadius: 15,
+    elevation: 8,
+    zIndex: 9999,
+    borderWidth: 1,
+    padding: 5,
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  itemTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  itemSub: {
+    fontSize: 12,
+  },
+  selectedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 10,
+    marginTop: 8,
+    gap: 8,
+  },
+  selectedBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginVertical: 10,
+  },
+  chip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chipText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  tagChip: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#E2E8F0',
+  },
+  tagChipText: {
+    color: '#64748B',
+  },
+  quickSelectRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+    flexWrap: 'wrap',
+  },
+  quickChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  quickChipText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    height: 100,
+    textAlignVertical: 'top',
+    marginTop: 10,
+    fontSize: 13,
   },
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 20,
-    justifyContent: 'center'
+    marginTop: 15,
   },
   addPhotoBox: {
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
     borderWidth: 1.5,
-    borderColor: '#5152B3',
     borderStyle: 'dashed',
-    borderRadius: 15,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F3FF'
   },
   addPhotoText: {
     fontSize: 10,
-    color: '#5152B3',
     marginTop: 4,
-    fontWeight: '700'
+    fontWeight: '700',
   },
   imageWrapper: {
-    width: 80,
-    height: 80,
-    position: 'relative'
+    width: 70,
+    height: 70,
+    position: 'relative',
   },
   uploadedImg: {
     width: '100%',
     height: '100%',
-    borderRadius: 15
+    borderRadius: 12,
   },
   removeBtn: {
     position: 'absolute',
     top: -5,
     right: -5,
-    backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    elevation: 3
-  },
-  inputGroup: {
-    marginBottom: 12,
-    width: '100%'
-  },
-  inputLabel: {
-    color: '#64748B',
-    marginBottom: 4,
-    fontWeight: '600',
-    fontSize: 13,
-    marginLeft: 4
-  },
-  inputField: {
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: '#F8FAFC',
-    color: '#1E293B'
+    zIndex: 10,
   },
   actionRow: {
     flexDirection: 'row',
@@ -706,23 +1022,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 20,
     marginTop: 15,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   cancelBtnText: {
     color: '#94A3B8',
     fontWeight: 'bold',
-    fontSize: 15
+    fontSize: 14,
   },
   saveBtn: {
-    backgroundColor: '#5152B3',
-    paddingVertical: 10,
-    paddingHorizontal: 25,
-    borderRadius: 12
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 12,
   },
   saveBtnText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 15
+    fontSize: 14,
   },
 });
 

@@ -10,12 +10,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   UIManager,
   View,
 } from 'react-native';
 
+// Android LayoutAnimation enable karne ke liye
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -55,8 +57,10 @@ const FilterInput: React.FC<FilterInputProps> = ({
   chipInactiveBackgroundColor = '#FFFFFF',
 }) => {
   const [selections, setSelections] = useState<Record<string, string>>({});
-  // Track kounsa section open hai (bilkul NewVisit ki tarah)
   const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.id || null);
+
+  // Search query state for each section
+  const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
 
   const toggleSection = (sectionId: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -70,8 +74,16 @@ const FilterInput: React.FC<FilterInputProps> = ({
     }));
   };
 
+  const handleSearchChange = (sectionId: string, text: string) => {
+    setSearchQueries((prev) => ({
+      ...prev,
+      [sectionId]: text
+    }));
+  };
+
   const handleReset = () => {
     setSelections({});
+    setSearchQueries({});
     onReset();
   };
 
@@ -83,7 +95,7 @@ const FilterInput: React.FC<FilterInputProps> = ({
   return (
     <Modal
       visible={isVisible}
-      animationType="slide" // Slide animation is better for bottom sheets
+      animationType="slide"
       transparent={true}
       statusBarTranslucent={true}
       onRequestClose={onClose}
@@ -91,69 +103,128 @@ const FilterInput: React.FC<FilterInputProps> = ({
       <Pressable style={styles.overlay} onPress={onClose}>
         <TouchableWithoutFeedback>
           <View style={[styles.modalContent, { backgroundColor }]}>
-            
-            {/* Header */}
-            <View style={[styles.header, { backgroundColor, borderBottomColor: Platform.OS === 'ios' ? '#E2E8F0' : 'transparent' }]}>
+
+            {/* Header Section */}
+            <View style={[styles.header, { backgroundColor, borderBottomColor: '#E2E8F0' }]}>
               <View style={styles.dragHandle} />
-              <Text style={[styles.headerText, { color: textColor }]}>{title}</Text>
+              <Text style={[styles.headerText, { color: textColor }]}>
+                {title}
+              </Text>
             </View>
 
+            {/* Scrollable Body */}
             <ScrollView
               style={[styles.scrollBody, { backgroundColor }]}
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              {sections.map((section) => (
-                <View key={section.id} style={[styles.sectionWrapper, { borderColor: Platform.OS === 'ios' ? '#F1F5F9' : '#E2E8F0' }]}>
-                  {/* Dropdown Header */}
-                  <TouchableOpacity 
-                    style={styles.accordionHeader} 
-                    onPress={() => toggleSection(section.id)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.sectionLabel, { color: textColor }]}>{section.title}</Text>
-                    <Ionicons 
-                      name={expandedSection === section.id ? "chevron-up" : "chevron-down"} 
-                      size={20} 
-                      color={textColor} 
-                    />
-                  </TouchableOpacity>
+              {sections.map((section) => {
+                const query = searchQueries[section.id] || "";
+                
+                // Filter logic based on current search query
+                const filteredOptions = section.options.filter((opt) =>
+                  opt.label.toLowerCase().includes(query.toLowerCase())
+                );
 
-                  {/* Dropdown Body */}
-                  {expandedSection === section.id && (
-                    <View style={styles.optionsWrapper}>
-                      {section.options.map((option) => {
-                        const isSelected = selections[section.id] === option.value;
-                        return (
-                          <TouchableOpacity
-                            key={option.value}
-                            activeOpacity={0.7}
-                            onPress={() => handleSelect(section.id, option.value)}
-                            style={[
-                              styles.chip,
-                              isSelected
-                                ? styles.chipActive
-                                : [styles.chipInactive, { backgroundColor: chipInactiveBackgroundColor, borderColor: textColor }]
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.chipText,
-                                isSelected ? styles.textActive : [styles.textInactive, { color: textColor }]
-                              ]}
-                            >
-                              {option.label}
+                return (
+                  <View
+                    key={section.id}
+                    style={[styles.sectionWrapper, { borderColor: '#E2E8F0' }]}
+                  >
+                    {/* Section Header (Accordion) */}
+                    <TouchableOpacity
+                      style={styles.accordionHeader}
+                      onPress={() => toggleSection(section.id)}
+                      activeOpacity={0.7}
+                    >
+                      <View>
+                        <Text style={[styles.sectionLabel, { color: textColor }]}>
+                          {section.title}
+                        </Text>
+                        {selections[section.id] ? (
+                          <Text style={styles.activeSelectionText}>
+                            Selected: {selections[section.id]}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <Ionicons
+                        name={expandedSection === section.id ? "chevron-up" : "chevron-down"}
+                        size={20}
+                        color={textColor}
+                      />
+                    </TouchableOpacity>
+
+                    {/* Section Content (Search + Options) */}
+                    {expandedSection === section.id && (
+                      <View style={styles.expandedContent}>
+                        {/* Search Input for the specific section */}
+                        <View
+                          style={[
+                            styles.searchContainer,
+                            {
+                              backgroundColor: backgroundColor === '#FFFFFF' ? '#F8FAFC' : '#334155'
+                            }
+                          ]}
+                        >
+                          <Ionicons name="search" size={16} color="#94A3B8" />
+                          <TextInput
+                            style={[styles.searchInput, { color: textColor }]}
+                            placeholder={`Search ${section.title}...`}
+                            placeholderTextColor="#94A3B8"
+                            value={query}
+                            onChangeText={(text) => handleSearchChange(section.id, text)}
+                          />
+                        </View>
+
+                        {/* Chips / Options Grid */}
+                        <View style={styles.optionsWrapper}>
+                          {filteredOptions.length > 0 ? (
+                            filteredOptions.map((option) => {
+                              const isSelected = selections[section.id] === option.value;
+                              return (
+                                <TouchableOpacity
+                                  key={option.value}
+                                  activeOpacity={0.7}
+                                  onPress={() => handleSelect(section.id, option.value)}
+                                  style={[
+                                    styles.chip,
+                                    isSelected
+                                      ? styles.chipActive
+                                      : [
+                                          styles.chipInactive,
+                                          {
+                                            backgroundColor: chipInactiveBackgroundColor,
+                                            borderColor: '#E2E8F0'
+                                          }
+                                        ]
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.chipText,
+                                      isSelected ? styles.textActive : [styles.textInactive, { color: textColor }]
+                                    ]}
+                                  >
+                                    {option.label}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })
+                          ) : (
+                            <Text style={styles.noResultsText}>
+                              No results found
                             </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  )}
-                </View>
-              ))}
+                          )}
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
             </ScrollView>
 
-            {/* Footer Actions */}
+            {/* Footer Action Buttons */}
             <View style={[styles.footer, { backgroundColor }]}>
               <TouchableOpacity activeOpacity={0.8} onPress={handleApply}>
                 <LinearGradient
@@ -162,14 +233,17 @@ const FilterInput: React.FC<FilterInputProps> = ({
                   end={{ x: 1, y: 0 }}
                   style={styles.primaryBtnGradient}
                 >
-                  <Text style={styles.primaryBtnText}>Apply Filters</Text>
+                  <Text style={styles.primaryBtnText}>
+                    Apply Filters
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.secondaryBtn} onPress={handleReset}>
-                <Text style={styles.secondaryBtnText}>Reset Selections</Text>
+                <Text style={styles.secondaryBtnText}>
+                  Reset All
+                </Text>
               </TouchableOpacity>
-
               <View style={styles.safeBottomSpacer} />
             </View>
 
@@ -189,7 +263,7 @@ const styles = StyleSheet.create({
   modalContent: {
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    maxHeight: '80%',
+    maxHeight: '85%',
     width: '100%',
   },
   header: {
@@ -219,9 +293,9 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   sectionWrapper: {
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
-    borderRadius: 15,
+    borderRadius: 18,
     overflow: 'hidden',
   },
   accordionHeader: {
@@ -234,12 +308,33 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  activeSelectionText: {
+    fontSize: 11,
+    color: '#5152B3',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  expandedContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 15,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    height: 40,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+  },
   optionsWrapper: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    paddingHorizontal: 15,
-    paddingBottom: 15,
   },
   chip: {
     paddingHorizontal: 14,
@@ -263,6 +358,12 @@ const styles = StyleSheet.create({
   },
   textActive: {
     color: '#FFFFFF',
+  },
+  noResultsText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontStyle: 'italic',
+    paddingLeft: 5,
   },
   footer: {
     paddingHorizontal: 25,
@@ -293,11 +394,12 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   safeBottomSpacer: {
-    height: Platform.OS === 'ios' ? 40 : 20,
+    height: Platform.OS === 'ios' ? 40 : 50,
   },
 });
 
 export default FilterInput;
+
 
 // ye reusable component hai
 // s ko hum ne filter k reusable banaya hai

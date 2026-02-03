@@ -61,6 +61,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [inviteModalVisible, setInviteModalVisible] = useState<boolean>(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState<boolean>(false);
   const [inviteEmail, setInviteEmail] = useState<string>("");
 
   const [tempValue, setTempValue] = useState<string>("");
@@ -227,10 +228,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => onBack?.(), style: 'destructive' }
-    ]);
+    setLogoutModalVisible(true);
   };
 
   const handleSendInvitation = () => {
@@ -505,6 +503,37 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <View style={styles.actionRowInvite}>
                     <TouchableOpacity style={styles.saveBtnFull} onPress={handleSendInvitation}>
                       <Text style={styles.saveBtnText}>Send Invitation</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        {/* --- Logout Modal --- */}
+        <Modal visible={logoutModalVisible} transparent animationType="fade">
+          <TouchableWithoutFeedback onPress={() => setLogoutModalVisible(false)}>
+            <View style={styles.modalOverlayCenterDark}>
+              <TouchableWithoutFeedback onPress={() => { }}>
+                <View style={[styles.editPopup, { backgroundColor: colors.card, width: '80%' }]}>
+                  <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Logout</Text>
+                  <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>
+                    Are you sure you want to Logout
+                  </Text>
+
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity onPress={() => setLogoutModalVisible(false)}>
+                      <Text style={styles.cancelBtnText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.saveBtn, { backgroundColor: '#EF4444' }]}
+                      onPress={() => {
+                        setLogoutModalVisible(false);
+                        onBack?.();
+                      }}
+                    >
+                      <Text style={styles.saveBtnText}>Logout</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
