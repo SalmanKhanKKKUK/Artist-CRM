@@ -27,6 +27,8 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   onToggleSecure?: () => void;
   backgroundColor?: string;
   iconColor?: string;
+  borderColor?: string;
+  focusBorderColor?: string;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -59,6 +61,8 @@ const Input: React.FC<InputProps> = ({
   onBlur,
   backgroundColor,
   iconColor,
+  borderColor,
+  focusBorderColor,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -106,14 +110,14 @@ const Input: React.FC<InputProps> = ({
   };
 
   const getVariantStyles = () => {
-    // Gray color jab focus na ho, aur purple jab focus ho
-    const borderColor = error ? '#ff4444' : isFocused ? '#5152B3' : '#e5e7eb';
+    // Gray color jab focus na ho, aur purple jab focus ho. Accept custom borderColor via props. Focus color customized via focusBorderColor.
+    const activeBorderColor = error ? '#ff4444' : isFocused ? (focusBorderColor || '#5152B3') : (borderColor || '#e5e7eb');
 
     switch (variant) {
       case 'outlined':
         return {
           borderWidth: 1,
-          borderColor: borderColor,
+          borderColor: activeBorderColor,
           backgroundColor: '#fff',
           // boxShadow: "rgba(0, 0, 0, 0.1) 0px 1px 5px -1px, rgba(0, 0, 0, 0.06) 0px 1px 2px -1px",
 
@@ -126,7 +130,7 @@ const Input: React.FC<InputProps> = ({
       default:
         return {
           borderWidth: 1,
-          borderColor: borderColor,
+          borderColor: activeBorderColor,
           // boxShadow: "rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px",
           backgroundColor: '#fff',
         };

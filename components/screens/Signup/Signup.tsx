@@ -100,12 +100,15 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   autoCapitalize="none"
                   leftIcon={"email" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
-                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                  focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                  borderColor={colors.border}
                   inputStyle={{ color: colors.text }}
                   placeholderTextColor={isDark ? '#94a3b8' : '#888'}
                   iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
+
                 />
 
                 <View style={styles.inputGap} />
@@ -117,12 +120,15 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   secureTextEntry={true}
                   leftIcon={"lock" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
-                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                  focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                  borderColor={colors.border}
                   inputStyle={{ color: colors.text }}
                   placeholderTextColor={isDark ? '#94a3b8' : '#888'}
                   iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
+
                 />
 
                 <View style={styles.inputGap} />
@@ -134,12 +140,15 @@ const Signup = ({ onBack, onNavigateToCompanyName, onNavigateToLogin }: SignupPr
                   secureTextEntry={true}
                   leftIcon={"lock" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
-                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                  focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                  borderColor={colors.border}
                   inputStyle={{ color: colors.text }}
                   placeholderTextColor={isDark ? '#94a3b8' : '#888'}
                   iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
+
                 />
 
                 <View style={styles.optionsRow}>

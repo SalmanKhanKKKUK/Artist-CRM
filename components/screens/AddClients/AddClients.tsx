@@ -172,6 +172,9 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 inputStyle={{ color: colors.text }}
                 placeholderTextColor={colors.textSecondary}
                 backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                borderColor={colors.border}
+
               />
 
               <View style={styles.sectionGap} />
@@ -188,6 +191,9 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 inputStyle={{ color: colors.text }}
                 placeholderTextColor={colors.textSecondary}
                 backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                borderColor={colors.border}
+
               />
 
               <View style={styles.sectionGap} />
@@ -206,6 +212,9 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
                 inputStyle={{ color: colors.text }}
                 placeholderTextColor={colors.textSecondary}
                 backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                borderColor={colors.border}
+
               />
             </View>
           </ScrollView>

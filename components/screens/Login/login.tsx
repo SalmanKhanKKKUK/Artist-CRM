@@ -77,12 +77,15 @@ const Login: React.FC<LoginProps> = ({
                   autoCapitalize="none"
                   leftIcon="email"
                   containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                  focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                  borderColor={colors.border}
                   inputStyle={{ color: colors.text }}
                   placeholderTextColor={isDark ? '#94a3b8' : '#888'}
                   iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
+
                 />
 
                 <View style={styles.inputGap} />
@@ -96,12 +99,15 @@ const Login: React.FC<LoginProps> = ({
                   rightIcon={showPassword ? "eye" : "eye-off"}
                   onRightIconPress={() => setShowPassword(!showPassword)}
                   containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
-                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                  focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                  borderColor={colors.border}
                   inputStyle={{ color: colors.text }}
                   placeholderTextColor={isDark ? '#94a3b8' : '#888'}
                   iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
+
                 />
 
                 <View style={styles.optionsRow}>

@@ -81,7 +81,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const { colors, isDark } = useTheme();
 
   const defaultHistory: HistoryItem[] = [
-       {
+    {
       id: 1,
       customer: { name: "Ahmad Ali", phone: "0300-1234567", img: 'https://i.pravatar.cc/150?u=1' },
       services: ["Haircut", "Shaving"],
@@ -185,11 +185,16 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
 
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>(defaultHistory);
   const [searchText, setSearchText] = useState<string>('');
-  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+  // Sorting State
+  const [sortOption, setSortOption] = useState<string>('newest');
+  const [showSortMenu, setShowSortMenu] = useState<boolean>(false);
 
   // Edit Modal Specific UI State
   const [expandedSection, setExpandedSection] = useState<string | null>('customer');
@@ -213,9 +218,13 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   const filterSections: FilterSection[] = [
+    // Name filter removed as per request
+
     {
       id: 'category_filter',
       title: 'Filter By Service',
+      type: 'selection',
+      multiSelect: true,
       options: [
         { label: 'Haircut', value: 'Haircut' },
         { label: 'Color Expert', value: 'Color' },
@@ -226,6 +235,8 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     {
       id: 'tag_filter',
       title: 'Filter By Tag',
+      type: 'selection',
+      multiSelect: true,
       options: [
         { label: 'New Client', value: 'New' },
         { label: 'Regular', value: 'Regular' },
@@ -235,11 +246,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     {
       id: 'date_filter',
       title: 'Filter By Date',
-      options: [
-        { label: 'Today', value: '14 Jan 2026' },
-        { label: 'Jan 2026', value: 'Jan 2026' },
-        { label: 'Old Records', value: '2025' },
-      ],
+      type: 'date-range',
     },
   ];
 
@@ -370,36 +377,116 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
 
   const handleDeleteItem = () => {
     if (selectedId === null) return;
-    Alert.alert("Confirm Delete", "Are you sure?", [
-      { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          const filtered = historyItems.filter((item) => item.id !== selectedId);
-          setHistoryItems(filtered);
-          persistHistory(filtered);
-          setMenuVisible(false);
-        }
-      }
-    ]);
+    setDeleteModalVisible(true);
+    setMenuVisible(false);
+  };
+
+  const confirmDeleteItem = () => {
+    if (selectedId === null) return;
+    const filtered = historyItems.filter((item) => item.id !== selectedId);
+    setHistoryItems(filtered);
+    persistHistory(filtered);
+    setDeleteModalVisible(false);
+  };
+
+  const parseDate = (dateStr: string) => {
+    // Robust parser for "DD MMM YYYY" (e.g., "14 Jan 2026")
+    const months: { [key: string]: number } = {
+      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+    };
+    const parts = dateStr.split(' ');
+    if (parts.length < 3) return 0;
+
+    // Handle cases like "14 Jan 2026"
+    const day = parseInt(parts[0], 10);
+    const month = months[parts[1]];
+    const year = parseInt(parts[2], 10);
+
+    if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+      return new Date(year, month, day).getTime();
+    }
+
+    // Fallback for standard ISO formats just in case
+    const parsed = Date.parse(dateStr);
+    return isNaN(parsed) ? 0 : parsed;
   };
 
   const filteredData = historyItems.filter((item) => {
     if (!item || !item.customer) return false;
     const query = searchText.toLowerCase();
+
+    // Global Search (Search Input Header)
     const searchMatch = (item.customer.name || "").toLowerCase().includes(query) ||
       (item.customer.phone || "").includes(query) ||
       (item.services || []).some(s => s.toLowerCase().includes(query)) ||
       (item.notes || "").toLowerCase().includes(query) ||
       (item.tags || []).some(t => t.toLowerCase().includes(query));
 
-    const categoryMatch = activeFilters.category_filter ? (item.services || []).some(s => s.includes(activeFilters.category_filter)) : true;
-    const dateMatch = activeFilters.date_filter ? (item.date || "").includes(activeFilters.date_filter) : true;
-    const tagMatch = activeFilters.tag_filter ? (item.tags || []).some(t => t.includes(activeFilters.tag_filter)) : true;
+    // Name Filter (Removed)
+    const nameMatch = true;
 
-    return searchMatch && categoryMatch && dateMatch && tagMatch;
+    // Service Filter (Multi Select)
+    const serviceFilters: string[] = activeFilters.category_filter || [];
+    const serviceMatch = serviceFilters.length > 0
+      ? item.services.some(s => serviceFilters.some(filter => s.includes(filter)))
+      : true;
+
+    // Tag Filter (Multi Select)
+    const tagFilters: string[] = activeFilters.tag_filter || [];
+    const tagMatch = tagFilters.length > 0
+      ? item.tags.some(t => tagFilters.some(filter => t.includes(filter)))
+      : true;
+
+    // Date Filter (Range)
+    // Date Filter (Range)
+    const dateFilter = activeFilters.date_filter;
+    let dateRangeMatch = true;
+    if (dateFilter && (dateFilter.start || dateFilter.end)) {
+      const itemDate = parseDate(item.date);
+      const startDate = dateFilter.start ? parseDate(dateFilter.start) : 0;
+
+      // End Date Logic: If selected, set to End of Day (23:59:59.999) to include the full day
+      let endDate = Number.MAX_SAFE_INTEGER;
+      if (dateFilter.end) {
+        const parsedEnd = parseDate(dateFilter.end);
+        // Add 1 day in ms minus 1 ms -> End of that day
+        // Or create date object and set time. Since parseDate returns timestamp (00:00), adding 86399999ms works.
+        if (parsedEnd > 0) {
+          endDate = parsedEnd + 86399999;
+        }
+      }
+
+      // Include logic to handle if user enters partial date or just start/end
+      if (itemDate > 0) {
+        dateRangeMatch = itemDate >= startDate && itemDate <= endDate;
+      }
+    }
+
+    return searchMatch && nameMatch && serviceMatch && tagMatch && dateRangeMatch;
+  }).sort((a, b) => {
+    switch (sortOption) {
+      case 'name_asc':
+        return a.customer.name.localeCompare(b.customer.name);
+      case 'name_desc':
+        return b.customer.name.localeCompare(a.customer.name);
+      case 'oldest':
+        return parseDate(a.date) - parseDate(b.date);
+      case 'newest':
+      default:
+        return parseDate(b.date) - parseDate(a.date);
+    }
   });
+
+  const getSortLabel = () => {
+    switch (sortOption) {
+      case 'name_asc': return 'Name (A-Z)';
+      case 'name_desc': return 'Name (Z-A)';
+      case 'oldest': return 'Oldest First';
+      case 'newest': return 'Newest First';
+      default: return 'Newest First';
+    }
+  };
 
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
@@ -432,6 +519,106 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
             iconColor={isDark ? "#94A3B8" : "#888888"}
             showFilterSort={false}
           />
+
+          {/* Sticky Results & Sort Bar */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 15, // Increased margin to move it down slightly
+            paddingHorizontal: 5
+          }}>
+            <Text style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: isDark ? '#94A3B8' : '#64748B'
+            }}>
+              Results: {filteredData.length}
+            </Text>
+
+            <View style={{ position: 'relative', zIndex: 100 }}>
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center' }}
+                onPress={() => setShowSortMenu(!showSortMenu)}
+              >
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: isDark ? '#FFFFFF' : '#334155',
+                  marginRight: 6
+                }}>
+                  Sort By:
+                </Text>
+                <View style={{
+                  backgroundColor: isDark ? '#334155' : '#e5ecf7ff', // Proper background for selected value
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderRadius: 6,
+                  marginRight: 4,
+                  flexDirection: 'row',
+                  alignItems: 'center'
+                }}>
+                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>
+                    {getSortLabel()}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={16} color={isDark ? '#FFFFFF' : '#334155'} />
+              </TouchableOpacity>
+
+              {/* Sort Menu Dropdown */}
+              {showSortMenu && (
+                <View style={{
+                  position: 'absolute',
+                  top: 35,
+                  right: 0,
+                  width: 170,
+                  backgroundColor: isDark ? '#1e293b' : '#FFFFFF',
+                  borderRadius: 12,
+                  elevation: 5,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  paddingVertical: 5,
+                  borderWidth: 1,
+                  borderColor: isDark ? '#334155' : '#E2E8F0',
+                  zIndex: 200
+                }}>
+                  {[
+                    { label: 'Newest First', value: 'newest' },
+                    { label: 'Oldest First', value: 'oldest' },
+                    { label: 'Name (A-Z)', value: 'name_asc' },
+                    { label: 'Name (Z-A)', value: 'name_desc' }
+                  ].map((opt) => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={{
+                        paddingVertical: 10,
+                        paddingHorizontal: 15,
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: sortOption === opt.value ? (isDark ? '#334155' : '#F1F5F9') : 'transparent'
+                      }}
+                      onPress={() => {
+                        setSortOption(opt.value);
+                        setShowSortMenu(false);
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: 13,
+                        color: sortOption === opt.value ? colors.primary : (isDark ? '#CBD5E1' : '#475569'),
+                        fontWeight: sortOption === opt.value ? '600' : '400'
+                      }}>
+                        {opt.label}
+                      </Text>
+                      {sortOption === opt.value && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
         </View>
 
         <ScrollView
@@ -508,7 +695,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
               </View>
 
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                
+
                 {/* 1. Customer Section */}
                 <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
                   <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('customer')}>
@@ -748,7 +935,38 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
           }}
           onReset={() => setActiveFilters({})}
           title="Search Filters"
+          borderColor={colors.border}
         />
+
+
+        {/* --- Delete History Item Modal --- */}
+        <Modal visible={deleteModalVisible} transparent animationType="fade">
+          <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
+            <View style={styles.modalOverlayCenterDark}>
+              <TouchableWithoutFeedback onPress={() => { }}>
+                <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+                  <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
+                  <Text style={{ color: colors.textSecondary, textAlign: 'left', marginBottom: 25, fontSize: 16 }}>
+                    Are you sure?
+                  </Text>
+
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                      <Text style={styles.cancelBtnText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.saveBtn, { backgroundColor: '#EF4444' }]}
+                      onPress={confirmDeleteItem}
+                    >
+                      <Text style={styles.saveBtnText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
       </SafeAreaView>
     </LinearGradient>
   );

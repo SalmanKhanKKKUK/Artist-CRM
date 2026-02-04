@@ -88,12 +88,15 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                   placeholder="Company Name"
                   leftIcon={"domain" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
-                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                  focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                  borderColor={colors.border}
                   inputStyle={{ color: colors.text }}
                   placeholderTextColor={isDark ? '#94a3b8' : '#888'}
                   iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
+
                 />
 
                 <View style={styles.inputGap} />
@@ -106,12 +109,15 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                   autoCapitalize="none"
                   leftIcon={"web" as IconNames}
                   containerStyle={[styles.inputContainer, styles.roundedInput]}
-                  backgroundColor={isDark ? '#334155' : '#FFFFFF'}
+                  backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                  focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                  borderColor={colors.border}
                   inputStyle={{ color: colors.text }}
                   placeholderTextColor={isDark ? '#94a3b8' : '#888'}
                   iconColor={isDark ? '#cbd5e1' : '#666'}
                   size="large"
                   variant="outlined"
+
                 />
 
                 <View style={styles.buttonGap} />

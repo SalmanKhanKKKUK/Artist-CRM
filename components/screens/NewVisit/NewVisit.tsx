@@ -243,9 +243,11 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                         placeholder="Search by name or phone..."
                         leftIcon="account-search"
                         variant="outlined"
-                        inputStyle={{ color: colors.text }}
                         placeholderTextColor={colors.textSecondary}
-                        backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                        backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
+                        focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                        borderColor={colors.border}
+
                       />
                       {customerSearch.length > 0 && !selectedCustomer && filteredCustomers.length > 0 && (
                         <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -311,6 +313,9 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       inputStyle={{ color: colors.text }}
                       placeholderTextColor={colors.textSecondary}
                       backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                      focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                      borderColor={colors.border}
+
                     />
                     <View style={styles.quickSelectRow}>
                       {topServices
@@ -370,6 +375,9 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       inputStyle={{ color: colors.text }}
                       placeholderTextColor={colors.textSecondary}
                       backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                      focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
+                      borderColor={colors.border}
+
                     />
                     <View style={styles.quickSelectRow}>
                       {topTags

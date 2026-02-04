@@ -69,6 +69,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [tempDesc, setTempDesc] = useState<string>("");
   const [tempImg, setTempImg] = useState<string>("");
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   // --- Animation States ---
   const slideAnim = useRef(new Animated.Value(-150)).current;
@@ -212,19 +213,15 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   };
 
   const handleDeleteTeam = () => {
-    Alert.alert("Delete", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          const filtered = teams.filter(t => t.id !== selectedTeamMember?.id);
-          setTeams(filtered);
-          persistTeams(filtered);
-          setMenuVisible(false);
-        }
-      }
-    ]);
+    setDeleteModalVisible(true);
+    setMenuVisible(false);
+  };
+
+  const confirmDeleteTeam = () => {
+    const filtered = teams.filter(t => t.id !== selectedTeamMember?.id);
+    setTeams(filtered);
+    persistTeams(filtered);
+    setDeleteModalVisible(false);
   };
 
   const handleLogout = () => {
@@ -600,6 +597,36 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
             </View>
           </View>
         </Modal>
+
+
+        {/* --- Delete Team Modal --- */}
+        <Modal visible={deleteModalVisible} transparent animationType="fade">
+          <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
+            <View style={styles.modalOverlayCenterDark}>
+              <TouchableWithoutFeedback onPress={() => { }}>
+                <View style={[styles.editPopup, { backgroundColor: colors.card, width: '80%' }]}>
+                  <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
+                  <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>
+                    Are you sure you want to delete this team member?
+                  </Text>
+
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                      <Text style={styles.cancelBtnText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.saveBtn, { backgroundColor: '#EF4444' }]}
+                      onPress={confirmDeleteTeam}
+                    >
+                      <Text style={styles.saveBtnText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
       </SafeAreaView >
     </LinearGradient >
   );
@@ -698,9 +725,9 @@ const styles = StyleSheet.create({
     color: '#64748B'
   },
   infoWrapper: {
-    gap: 5,
+    gap: 0,
     paddingHorizontal: 10,
-    width: '100%'
+    width: '100%',
   },
   cardBorder: {
     borderWidth: 1,
@@ -710,7 +737,8 @@ const styles = StyleSheet.create({
   cardWithMenu: {
     position: 'relative',
     justifyContent: 'center',
-    width: '100%'
+    width: '100%',
+    
   },
   threeDotButton: {
     position: 'absolute',
@@ -736,7 +764,7 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 5,
     width: '100%'
   },
   gridButton: {

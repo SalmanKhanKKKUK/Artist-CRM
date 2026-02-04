@@ -22,6 +22,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+export type FilterType = 'selection' | 'text' | 'date-range';
+
 export interface FilterOption {
   label: string;
   value: string;
@@ -30,20 +32,48 @@ export interface FilterOption {
 export interface FilterSection {
   id: string;
   title: string;
-  options: FilterOption[];
+  type?: FilterType;
+  options?: FilterOption[];
+  multiSelect?: boolean;
+  placeholder?: string;
 }
 
 interface FilterInputProps {
   title?: string;
   sections: FilterSection[];
-  onApply: (selections: Record<string, string>) => void;
+  onApply: (selections: Record<string, any>) => void;
   onReset: () => void;
   isVisible: boolean;
   onClose: () => void;
   backgroundColor?: string;
   textColor?: string;
   chipInactiveBackgroundColor?: string;
+  borderColor?: string;
 }
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// Helper to parse "DD MMM YYYY" robustly
+const parseCalendarDate = (dateStr?: string): Date | null => {
+  if (!dateStr) return null;
+  const shortMonths: { [key: string]: number } = {
+    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+  };
+  const parts = dateStr.split(' ');
+  // Check if format is likely "DD MMM YYYY"
+  if (parts.length === 3 && shortMonths[parts[1]] !== undefined) {
+    const day = parseInt(parts[0], 10);
+    const month = shortMonths[parts[1]];
+    const year = parseInt(parts[2], 10);
+    if (!isNaN(day) && !isNaN(year)) {
+      return new Date(year, month, day);
+    }
+  }
+  // Fallback
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+};
 
 const FilterInput: React.FC<FilterInputProps> = ({
   title = "Filters",
@@ -55,23 +85,55 @@ const FilterInput: React.FC<FilterInputProps> = ({
   backgroundColor = '#FFFFFF',
   textColor = '#334155',
   chipInactiveBackgroundColor = '#FFFFFF',
+  borderColor = '#E2E8F0'
 }) => {
-  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, any>>({});
   const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.id || null);
 
   // Search query state for each section
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
+
+  // Specific for Date Range interaction: 'start' or 'end'
+  const [activeDateInput, setActiveDateInput] = useState<'start' | 'end'>('start');
+  const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
+
 
   const toggleSection = (sectionId: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedSection(expandedSection === sectionId ? null : sectionId);
   };
 
-  const handleSelect = (sectionId: string, value: string) => {
+  const handleSelect = (sectionId: string, value: string, multiSelect?: boolean) => {
+    setSelections((prev) => {
+      const current = prev[sectionId];
+      if (multiSelect) {
+        const list = Array.isArray(current) ? [...current] : [];
+        if (list.includes(value)) {
+          return { ...prev, [sectionId]: list.filter((item) => item !== value) };
+        } else {
+          return { ...prev, [sectionId]: [...list, value] };
+        }
+      } else {
+        return { ...prev, [sectionId]: current === value ? "" : value };
+      }
+    });
+  };
+
+  const handleTextChange = (sectionId: string, text: string) => {
     setSelections((prev) => ({
       ...prev,
-      [sectionId]: prev[sectionId] === value ? "" : value
+      [sectionId]: text
     }));
+  };
+
+  const handleDateChange = (sectionId: string, type: 'start' | 'end', text: string) => {
+    setSelections((prev) => {
+      const current = prev[sectionId] || { start: '', end: '' };
+      return {
+        ...prev,
+        [sectionId]: { ...current, [type]: text }
+      };
+    });
   };
 
   const handleSearchChange = (sectionId: string, text: string) => {
@@ -101,156 +163,375 @@ const FilterInput: React.FC<FilterInputProps> = ({
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <TouchableWithoutFeedback>
-          <View style={[styles.modalContent, { backgroundColor }]}>
+        <Pressable
+          style={[styles.modalContent, { backgroundColor }]}
+          onPress={(e) => e.stopPropagation()}
+        >
 
-            {/* Header Section */}
-            <View style={[styles.header, { backgroundColor, borderBottomColor: '#E2E8F0' }]}>
-              <View style={styles.dragHandle} />
-              <Text style={[styles.headerText, { color: textColor }]}>
-                {title}
-              </Text>
-            </View>
+          {/* Header Section */}
+          <View style={[styles.header, { backgroundColor, borderBottomColor: borderColor }]}>
+            <View style={styles.dragHandle} />
+            <Text style={[styles.headerText, { color: textColor }]}>
+              {title}
+            </Text>
+          </View>
 
-            {/* Scrollable Body */}
-            <ScrollView
-              style={[styles.scrollBody, { backgroundColor }]}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              {sections.map((section) => {
-                const query = searchQueries[section.id] || "";
-                
-                // Filter logic based on current search query
-                const filteredOptions = section.options.filter((opt) =>
-                  opt.label.toLowerCase().includes(query.toLowerCase())
-                );
+          {/* Scrollable Body */}
+          <ScrollView
+            style={[styles.scrollBody, { backgroundColor }]}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {sections.map((section) => {
+              const query = searchQueries[section.id] || "";
+              const sectionType = section.type || 'selection';
 
-                return (
-                  <View
-                    key={section.id}
-                    style={[styles.sectionWrapper, { borderColor: '#E2E8F0' }]}
+              // Filter logic based on current search query (only for selection type)
+              const filteredOptions = (section.options || []).filter((opt) =>
+                opt.label.toLowerCase().includes(query.toLowerCase())
+              );
+
+              const currentSelection = selections[section.id];
+
+              let selectionText = "";
+              if (sectionType === 'selection') {
+                if (Array.isArray(currentSelection) && currentSelection.length > 0) {
+                  selectionText = `Selected: ${currentSelection.length}`;
+                } else if (typeof currentSelection === 'string' && currentSelection) {
+                  selectionText = `Selected: ${currentSelection}`;
+                }
+              } else if (sectionType === 'text' && currentSelection) {
+                selectionText = currentSelection;
+              } else if (sectionType === 'date-range' && (currentSelection?.start || currentSelection?.end)) {
+                selectionText = `${currentSelection.start || ''} - ${currentSelection.end || ''}`;
+              }
+
+              return (
+                <View
+                  key={section.id}
+                  style={[styles.sectionWrapper, { borderColor: borderColor }]}
+                >
+                  {/* Section Header (Accordion) */}
+                  <TouchableOpacity
+                    style={styles.accordionHeader}
+                    onPress={() => toggleSection(section.id)}
+                    activeOpacity={0.7}
                   >
-                    {/* Section Header (Accordion) */}
-                    <TouchableOpacity
-                      style={styles.accordionHeader}
-                      onPress={() => toggleSection(section.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View>
-                        <Text style={[styles.sectionLabel, { color: textColor }]}>
-                          {section.title}
+                    <View>
+                      <Text style={[styles.sectionLabel, { color: textColor }]}>
+                        {section.title}
+                      </Text>
+                      {selectionText ? (
+                        <Text style={styles.activeSelectionText} numberOfLines={1}>
+                          {selectionText}
                         </Text>
-                        {selections[section.id] ? (
-                          <Text style={styles.activeSelectionText}>
-                            Selected: {selections[section.id]}
-                          </Text>
-                        ) : null}
-                      </View>
-                      <Ionicons
-                        name={expandedSection === section.id ? "chevron-up" : "chevron-down"}
-                        size={20}
-                        color={textColor}
-                      />
-                    </TouchableOpacity>
+                      ) : null}
+                    </View>
+                    <Ionicons
+                      name={expandedSection === section.id ? "chevron-up" : "chevron-down"}
+                      size={20}
+                      color={textColor}
+                    />
+                  </TouchableOpacity>
 
-                    {/* Section Content (Search + Options) */}
-                    {expandedSection === section.id && (
-                      <View style={styles.expandedContent}>
-                        {/* Search Input for the specific section */}
-                        <View
-                          style={[
-                            styles.searchContainer,
-                            {
-                              backgroundColor: backgroundColor === '#FFFFFF' ? '#F8FAFC' : '#334155'
-                            }
-                          ]}
-                        >
-                          <Ionicons name="search" size={16} color="#94A3B8" />
+                  {/* Section Content */}
+                  {expandedSection === section.id && (
+                    <View style={styles.expandedContent}>
+
+                      {/* Type: TEXT INPUT */}
+                      {sectionType === 'text' && (
+                        <View style={[styles.searchContainer, { backgroundColor: textColor === '#FFFFFF' ? '#334155' : '#FFFFFF', borderColor: borderColor || (textColor === '#FFFFFF' ? '#475569' : '#E2E8F0'), borderWidth: 1 }]}>
                           <TextInput
-                            style={[styles.searchInput, { color: textColor }]}
-                            placeholder={`Search ${section.title}...`}
-                            placeholderTextColor="#94A3B8"
-                            value={query}
-                            onChangeText={(text) => handleSearchChange(section.id, text)}
+                            style={[styles.searchInput, { color: textColor, marginLeft: 0 }]}
+                            placeholder={section.placeholder || "Enter text..."}
+                            placeholderTextColor={textColor === '#FFFFFF' ? '#94A3B8' : '#94A3B8'}
+                            value={currentSelection || ''}
+                            onChangeText={(text) => handleTextChange(section.id, text)}
                           />
                         </View>
+                      )}
 
-                        {/* Chips / Options Grid */}
-                        <View style={styles.optionsWrapper}>
-                          {filteredOptions.length > 0 ? (
-                            filteredOptions.map((option) => {
-                              const isSelected = selections[section.id] === option.value;
+                      {/* Type: DATE RANGE (Professional Calendar) */}
+                      {sectionType === 'date-range' && (
+                        <View>
+                          {/* Quick Filter Buttons */}
+                          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 15 }}>
+                            {['Today', 'Yesterday', 'Last 7 Days', 'This Week'].map((filter) => {
+                              const isActive = activeQuickFilter === filter;
+                              const activeBg = backgroundColor === '#FFFFFF' ? '#5152B3' : '#818CF8';
+                              const activeText = '#FFFFFF';
+                              const inactiveBorder = borderColor || '#E2E8F0';
+
                               return (
                                 <TouchableOpacity
-                                  key={option.value}
-                                  activeOpacity={0.7}
-                                  onPress={() => handleSelect(section.id, option.value)}
-                                  style={[
-                                    styles.chip,
-                                    isSelected
-                                      ? styles.chipActive
-                                      : [
-                                          styles.chipInactive,
-                                          {
-                                            backgroundColor: chipInactiveBackgroundColor,
-                                            borderColor: '#E2E8F0'
-                                          }
-                                        ]
-                                  ]}
+                                  key={filter}
+                                  style={{
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 6,
+                                    borderRadius: 20,
+                                    borderWidth: 1,
+                                    borderColor: isActive ? activeBg : inactiveBorder,
+                                    backgroundColor: isActive ? activeBg : 'transparent'
+                                  }}
+                                  onPress={() => {
+                                    setActiveQuickFilter(filter);
+                                    const today = new Date();
+                                    let start = new Date();
+                                    let end = new Date();
+
+                                    if (filter === 'Today') {
+                                      start = today;
+                                      end = today;
+                                    } else if (filter === 'Yesterday') {
+                                      start.setDate(today.getDate() - 1);
+                                      end = new Date(start);
+                                    } else if (filter === 'Last 7 Days') {
+                                      start = new Date(today);
+                                      start.setDate(today.getDate() - 6);
+                                      end = today;
+                                    } else if (filter === 'This Week') {
+                                      const day = today.getDay() || 7; // 1=Mon, 7=Sun
+                                      if (day !== 1) {
+                                        start.setDate(today.getDate() - (day - 1));
+                                      }
+                                      end = today;
+                                    }
+
+                                    // Format to "D MMM YYYY"
+                                    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                                    const fmt = (d: Date) => `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+                                    handleDateChange(section.id, 'start', fmt(start));
+                                    handleDateChange(section.id, 'end', fmt(end));
+                                    setActiveDateInput('start'); // Reset focus
+                                  }}
                                 >
-                                  <Text
-                                    style={[
-                                      styles.chipText,
-                                      isSelected ? styles.textActive : [styles.textInactive, { color: textColor }]
-                                    ]}
-                                  >
-                                    {option.label}
+                                  <Text style={{
+                                    fontSize: 12,
+                                    fontWeight: '600',
+                                    color: isActive ? activeText : textColor
+                                  }}>
+                                    {filter}
                                   </Text>
                                 </TouchableOpacity>
                               );
-                            })
-                          ) : (
-                            <Text style={styles.noResultsText}>
-                              No results found
-                            </Text>
-                          )}
+                            })}
+                          </View>
+
+                          {/* Inputs Row */}
+                          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}>
+                            {/* Start Date Input */}
+                            <TouchableOpacity
+                              style={[
+                                styles.searchContainer,
+                                {
+                                  flex: 1,
+                                  backgroundColor: activeDateInput === 'start'
+                                    ? (textColor === '#FFFFFF' ? '#475569' : '#EEF2FF') // Active tint
+                                    : (textColor === '#FFFFFF' ? '#334155' : '#FFFFFF'),
+                                  borderColor: activeDateInput === 'start'
+                                    ? (backgroundColor === '#FFFFFF' ? '#5152B3' : '#818CF8')
+                                    : (borderColor || (textColor === '#FFFFFF' ? '#475569' : '#E2E8F0')),
+                                  borderWidth: activeDateInput === 'start' ? 2 : 1
+                                }
+                              ]}
+                              onPress={() => setActiveDateInput('start')}
+                            >
+                              <Ionicons
+                                name="calendar-outline"
+                                size={18}
+                                color={activeDateInput === 'start' ? (backgroundColor === '#FFFFFF' ? '#5152B3' : '#818CF8') : "#94A3B8"}
+                                style={{ marginRight: 8 }}
+                              />
+                              <TextInput
+                                style={[styles.searchInput, { color: textColor, marginLeft: 0 }]}
+                                placeholder="Start Date"
+                                placeholderTextColor="#94A3B8"
+                                value={currentSelection?.start || ''}
+                                editable={false}
+                                onPressIn={() => setActiveDateInput('start')} // Redundant but safe
+                              />
+                            </TouchableOpacity>
+
+                            {/* End Date Input */}
+                            <TouchableOpacity
+                              style={[
+                                styles.searchContainer,
+                                {
+                                  flex: 1,
+                                  backgroundColor: activeDateInput === 'end'
+                                    ? (textColor === '#FFFFFF' ? '#475569' : '#EEF2FF') // Active tint
+                                    : (textColor === '#FFFFFF' ? '#334155' : '#FFFFFF'),
+                                  borderColor: activeDateInput === 'end'
+                                    ? (backgroundColor === '#FFFFFF' ? '#5152B3' : '#818CF8')
+                                    : (borderColor || (textColor === '#FFFFFF' ? '#475569' : '#E2E8F0')),
+                                  borderWidth: activeDateInput === 'end' ? 2 : 1
+                                }
+                              ]}
+                              onPress={() => setActiveDateInput('end')}
+                            >
+                              <Ionicons
+                                name="calendar-outline"
+                                size={18}
+                                color={activeDateInput === 'end' ? (backgroundColor === '#FFFFFF' ? '#5152B3' : '#818CF8') : "#94A3B8"}
+                                style={{ marginRight: 8 }}
+                              />
+                              <TextInput
+                                style={[styles.searchInput, { color: textColor, marginLeft: 0 }]}
+                                placeholder="End Date"
+                                placeholderTextColor="#94A3B8"
+                                value={currentSelection?.end || ''}
+                                editable={false}
+                                onPressIn={() => setActiveDateInput('end')}
+                              />
+                            </TouchableOpacity>
+                          </View>
+
+                          {/* Calendar UI */}
+                          <CalendarView
+                            startDate={currentSelection?.start}
+                            endDate={currentSelection?.end}
+                            // Pass Start Date as minimum valid date when selecting End Date
+                            minDate={activeDateInput === 'end' ? currentSelection?.start : undefined}
+                            onSelectDate={(date) => {
+                              const newDate = parseCalendarDate(date);
+                              const currentStartStr = currentSelection?.start;
+                              const dStart = parseCalendarDate(currentStartStr);
+                              const dCurrentEnd = parseCalendarDate(currentSelection?.end);
+
+                              if (!newDate) return;
+
+                              if (activeDateInput === 'start') {
+                                handleDateChange(section.id, 'start', date);
+                                // If new Start is after old End, clear End
+                                if (dCurrentEnd && newDate > dCurrentEnd) {
+                                  handleDateChange(section.id, 'end', '');
+                                }
+                                setActiveDateInput('end');
+                              } else {
+                                // When picking End Date
+                                // If new Date is before Start, treat as correction (swap or restart)
+                                if (dStart && newDate < dStart) {
+                                  handleDateChange(section.id, 'start', date);
+                                  handleDateChange(section.id, 'end', '');
+                                  setActiveDateInput('end');
+                                } else {
+                                  handleDateChange(section.id, 'end', date);
+                                }
+                              }
+                            }}
+                            textColor={textColor}
+                            accentColor={backgroundColor === '#FFFFFF' ? '#5152B3' : '#818CF8'}
+                          />
                         </View>
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </ScrollView>
+                      )}
 
-            {/* Footer Action Buttons */}
-            <View style={[styles.footer, { backgroundColor }]}>
-              <TouchableOpacity activeOpacity={0.8} onPress={handleApply}>
-                <LinearGradient
-                  colors={THEME_COLORS.buttonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.primaryBtnGradient}
-                >
-                  <Text style={styles.primaryBtnText}>
-                    Apply Filters
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                      {/* Type: SELECTION */}
+                      {sectionType === 'selection' && (
+                        <>
+                          {/* Search Input for the specific section */}
+                          <View
+                            style={[
+                              styles.searchContainer,
+                              {
+                                backgroundColor: textColor === '#FFFFFF' ? '#334155' : '#FFFFFF',
+                                borderColor: borderColor || (textColor === '#FFFFFF' ? '#475569' : '#E2E8F0'),
+                                borderWidth: 1
+                              }
+                            ]}
+                          >
+                            <Ionicons name="search" size={16} color="#94A3B8" />
+                            <TextInput
+                              style={[styles.searchInput, { color: textColor }]}
+                              placeholder={`Search ${section.title}...`}
+                              placeholderTextColor="#94A3B8"
+                              value={query}
+                              onChangeText={(text) => handleSearchChange(section.id, text)}
+                            />
+                          </View>
 
-              <TouchableOpacity style={styles.secondaryBtn} onPress={handleReset}>
-                <Text style={styles.secondaryBtnText}>
-                  Reset All
+                          {/* Chips / Options Grid */}
+                          <View style={styles.optionsWrapper}>
+                            {filteredOptions.length > 0 ? (
+                              filteredOptions.map((option) => {
+                                let isSelected = false;
+                                if (section.multiSelect && Array.isArray(currentSelection)) {
+                                  isSelected = currentSelection.includes(option.value);
+                                } else {
+                                  isSelected = currentSelection === option.value;
+                                }
+
+                                return (
+                                  <TouchableOpacity
+                                    key={option.value}
+                                    activeOpacity={0.7}
+                                    onPress={() => handleSelect(section.id, option.value, section.multiSelect)}
+                                    style={[
+                                      styles.chip,
+                                      isSelected
+                                        ? styles.chipActive
+                                        : [
+                                          styles.chipInactive,
+                                          {
+                                            backgroundColor: chipInactiveBackgroundColor,
+                                            borderColor: borderColor || '#E2E8F0'
+                                          }
+                                        ]
+                                    ]}
+                                  >
+                                    <Text
+                                      style={[
+                                        styles.chipText,
+                                        isSelected ? styles.textActive : [styles.textInactive, { color: textColor }]
+                                      ]}
+                                    >
+                                      {option.label}
+                                    </Text>
+                                  </TouchableOpacity>
+                                );
+                              })
+                            ) : (
+                              <Text style={styles.noResultsText}>
+                                No results found
+                              </Text>
+                            )}
+                          </View>
+                        </>
+                      )}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </ScrollView>
+
+          {/* Footer Action Buttons */}
+          <View style={[styles.footer, { backgroundColor }]}>
+            <TouchableOpacity activeOpacity={0.8} onPress={handleApply}>
+              <LinearGradient
+                colors={THEME_COLORS.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.primaryBtnGradient}
+              >
+                <Text style={styles.primaryBtnText}>
+                  Apply Filters
                 </Text>
-              </TouchableOpacity>
-              <View style={styles.safeBottomSpacer} />
-            </View>
+              </LinearGradient>
+            </TouchableOpacity>
 
+            <TouchableOpacity style={styles.secondaryBtn} onPress={handleReset}>
+              <Text style={styles.secondaryBtnText}>
+                Reset All
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.safeBottomSpacer} />
           </View>
-        </TouchableWithoutFeedback>
+
+        </Pressable>
       </Pressable>
-    </Modal>
+    </Modal >
   );
 };
 
@@ -396,12 +677,170 @@ const styles = StyleSheet.create({
   safeBottomSpacer: {
     height: Platform.OS === 'ios' ? 40 : 50,
   },
+  // Calendar Styles
+  calendarContainer: {
+    marginTop: 20,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  navBtn: {
+    padding: 5
+  },
+  monthTitle: {
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  weekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 10
+  },
+  weekDayText: {
+    width: '14.28%',
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '600'
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dayCell: {
+    width: '14.28%', // 100/7
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 5
+  },
+  dayText: {
+    fontSize: 14,
+    fontWeight: '500'
+  },
 });
 
+// --- Calendar Sub-Component & Logic ---
+
+
+
+const CalendarView: React.FC<{
+  startDate?: string;
+  endDate?: string;
+  minDate?: string; // New prop for disabling past dates
+  onSelectDate: (date: string) => void;
+  textColor: string;
+  accentColor: string;
+}> = ({ startDate, endDate, minDate, onSelectDate, textColor, accentColor }) => {
+  const [viewDate, setViewDate] = useState(new Date());
+
+  // Auto-jump to start date when it changes (e.g., from Quick Filter)
+  React.useEffect(() => {
+    if (startDate) {
+      const d = parseCalendarDate(startDate);
+      if (d) {
+        setViewDate(d);
+      }
+    }
+  }, [startDate]);
+
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const handlePrevMonth = () => {
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+  };
+
+  const renderDays = () => {
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+
+    // Parse start/end for comparison
+    const dStart = parseCalendarDate(startDate);
+    const dEnd = parseCalendarDate(endDate);
+    const dMin = parseCalendarDate(minDate);
+
+    const days = [];
+    // Empty slots for prev month
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<View key={`empty-${i}`} style={styles.dayCell} />);
+    }
+
+    // Days
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateObj = new Date(year, month, i);
+      const dateStr = `${i} ${MONTHS[month].substring(0, 3)} ${year}`; // Format: 1 Jan 2026
+
+      const isStart = dStart && dateObj.toDateString() === dStart.toDateString();
+      const isEnd = dEnd && dateObj.toDateString() === dEnd.toDateString();
+      const isInRange = dStart && dEnd && dateObj > dStart && dateObj < dEnd;
+
+      // Strict equality check for dMin to allow selecting the same day
+      const isBeforeMin = dMin && dateObj < dMin && dateObj.toDateString() !== dMin.toDateString();
+      const isDisabled = !!isBeforeMin;
+
+      days.push(
+        <TouchableOpacity
+          key={i}
+          style={[
+            styles.dayCell,
+            (isStart || isEnd) && { backgroundColor: accentColor, borderRadius: 20 },
+            isInRange && { backgroundColor: accentColor + '33' }, // Transparent accent
+            isDisabled && { opacity: 0.3 } // Visual disabled state
+          ]}
+          disabled={isDisabled}
+          onPress={() => !isDisabled && onSelectDate(dateStr)}
+        >
+          <Text style={[
+            styles.dayText,
+            { color: (isStart || isEnd) ? '#FFF' : textColor },
+            isInRange && { color: accentColor },
+            isDisabled && { color: '#94A3B8' }
+          ]}>
+            {i}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    return days;
+  };
+
+  return (
+    <View style={styles.calendarContainer}>
+      <View style={styles.calendarHeader}>
+        <TouchableOpacity onPress={handlePrevMonth} style={styles.navBtn}>
+          <Ionicons name="chevron-back" size={20} color={textColor} />
+        </TouchableOpacity>
+        <Text style={[styles.monthTitle, { color: textColor }]}>
+          {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
+        </Text>
+        <TouchableOpacity onPress={handleNextMonth} style={styles.navBtn}>
+          <Ionicons name="chevron-forward" size={20} color={textColor} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.weekRow}>
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+          <Text key={d} style={[styles.weekDayText, { color: '#94A3B8' }]}>{d}</Text>
+        ))}
+      </View>
+
+      <View style={styles.daysGrid}>
+        {renderDays()}
+      </View>
+    </View>
+  );
+};
+
 export default FilterInput;
-
-
-// ye reusable component hai
-// s ko hum ne filter k reusable banaya hai
-// ye project k andar search k sath ane wali filter k liye used hoga
-// s ko project k andar home page k searching, and setting page k searching k liye used kia hoa hai.

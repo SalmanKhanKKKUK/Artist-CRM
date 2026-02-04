@@ -56,6 +56,7 @@ const Customers: React.FC<CustomersProps> = ({ onBack, onNavigateToInvite }) => 
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   // States for Editing
   const [tempTitle, setTempTitle] = useState<string>("");
@@ -145,19 +146,15 @@ const Customers: React.FC<CustomersProps> = ({ onBack, onNavigateToInvite }) => 
   };
 
   const handleDelete = () => {
-    Alert.alert("Confirm Delete", "Are you sure you want to delete this customer?", [
-      { text: "Cancel", style: "cancel", onPress: () => setMenuVisible(false) },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          const filtered = customers.filter((item: Customer) => item.id !== selectedId);
-          setCustomers(filtered);
-          persistCustomers(filtered);
-          setMenuVisible(false);
-        }
-      }
-    ]);
+    setDeleteModalVisible(true);
+    setMenuVisible(false);
+  };
+
+  const confirmDelete = () => {
+    const filtered = customers.filter((item: Customer) => item.id !== selectedId);
+    setCustomers(filtered);
+    persistCustomers(filtered);
+    setDeleteModalVisible(false);
   };
 
   const isSelectedActive = customers.find(t => t.id === selectedId)?.description.toLowerCase().includes("active") &&
@@ -282,6 +279,36 @@ const Customers: React.FC<CustomersProps> = ({ onBack, onNavigateToInvite }) => 
           </View>
         </View>
       </Modal>
+
+
+      {/* --- Delete Customer Modal --- */}
+      <Modal visible={deleteModalVisible} transparent animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
+          <View style={styles.modalOverlayCenterDark}>
+            <TouchableWithoutFeedback onPress={() => { }}>
+              <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+                <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
+                <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>
+                  Are you sure you want to delete this customer?
+                </Text>
+
+                <View style={styles.actionRow}>
+                  <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.saveBtn, { backgroundColor: '#EF4444' }]}
+                    onPress={confirmDelete}
+                  >
+                    <Text style={styles.saveBtnText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
     </LinearGradient>
   );
 };
