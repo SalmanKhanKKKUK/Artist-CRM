@@ -1,12 +1,5 @@
-import { THEME_COLORS } from '@/constants/Colors';
-import { useTheme } from '@/contexts/ThemeContext';
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker'; // Added Image Picker
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   Modal,
   Platform,
   ScrollView,
@@ -19,363 +12,294 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 
+import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import NavHeader from '../../common/Buttons/NavHeader';
 import ImageDesCard from '../../common/Cards/ImageDesCard';
+import SearchInput from '../../common/Inputs/SearchInput';
 
+// --- Interfaces ---
 interface Customer {
   id: string;
   title: string;
+  phone: string;
+  email: string;
   description: string;
   image: string;
 }
 
-interface CustomersProps {
-  onBack?: () => void;
-  onNavigateToInvite?: () => void;
-}
-
-const Customers: React.FC<CustomersProps> = ({ onBack, onNavigateToInvite }) => {
+const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void }> = ({
+  onBack,
+  onNavigateToInvite
+}) => {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 
+  // --- Data ---
   const defaultCustomers: Customer[] = [
-    { id: '1', title: "Ahmad Ali", description: "Senior Stylist - Active", image: 'https://i.pravatar.cc/150?u=1' },
-    { id: '2', title: "Sara Khan", description: "Color Expert - Active", image: 'https://i.pravatar.cc/150?u=2' },
-    { id: '3', title: "Zeenat Malik", description: "Manager - Active", image: 'https://i.pravatar.cc/150?u=3' },
-    { id: '4', title: "Hamza Sheikh", description: "Junior Stylist - Active", image: 'https://i.pravatar.cc/150?u=4' },
-    { id: '5', title: "Danish Ahmed", description: "Assistant - Active", image: 'https://i.pravatar.cc/150?u=5' },
-    { id: '6', title: "Zoya Malik", description: "Senior Artist - Active", image: 'https://i.pravatar.cc/150?u=6' },
-    { id: '7', title: "Bilal Khan", description: "Hair Specialist - Active", image: 'https://i.pravatar.cc/150?u=7' },
-    { id: '8', title: "Mariam Aziz", description: "Makeup Artist - Active", image: 'https://i.pravatar.cc/150?u=8' },
-    { id: '9', title: "Usman Pirzada", description: "Barber - Active", image: 'https://i.pravatar.cc/150?u=9' },
-    { id: '10', title: "Ayesha Omer", description: "Skin Expert - Active", image: 'https://i.pravatar.cc/150?u=10' },
+    { id: '1', title: "Ahmad Ali", phone: "0300-1234567", email: "ahmad@mail.com", description: "0300-1234567\nahmad@mail.com", image: 'https://i.pravatar.cc/150?u=1' },
+    { id: '2', title: "Sara Khan", phone: "0312-7654321", email: "sara@mail.com", description: "0312-7654321\nsara@mail.com", image: 'https://i.pravatar.cc/150?u=2' },
+    { id: '3', title: "Zeenat Malik", phone: "0345-1122334", email: "zeenat@mail.com", description: "0345-1122334\nzeenat@mail.com", image: 'https://i.pravatar.cc/150?u=3' },
+    { id: '4', title: "Hamza Sheikh", phone: "0321-9988776", email: "hamza@mail.com", description: "0321-9988776\nhamza@mail.com", image: 'https://i.pravatar.cc/150?u=4' },
+    { id: '5', title: "Danish Ahmed", phone: "0333-5544332", email: "danish@mail.com", description: "0333-5544332\ndanish@mail.com", image: 'https://i.pravatar.cc/150?u=5' },
+    { id: '6', title: "Zoya Malik", phone: "0310-1122445", email: "zoya@mail.com", description: "0310-1122445\nzoya@mail.com", image: 'https://i.pravatar.cc/150?u=6' },
+    { id: '7', title: "Bilal Khan", phone: "0301-8877665", email: "bilal@mail.com", description: "0301-8877665\nbilal@mail.com", image: 'https://i.pravatar.cc/150?u=7' },
+    { id: '8', title: "Mariam Aziz", phone: "0344-5566778", email: "mariam@mail.com", description: "0344-5566778\nmariam@mail.com", image: 'https://i.pravatar.cc/150?u=8' },
+    { id: '9', title: "Usman Pirzada", phone: "0322-1234000", email: "usman@mail.com", description: "0322-1234000\nusman@mail.com", image: 'https://i.pravatar.cc/150?u=9' },
+    { id: '10', title: "Ayesha Omer", phone: "0300-0001112", email: "ayesha@mail.com", description: "0300-0001112\nayesha@mail.com", image: 'https://i.pravatar.cc/150?u=10' },
   ];
 
+  // --- States ---
   const [customers, setCustomers] = useState<Customer[]>(defaultCustomers);
-  const [menuVisible, setMenuVisible] = useState<boolean>(false);
-  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
-  // States for Editing
-  const [tempTitle, setTempTitle] = useState<string>("");
-  const [tempDesc, setTempDesc] = useState<string>("");
-  const [tempImg, setTempImg] = useState<string>(""); // New state for Image
+  const [tempTitle, setTempTitle] = useState("");
+  const [tempPhone, setTempPhone] = useState("");
+  const [tempEmail, setTempEmail] = useState("");
+  const [tempImg, setTempImg] = useState("");
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
 
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  // --- Search Logic ---
+  const filteredCustomers = customers.filter(customer => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      customer.title.toLowerCase().includes(query) || 
+      customer.phone.includes(query)
+    );
+  });
 
+  // --- Storage Logic ---
   useEffect(() => {
-    const loadCustomers = async () => {
-      try {
-        const savedData = await AsyncStorage.getItem('permanently_saved_customers');
-        if (savedData !== null) {
-          const parsedData = JSON.parse(savedData) as Customer[];
-          if (parsedData.length >= 8) {
-            setCustomers(parsedData);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load customers:", error);
-      }
-    };
-    loadCustomers();
+    (async () => {
+      const saved = await AsyncStorage.getItem('permanently_saved_customers');
+      if (saved) setCustomers(JSON.parse(saved));
+    })();
   }, []);
 
-  const persistCustomers = async (updatedCustomers: Customer[]) => {
-    try {
-      await AsyncStorage.setItem('permanently_saved_customers', JSON.stringify(updatedCustomers));
-    } catch (error) {
-      console.error("Failed to save customers:", error);
-    }
+  const persistData = async (list: Customer[]) => {
+    await AsyncStorage.setItem('permanently_saved_customers', JSON.stringify(list));
   };
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setTempImg(result.assets[0].uri);
-    }
-  };
-
+  // --- Handlers ---
   const handleOpenMenu = (event: any, member: Customer) => {
     const { pageY } = event.nativeEvent;
-    setMenuPosition({ top: pageY - 10, right: 40 });
+    const adjustedTop = pageY > 500 ? pageY - 120 : pageY - 10;
+    
+    setMenuPosition({ top: adjustedTop, right: 40 });
     setSelectedId(member.id);
     setTempTitle(member.title);
-    setTempDesc(member.description);
-    setTempImg(member.image); // Initialize temp image
+    setTempPhone(member.phone);
+    setTempEmail(member.email);
+    setTempImg(member.image);
     setMenuVisible(true);
   };
 
-  const handleEditInitiate = () => {
-    setMenuVisible(false);
-    setTimeout(() => setEditModalVisible(true), 100);
-  };
-
   const handleSaveEdit = () => {
-    const updated = customers.map((item: Customer) =>
-      item.id === selectedId
-        ? { ...item, title: tempTitle, description: tempDesc, image: tempImg }
-        : item
-    );
+    const updated = customers.map(c => c.id === selectedId ? {
+      ...c, 
+      title: tempTitle, 
+      phone: tempPhone, 
+      email: tempEmail, 
+      image: tempImg,
+      description: `${tempPhone}\n${tempEmail}`
+    } : c);
+
     setCustomers(updated);
-    persistCustomers(updated);
+    persistData(updated);
     setEditModalVisible(false);
   };
 
-  // Status and Delete functions remain same...
-  const handleToggleStatus = () => {
-    const updated = customers.map((item: Customer) => {
-      if (item.id === selectedId) {
-        const isCurrentlyActive = item.description.toLowerCase().includes("active") && !item.description.toLowerCase().includes("deactive");
-        const baseDesc = item.description.split(" - ")[0];
-        const newStatus = isCurrentlyActive ? "Deactive" : "Active";
-        return { ...item, description: `${baseDesc} - ${newStatus}` };
-      }
-      return item;
-    });
-    setCustomers(updated);
-    persistCustomers(updated);
-    setMenuVisible(false);
-  };
-
-  const handleDelete = () => {
-    setDeleteModalVisible(true);
-    setMenuVisible(false);
-  };
-
-  const confirmDelete = () => {
-    const filtered = customers.filter((item: Customer) => item.id !== selectedId);
-    setCustomers(filtered);
-    persistCustomers(filtered);
-    setDeleteModalVisible(false);
-  };
-
-  const isSelectedActive = customers.find(t => t.id === selectedId)?.description.toLowerCase().includes("active") &&
-    !customers.find(t => t.id === selectedId)?.description.toLowerCase().includes("deactive");
-
   return (
-    <LinearGradient
-      colors={colors.bgGradient}
-      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-      style={styles.gradientContainer}
-    >
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+    <LinearGradient colors={colors.bgGradient} style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
+        <StatusBar 
+          barStyle={isDark ? "light-content" : "dark-content"} 
+          translucent 
+          backgroundColor="transparent" 
+        />
 
-        <NavHeader title=" Meet Our Customers !">
+        <NavHeader title="Meet Our Customers !">
           <TouchableOpacity onPress={() => onNavigateToInvite?.()} activeOpacity={0.8}>
-            <LinearGradient
-              colors={THEME_COLORS.buttonGradient}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={styles.inviteHeaderBtn}
-            >
-              <Text style={styles.inviteBtnText}>Invite</Text>
+            <LinearGradient colors={THEME_COLORS.buttonGradient} style={styles.inviteBtn}>
+              <Text style={styles.inviteText}>Invite</Text>
             </LinearGradient>
           </TouchableOpacity>
         </NavHeader>
 
+        {/* Search Header */}
+        <View style={styles.searchFixedContainer}>
+          <SearchInput
+            value={searchQuery}
+            onChangeText={(text) => setSearchQuery(text)}
+            placeholder="Search Customer"
+            showSearchType={false}
+            backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+            textColor={colors.text}
+            iconColor={colors.textSecondary}
+          />
+        </View>
+
+        {/* Customer List */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.mainScroll, { paddingBottom: 60 + insets.bottom }]}
+          contentContainerStyle={[styles.scrollArea, { paddingBottom: insets.bottom + 20 }]}
+          keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.contentFadeIn}>
-            {customers.map((member) => (
-              <View key={member.id} style={styles.cardWrapper}>
-                <ImageDesCard
-                  imageSource={{ uri: member.image }}
-                  title={member.title}
-                  description={member.description}
-                  backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                  containerStyle={[styles.cardMargin, { borderColor: colors.border }]}
-                  titleStyle={{ color: isDark ? "#FFFFFF" : "#1E293B" }}
-                  descriptionStyle={{ color: "#64748B" }}
-                />
-                <TouchableOpacity
-                  style={styles.threeDotButton}
-                  onPress={(event) => handleOpenMenu(event, member)}
-                >
-                  <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
+          {filteredCustomers.map((member) => (
+            <View key={member.id} style={styles.cardContainer}>
+              <ImageDesCard
+                imageSource={{ uri: member.image }}
+                title={member.title}
+                description={member.description}
+                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                containerStyle={[styles.cardItem, { borderColor: colors.border }]}
+                titleStyle={{ color: colors.text }}
+                descriptionStyle={{ color: colors.textSecondary }}
+              />
+              <TouchableOpacity style={styles.dots} onPress={(e) => handleOpenMenu(e, member)}>
+                <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+          ))}
         </ScrollView>
       </SafeAreaView>
 
+      {/* --- MENU MODAL (EDIT/DELETE OPTIONS) --- */}
       <Modal visible={menuVisible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-          <View style={styles.modalOverlayDimmed}>
-            <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right, backgroundColor: colors.card }]}>
-              <TouchableOpacity style={styles.menuItem} onPress={handleEditInitiate}>
+          <View style={styles.modalOverlayClear}>
+            <View 
+              style={[
+                styles.menuPopup, 
+                { top: menuPosition.top, right: menuPosition.right, backgroundColor: colors.card }
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() => {
+                  setMenuVisible(false);
+                  setTimeout(() => setEditModalVisible(true), 200);
+                }}
+              >
                 <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
-                <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
+                <Text style={[styles.menuOptionText, { color: colors.text }]}>Edit</Text>
               </TouchableOpacity>
-              <View style={styles.menuSeparator} />
-              <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
-                <MaterialCommunityIcons
-                  name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"}
-                  size={20}
-                  color={isSelectedActive ? "#F59E0B" : "#10B981"}
-                />
-                <Text style={[styles.menuText, { color: colors.text }]}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
-              </TouchableOpacity>
-              <View style={styles.menuSeparator} />
-              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+
+              <View style={styles.divider} />
+
+              <TouchableOpacity style={styles.menuOption} onPress={() => setMenuVisible(false)}>
                 <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
-                <Text style={[styles.menuText, { color: colors.text }]}>Delete</Text>
+                <Text style={[styles.menuOptionText, { color: colors.text }]}>Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
 
+      {/* --- EDIT MODAL --- */}
       <Modal visible={editModalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlayCenterDark}>
-          <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-            <Text style={[styles.editTitle, { color: colors.text }]}>Edit Customer</Text>
-
-            {/* Centered Image Edit - Same as History */}
-            <View style={{ alignItems: 'center', marginBottom: 20 }}>
-              <TouchableOpacity onPress={pickImage} activeOpacity={0.7}>
-                <View style={{ position: 'relative' }}>
-                  <View style={styles.editImageContainer}>
-                    <ImageDesCard
-                      imageSource={{ uri: tempImg }}
-                      title=""
-                      description=""
-                      containerStyle={styles.editImageStyle}
-                    />
-                  </View>
-                  <View style={styles.cameraIconContainer}>
-                    <MaterialCommunityIcons name="camera" size={16} color="white" />
-                  </View>
-                </View>
-              </TouchableOpacity>
+        <View style={styles.modalOverlayDark}>
+          <View style={[styles.editBox, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Edit Customer</Text>
+            
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Client Name</Text>
+              <TextInput
+                style={[styles.field, { color: colors.text, borderColor: colors.border }]}
+                value={tempTitle}
+                onChangeText={setTempTitle}
+              />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Full Name</Text>
-              <TextInput style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]} value={tempTitle} onChangeText={setTempTitle} />
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Phone Number</Text>
+              <TextInput
+                style={[styles.field, { color: colors.text, borderColor: colors.border }]}
+                value={tempPhone}
+                onChangeText={setTempPhone}
+                keyboardType="phone-pad"
+              />
             </View>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Designation</Text>
-              <TextInput style={[styles.inputField, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]} value={tempDesc} onChangeText={setTempDesc} />
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={[styles.field, { color: colors.text, borderColor: colors.border }]}
+                value={tempEmail}
+                onChangeText={setTempEmail}
+                autoCapitalize="none"
+              />
             </View>
-            <View style={styles.actionRow}>
+
+            <View style={styles.btnGroup}>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={styles.cancelLink}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveEdit}>
-                <Text style={styles.saveBtnText}>Save</Text>
+              <TouchableOpacity style={styles.updateBtn} onPress={handleSaveEdit}>
+                <Text style={styles.updateTxt}>Update</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-
-
-      {/* --- Delete Customer Modal --- */}
-      <Modal visible={deleteModalVisible} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
-          <View style={styles.modalOverlayCenterDark}>
-            <TouchableWithoutFeedback onPress={() => { }}>
-              <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-                <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
-                <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>
-                  Are you sure you want to delete this customer?
-                </Text>
-
-                <View style={styles.actionRow}>
-                  <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
-                    <Text style={styles.cancelBtnText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.saveBtn, { backgroundColor: '#EF4444' }]}
-                    onPress={confirmDelete}
-                  >
-                    <Text style={styles.saveBtnText}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-
     </LinearGradient>
   );
 };
 
+// --- Stylesheet Layout ---
 const styles = StyleSheet.create({
-  gradientContainer: {
+  flex: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  inviteHeaderBtn: {
+  inviteBtn: {
     paddingHorizontal: 20,
     paddingVertical: 6,
     borderRadius: 20,
     elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
   },
-  inviteBtnText: {
+  inviteText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 13,
   },
-  mainScroll: {
+  searchFixedContainer: {
     paddingHorizontal: 15,
-    paddingTop: 5,
-  },
-  contentFadeIn: {
-    width: '100%',
-  },
-  cardWrapper: {
-    position: 'relative',
-    marginBottom: 0,
-  },
-  cardMargin: {
-    marginBottom: 0,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    // backgroundColor: '#FFFFFF', // Removed to allow prop override
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  threeDotButton: {
-    position: 'absolute',
-    right: 15,
-    top: 30,
-    padding: 10,
+    paddingBottom: 10,
     zIndex: 10,
   },
-  modalOverlayDimmed: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+  scrollArea: {
+    paddingHorizontal: 15,
   },
-  modalOverlayCenterDark: {
+  cardContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  cardItem: {
+    borderRadius: 20,
+    borderWidth: 1,
+    elevation: 2,
+  },
+  dots: {
+    position: 'absolute',
+    right: 15,
+    top: 25,
+    padding: 10,
+    zIndex: 5,
+  },
+  modalOverlayClear: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  modalOverlayDark: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
@@ -383,105 +307,82 @@ const styles = StyleSheet.create({
   },
   menuPopup: {
     position: 'absolute',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     width: 140,
     paddingVertical: 5,
-    elevation: 8,
+    elevation: 15,
+    zIndex: 9999,
   },
-  menuItem: {
+  menuOption: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
     gap: 12,
   },
-  menuSeparator: {
+  menuOptionText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  divider: {
     height: 1,
     backgroundColor: '#F1F5F9',
     marginHorizontal: 10,
   },
-  menuText: {
-    fontSize: 16,
-    color: '#334155',
-    fontWeight: '500',
-  },
   editPopup: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     width: '85%',
     padding: 24,
     elevation: 10,
   },
-  editTitle: {
+  editBox: {
+    borderRadius: 24,
+    width: '85%',
+    padding: 24,
+    elevation: 10,
+  },
+  modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#1E293B',
   },
-  editImageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#E2E8F0'
-  },
-  editImageStyle: {
-    width: 80,
-    height: 80,
-    margin: 0,
-    padding: 0
-  },
-  cameraIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#5152B3',
-    borderRadius: 15,
-    padding: 5,
-    elevation: 5
-  },
-  inputGroup: {
+  inputWrapper: {
     marginBottom: 15,
-    width: '100%',
   },
-  inputLabel: {
-    color: '#64748B',
+  label: {
     marginBottom: 6,
     fontWeight: '600',
     fontSize: 14,
+    color: '#64748B',
   },
-  inputField: {
+  field: {
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
     borderRadius: 12,
-    padding: 14,
-    backgroundColor: '#F8FAFC',
-    color: '#1E293B',
+    padding: 12,
+    fontSize: 15,
   },
-  actionRow: {
+  btnGroup: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 20,
-    marginTop: 10,
+    marginTop: 15,
+    alignItems: 'center',
   },
-  cancelBtnText: {
+  cancelLink: {
     color: '#94A3B8',
     fontWeight: 'bold',
     fontSize: 16,
-    marginTop: 10,
   },
-  saveBtn: {
+  updateBtn: {
     backgroundColor: '#5152B3',
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 12,
   },
-  saveBtnText: {
+  updateTxt: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 15,
   },
 });
 

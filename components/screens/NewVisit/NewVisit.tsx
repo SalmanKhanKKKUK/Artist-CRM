@@ -1,9 +1,3 @@
-import { THEME_COLORS } from '@/constants/Colors';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -25,7 +19,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 
+import { THEME_COLORS } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import NavHeader from '../../common/Buttons/NavHeader';
 import Input from '../../common/Inputs/Input';
 
@@ -60,32 +60,23 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
-  // --- 1. Main Sections State ---
+  // --- States ---
   const [expandedSection, setExpandedSection] = useState<string | null>('customer');
-
-  // --- 2. Customer Selection States ---
   const [customerSearch, setCustomerSearch] = useState<string>('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-
-  // --- 3. Services States ---
-  const [allServices, setAllServices] = useState<string[]>([
-    'Haircut', 'Coloring', 'Styling', 'Facial', 'Treatment', 'Shaving'
-  ]);
+  
+  const [allServices, setAllServices] = useState<string[]>(['Haircut', 'Coloring', 'Styling', 'Facial', 'Treatment', 'Shaving']);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [serviceSearch, setServiceSearch] = useState<string>('');
   const topServices = ['Haircut', 'Coloring', 'Styling'];
 
-  // --- 4. Tags States ---
   const [allTags, setAllTags] = useState<string[]>(['Premium', 'Regular', 'VIP', 'New', 'Color']);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagSearch, setTagSearch] = useState<string>('');
   const topTags = ['Premium', 'Regular', 'VIP'];
 
-  // --- 5. Media & Notes States ---
   const [notes, setNotes] = useState<string>('');
   const [images, setImages] = useState<string[]>([]);
-
-  // --- 6. UI & Animation States ---
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const slideAnim = useRef(new Animated.Value(-150)).current;
@@ -106,18 +97,19 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
     !selectedTags.includes(t)
   );
 
-  // --- Action Handlers ---
+  // --- Handlers ---
+  const closeDropdowns = () => {
+    if (customerSearch !== '' || serviceSearch !== '' || tagSearch !== '') {
+      setCustomerSearch('');
+      setServiceSearch('');
+      setTagSearch('');
+    }
+    Keyboard.dismiss();
+  };
+
   const toggleSection = (section: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedSection(expandedSection === section ? null : section);
-  };
-
-  const closeSections = () => {
-    if (expandedSection) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setExpandedSection(null);
-      Keyboard.dismiss();
-    }
   };
 
   const handleAddItem = (val: string, type: 'service' | 'tag') => {
@@ -179,11 +171,14 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={closeSections}>
+    <TouchableWithoutFeedback onPress={closeDropdowns}>
       <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+        <StatusBar 
+          barStyle={isDark ? "light-content" : "dark-content"} 
+          backgroundColor="transparent" 
+          translucent 
+        />
 
-        {/* Success Alert */}
         {showSuccess && (
           <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
             <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
@@ -247,7 +242,6 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                         backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
                         focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
                         borderColor={colors.border}
-
                       />
                       {customerSearch.length > 0 && !selectedCustomer && filteredCustomers.length > 0 && (
                         <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -256,7 +250,10 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                               <TouchableOpacity
                                 key={c.id}
                                 style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
-                                onPress={() => { setSelectedCustomer(c); setCustomerSearch(c.name); }}
+                                onPress={() => { 
+                                  setSelectedCustomer(c); 
+                                  setCustomerSearch(''); 
+                                }}
                               >
                                 <MaterialCommunityIcons name="account-circle" size={22} color={colors.textSecondary} />
                                 <View>
@@ -272,7 +269,9 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                     {selectedCustomer && (
                       <View style={[styles.selectedBadge, { backgroundColor: isDark ? colors.border : '#ECFDF5' }]}>
                         <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-                        <Text style={[styles.selectedBadgeText, { color: isDark ? colors.text : '#065F46' }]}>Selected: {selectedCustomer.name}</Text>
+                        <Text style={[styles.selectedBadgeText, { color: isDark ? colors.text : '#065F46' }]}>
+                          Selected: {selectedCustomer.name}
+                        </Text>
                         <TouchableOpacity onPress={() => setSelectedCustomer(null)} style={{ marginLeft: 'auto' }}>
                           <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
                         </TouchableOpacity>
@@ -299,7 +298,11 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                   <View style={[styles.cardBody, { borderTopColor: colors.border }]}>
                     <View style={styles.chipsRow}>
                       {selectedServices.map(s => (
-                        <TouchableOpacity key={s} style={[styles.chip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(s, 'service')}>
+                        <TouchableOpacity 
+                          key={s} 
+                          style={[styles.chip, { backgroundColor: colors.background, borderColor: colors.border }]} 
+                          onPress={() => removeChip(s, 'service')}
+                        >
                           <Text style={[styles.chipText, { color: colors.primary }]}>{s} ✕</Text>
                         </TouchableOpacity>
                       ))}
@@ -315,7 +318,6 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                       focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
                       borderColor={colors.border}
-
                     />
                     <View style={styles.quickSelectRow}>
                       {topServices
@@ -332,12 +334,19 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                     </View>
                     {serviceSearch.length > 0 && (
                       <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <TouchableOpacity style={[styles.suggestionItem, { borderBottomColor: colors.border }]} onPress={() => handleAddItem(serviceSearch, 'service')}>
+                        <TouchableOpacity 
+                          style={[styles.suggestionItem, { borderBottomColor: colors.border }]} 
+                          onPress={() => handleAddItem(serviceSearch, 'service')}
+                        >
                           <Ionicons name="add-circle" size={22} color={colors.primary} />
                           <Text style={[styles.itemTitle, { color: colors.text }]}>Add {serviceSearch}</Text>
                         </TouchableOpacity>
                         {filteredServices.map(s => (
-                          <TouchableOpacity key={s} style={[styles.suggestionItem, { borderBottomColor: colors.border }]} onPress={() => handleAddItem(s, 'service')}>
+                          <TouchableOpacity 
+                            key={s} 
+                            style={[styles.suggestionItem, { borderBottomColor: colors.border }]} 
+                            onPress={() => handleAddItem(s, 'service')}
+                          >
                             <Text style={[styles.itemTitle, { color: colors.text }]}>{s}</Text>
                           </TouchableOpacity>
                         ))}
@@ -361,7 +370,11 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                   <View style={[styles.cardBody, { borderTopColor: colors.border }]}>
                     <View style={styles.chipsRow}>
                       {selectedTags.map(t => (
-                        <TouchableOpacity key={t} style={[styles.chip, styles.tagChip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(t, 'tag')}>
+                        <TouchableOpacity 
+                          key={t} 
+                          style={[styles.chip, styles.tagChip, { backgroundColor: colors.background, borderColor: colors.border }]} 
+                          onPress={() => removeChip(t, 'tag')}
+                        >
                           <Text style={[styles.chipText, styles.tagChipText, { color: colors.textSecondary }]}>{t} ✕</Text>
                         </TouchableOpacity>
                       ))}
@@ -377,7 +390,6 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                       backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                       focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
                       borderColor={colors.border}
-
                     />
                     <View style={styles.quickSelectRow}>
                       {topTags
@@ -394,12 +406,19 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                     </View>
                     {tagSearch.length > 0 && (
                       <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <TouchableOpacity style={[styles.suggestionItem, { borderBottomColor: colors.border }]} onPress={() => handleAddItem(tagSearch, 'tag')}>
+                        <TouchableOpacity 
+                          style={[styles.suggestionItem, { borderBottomColor: colors.border }]} 
+                          onPress={() => handleAddItem(tagSearch, 'tag')}
+                        >
                           <Ionicons name="add-circle" size={22} color={colors.primary} />
                           <Text style={[styles.itemTitle, { color: colors.text }]}>Add {tagSearch}</Text>
                         </TouchableOpacity>
                         {filteredTags.map(t => (
-                          <TouchableOpacity key={t} style={[styles.suggestionItem, { borderBottomColor: colors.border }]} onPress={() => handleAddItem(t, 'tag')}>
+                          <TouchableOpacity 
+                            key={t} 
+                            style={[styles.suggestionItem, { borderBottomColor: colors.border }]} 
+                            onPress={() => handleAddItem(t, 'tag')}
+                          >
                             <Text style={[styles.itemTitle, { color: colors.text }]}>{t}</Text>
                           </TouchableOpacity>
                         ))}
@@ -418,10 +437,14 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                   </View>
                   <Ionicons name={(expandedSection === 'notes' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
+
                 {expandedSection === 'notes' && (
                   <View style={[styles.cardBody, { borderTopColor: colors.border }]}>
                     <TextInput
-                      style={[styles.textArea, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, color: colors.text }]}
+                      style={[
+                        styles.textArea, 
+                        { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, color: colors.text }
+                      ]}
                       placeholder="Technical formulas/Notes..."
                       placeholderTextColor={colors.textSecondary}
                       multiline
@@ -441,17 +464,24 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                   </View>
                   <Ionicons name={(expandedSection === 'photos' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
+
                 {expandedSection === 'photos' && (
                   <View style={[styles.cardBody, { borderTopColor: colors.border }]}>
                     <View style={styles.photoGrid}>
-                      <TouchableOpacity style={[styles.addPhotoBox, { backgroundColor: colors.background, borderColor: colors.primary }]} onPress={handleImagePick}>
+                      <TouchableOpacity 
+                        style={[styles.addPhotoBox, { backgroundColor: colors.background, borderColor: colors.primary }]} 
+                        onPress={handleImagePick}
+                      >
                         <MaterialCommunityIcons name="camera-plus" size={30} color={colors.primary} />
                         <Text style={[styles.addPhotoText, { color: colors.primary }]}>Add Photo</Text>
                       </TouchableOpacity>
                       {images.map((uri, i) => (
                         <View key={i} style={styles.imageWrapper}>
                           <Image source={{ uri }} style={styles.uploadedImg} />
-                          <TouchableOpacity style={[styles.removeBtn, { backgroundColor: colors.card }]} onPress={() => removeImage(i)}>
+                          <TouchableOpacity 
+                            style={[styles.removeBtn, { backgroundColor: colors.card }]} 
+                            onPress={() => removeImage(i)}
+                          >
                             <Ionicons name="close-circle" size={20} color="#EF4444" />
                           </TouchableOpacity>
                         </View>
@@ -468,217 +498,217 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   );
 };
 
-// --- Stylesheet ---
+// --- Styles ---
 const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
+  gradientContainer: { 
+    flex: 1 
   },
-  masterContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
+  masterContainer: { 
+    flex: 1, 
+    backgroundColor: 'transparent' 
   },
-  flexOne: {
-    flex: 1,
+  flexOne: { 
+    flex: 1 
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
+  scrollContent: { 
+    paddingHorizontal: 20, 
+    paddingTop: 10 
   },
-  saveHeaderBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 6,
-    borderRadius: 20,
-    elevation: 3,
+  saveHeaderBtn: { 
+    paddingHorizontal: 20, 
+    paddingVertical: 6, 
+    borderRadius: 20, 
+    elevation: 3 
   },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 14,
+  saveBtnText: { 
+    color: '#FFFFFF', 
+    fontWeight: 'bold', 
+    fontSize: 14 
   },
-  card: {
-    borderRadius: 20,
-    marginBottom: 15,
-    borderWidth: 1,
-    elevation: 2,
+  card: { 
+    borderRadius: 20, 
+    marginBottom: 15, 
+    borderWidth: 1, 
+    elevation: 2 
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 18,
-    alignItems: 'center',
+  cardHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    padding: 18, 
+    alignItems: 'center' 
   },
-  headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  headerTitleRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 12 
   },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+  cardTitle: { 
+    fontSize: 15, 
+    fontWeight: '700' 
   },
-  cardBody: {
-    padding: 18,
-    paddingTop: 0,
-    borderTopWidth: 1,
+  cardBody: { 
+    padding: 18, 
+    paddingTop: 0, 
+    borderTopWidth: 1 
   },
-  inputWrapper: {
-    position: 'relative',
-    width: '100%',
-    marginTop: 10,
+  inputWrapper: { 
+    position: 'relative', 
+    width: '100%', 
+    marginTop: 10 
   },
-  dropdownMenu: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    borderRadius: 15,
-    elevation: 8,
-    zIndex: 9999,
-    borderWidth: 1,
-    padding: 5,
+  dropdownMenu: { 
+    position: 'absolute', 
+    top: 60, 
+    left: 0, 
+    right: 0, 
+    borderRadius: 15, 
+    elevation: 8, 
+    zIndex: 9999, 
+    borderWidth: 1, 
+    padding: 5 
   },
-  suggestionItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  suggestionItem: { 
+    padding: 12, 
+    borderBottomWidth: 1, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 10 
   },
-  itemTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+  itemTitle: { 
+    fontSize: 14, 
+    fontWeight: '600' 
   },
-  itemSub: {
-    fontSize: 12,
+  itemSub: { 
+    fontSize: 12 
   },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginVertical: 10,
+  chipsRow: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    gap: 8, 
+    marginVertical: 10 
   },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+  chip: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 12, 
+    borderWidth: 1, 
+    flexDirection: 'row', 
+    alignItems: 'center' 
   },
-  chipText: {
-    fontSize: 12,
-    fontWeight: '600',
+  chipText: { 
+    fontSize: 12, 
+    fontWeight: '600' 
   },
-  tagChip: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
+  tagChip: { 
+    backgroundColor: '#F1F5F9', 
+    borderColor: '#E2E8F0' 
   },
-  tagChipText: {
-    color: '#64748B',
+  tagChipText: { 
+    color: '#64748B' 
   },
-  quickSelectRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-    flexWrap: 'wrap',
+  quickSelectRow: { 
+    flexDirection: 'row', 
+    gap: 8, 
+    marginTop: 12, 
+    flexWrap: 'wrap' 
   },
-  quickChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
+  quickChip: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 10, 
+    borderWidth: 1 
   },
-  quickChipText: {
-    fontSize: 11,
-    fontWeight: '600',
+  quickChipText: { 
+    fontSize: 11, 
+    fontWeight: '600' 
   },
-  selectedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10,
-    gap: 8,
+  selectedBadge: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10, 
+    borderRadius: 10, 
+    marginTop: 10, 
+    gap: 8 
   },
-  selectedBadgeText: {
-    fontSize: 13,
-    fontWeight: '600',
+  selectedBadgeText: { 
+    fontSize: 13, 
+    fontWeight: '600' 
   },
-  addLink: {
-    marginTop: 12,
+  addLink: { 
+    marginTop: 12 
   },
-  addLinkText: {
-    fontSize: 13,
-    fontWeight: '700',
+  addLinkText: { 
+    fontSize: 13, 
+    fontWeight: '700' 
   },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: 15,
-    padding: 15,
-    height: 120,
-    textAlignVertical: 'top',
-    marginTop: 12,
-    fontSize: 14,
+  textArea: { 
+    borderWidth: 1, 
+    borderRadius: 15, 
+    padding: 15, 
+    height: 120, 
+    textAlignVertical: 'top', 
+    marginTop: 12, 
+    fontSize: 14 
   },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 15,
+  photoGrid: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    gap: 12, 
+    marginTop: 15 
   },
-  addPhotoBox: {
-    width: (width - 100) / 2,
-    height: 110,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  addPhotoBox: { 
+    width: (width - 100) / 2, 
+    height: 110, 
+    borderWidth: 1.5, 
+    borderStyle: 'dashed', 
+    borderRadius: 18, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
   },
-  addPhotoText: {
-    fontSize: 13,
-    marginTop: 8,
-    fontWeight: '700',
+  addPhotoText: { 
+    fontSize: 13, 
+    marginTop: 8, 
+    fontWeight: '700' 
   },
-  imageWrapper: {
-    width: (width - 100) / 2,
-    height: 110,
-    position: 'relative',
+  imageWrapper: { 
+    width: (width - 100) / 2, 
+    height: 110, 
+    position: 'relative' 
   },
-  uploadedImg: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 18,
+  uploadedImg: { 
+    width: '100%', 
+    height: '100%', 
+    borderRadius: 18 
   },
-  removeBtn: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    borderRadius: 12,
-    elevation: 3,
+  removeBtn: { 
+    position: 'absolute', 
+    top: -6, 
+    right: -6, 
+    borderRadius: 12, 
+    elevation: 3 
   },
-  successNotification: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    backgroundColor: '#10B981',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 20,
-    zIndex: 9999,
-    gap: 15,
-    elevation: 10,
+  successNotification: { 
+    position: 'absolute', 
+    top: 0, 
+    left: 20, 
+    right: 20, 
+    backgroundColor: '#10B981', 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 18, 
+    borderRadius: 20, 
+    zIndex: 9999, 
+    gap: 15, 
+    elevation: 10 
   },
-  successTitle: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
+  successTitle: { 
+    color: '#FFFFFF', 
+    fontWeight: 'bold', 
+    fontSize: 16 
   },
-  successMessage: {
-    color: '#E0F2FE',
-    fontSize: 13,
+  successMessage: { 
+    color: '#E0F2FE', 
+    fontSize: 13 
   },
 });
 
