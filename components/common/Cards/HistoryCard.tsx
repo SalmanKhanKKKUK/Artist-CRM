@@ -2,7 +2,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import React from 'react';
 import {
   Image,
-  ScrollView,
   StyleProp,
   StyleSheet,
   Text,
@@ -53,23 +52,19 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
   dateColor = '#5152B3',
 }) => {
   const { isDark } = useTheme();
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
       style={[
         styles.container,
-        {
-          backgroundColor,
-          shadowColor,
-          elevation,
-        },
+        { backgroundColor, shadowColor, elevation },
         containerStyle,
       ]}
     >
       <View style={styles.contentContainer}>
-
-        {/* 1. Header: Name & Phone (More Compact) */}
+        {/* 1. Header: Name & Phone */}
         <View style={styles.headerRow}>
           <View style={styles.nameBlock}>
             <Text style={[styles.nameText, { color: titleColor }]} numberOfLines={1}>
@@ -79,68 +74,56 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
           </View>
         </View>
 
-        {/* 2. Services Line (Smaller Gaps) */}
+        {/* 2. Services (Wrapped) */}
         <View style={styles.chipsRow}>
           {services.map((service, index) => (
             <View key={`s-${index}`} style={[
               styles.serviceChip,
               isDark && { backgroundColor: '#312e81', borderColor: '#4338ca' }
             ]}>
-              <Text style={[
-                styles.serviceChipText,
-                isDark && { color: '#e0e7ff' }
-              ]}>{service}</Text>
+              <Text style={[styles.serviceChipText, isDark && { color: '#e0e7ff' }]}>{service}</Text>
             </View>
           ))}
         </View>
 
-        {/* 3. Tags Line */}
+        {/* 3. Tags (Wrapped) */}
         <View style={styles.chipsRow}>
           {tags.map((tag, index) => (
             <View key={`t-${index}`} style={[
               styles.tagChip,
               isDark && { backgroundColor: '#064e3b', borderColor: '#065f46' }
             ]}>
-              <Text style={[
-                styles.tagChipText,
-                isDark && { color: '#d1fae5' }
-              ]}>{tag}</Text>
+              <Text style={[styles.tagChipText, isDark && { color: '#d1fae5' }]}>{tag}</Text>
             </View>
           ))}
         </View>
 
-        {/* 4. Notes (Compact Text) */}
+        {/* 4. Notes (Full Wrap) */}
         {notes ? (
-          <Text style={[styles.notesText, { color: noteColor }]} numberOfLines={1}>
+          <Text style={[styles.notesText, { color: noteColor }]}>
             <Text style={[styles.noteLabel, isDark && { color: '#e2e8f0' }]}>Note: </Text>
             {notes}
           </Text>
         ) : null}
 
-        {/* 5. Mini Photos Row (Adjusted Size) */}
+        {/* 5. Photos Grid (Wrapped - ScrollView Removed to fix Wrapping) */}
         {photos && photos.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.photoScroll}
-            contentContainerStyle={styles.photoScrollContent}
-          >
+          <View style={styles.photoGrid}>
             {photos.map((photo, index) => (
               <View key={index} style={styles.imageWrapper}>
                 <Image source={{ uri: photo }} style={styles.miniPhoto} />
               </View>
             ))}
-          </ScrollView>
+          </View>
         )}
 
-        {/* 6. Footer: Date & Time (Aligned Bottom) */}
+        {/* 6. Footer: Date & Time */}
         <View style={styles.footerRow}>
           <View style={styles.dateBlock}>
             <Text style={[styles.dateText, { color: dateColor }]}>{date}</Text>
             <Text style={[styles.timeText, { color: phoneColor }]}>{time}</Text>
           </View>
         </View>
-
       </View>
     </TouchableOpacity>
   );
@@ -148,9 +131,8 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 15, // Slightly smaller radius
-    backgroundColor: '#FFFFFF',
-    padding: 14, // Reduced padding from 18 to 14
+    borderRadius: 15,
+    padding: 14,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -159,33 +141,32 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   contentContainer: {
-    flex: 1,
+    width: '100%',
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8, // Reduced margin
+    marginBottom: 8,
   },
   nameBlock: {
     flex: 1,
-    paddingRight: 35,
+    paddingRight: 40,
   },
   nameText: {
-    fontSize: 16, // Reduced from 18
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#1E293B',
   },
   phoneText: {
-    fontSize: 12, // Reduced from 13
-    color: '#64748B',
+    fontSize: 12,
     marginTop: 1,
   },
   chipsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6, // Reduced gap
-    marginBottom: 6, // Reduced margin
+    flexWrap: 'wrap', // LINE CHANGE FIX
+    gap: 6,
+    marginBottom: 8,
+    width: '100%',
   },
   serviceChip: {
     backgroundColor: '#F5F3FF',
@@ -196,7 +177,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDD6FE',
   },
   serviceChipText: {
-    fontSize: 10, // More compact font
+    fontSize: 10,
     color: '#5152B3',
     fontWeight: '600',
   },
@@ -218,26 +199,30 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   notesText: {
-    fontSize: 12, // Reduced from 13
-    color: '#475569',
+    fontSize: 12,
     fontWeight: '500',
-    marginBottom: 8,
+    marginBottom: 10,
+    lineHeight: 18,
+    flexShrink: 1,
   },
-  photoScroll: {
-    marginBottom: 5,
-  },
-  photoScrollContent: {
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap', // PHOTOS WRAPPING FIX
     gap: 8,
+    marginBottom: 10,
+    width: '100%',
   },
   imageWrapper: {
+    width: 60,
+    height: 60,
     borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   miniPhoto: {
-    width: 60, // Reduced from 70 to 60 for compact look
-    height: 60,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#F1F5F9',
   },
   footerRow: {
@@ -249,13 +234,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   dateText: {
-    fontSize: 10, // Compact date
+    fontSize: 10,
     fontWeight: '800',
-    color: '#5152B3',
   },
   timeText: {
     fontSize: 9,
-    color: '#94A3B8',
     marginTop: 1,
   },
 });

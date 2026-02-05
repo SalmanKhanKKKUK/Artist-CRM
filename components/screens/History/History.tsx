@@ -334,9 +334,21 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
 
   const handleOpenMenu = (event: GestureResponderEvent, item: HistoryItem) => {
     const { pageY } = event.nativeEvent;
-    setMenuPosition({ top: pageY - 10, right: 40 });
+    const screenHeight = Dimensions.get('window').height;
+
+    // Agar click screen ke darmyan (50%) se niche hai
+    // Toh menu ko upar ki taraf shift kar dein
+    const isLowerHalf = pageY > screenHeight / 2;
+
+    // AdjustedTop logic: 
+    // Agar niche hai toh click point se 130 units upar (taake nav bar se bach sakay)
+    // Agar upar hai toh click point ke paas hi
+    const adjustedTop = isLowerHalf ? pageY - 140 : pageY - 10;
+
+    setMenuPosition({ top: adjustedTop, right: 40 });
     setSelectedId(item.id);
 
+    // Data states (aapka purana code)
     setCustomerSearch(item.customer.name);
     setSelectedCustomer({ id: '', name: item.customer.name, phone: item.customer.phone });
     setSelectedServices(item.services);
@@ -520,6 +532,64 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
             showFilterSort={false}
           />
 
+
+
+          {/* --- Active Filters Section --- */}
+          {Object.keys(activeFilters).length > 0 && (
+            <View style={styles.activeFiltersContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.activeFiltersScroll}
+              >
+                {Object.entries(activeFilters).map(([key, value]) => {
+                  if (!value) return null;
+
+                  // --- 1. Agar Date Filter hai ---
+                  if (key === 'date_filter' && (value.start || value.end)) {
+                    const dateLabel = `${value.start || '...'} - ${value.end || '...'}`;
+                    return (
+                      <TouchableOpacity
+                        key="filter-date"
+                        style={[styles.filterChip, { backgroundColor: colors.primary + '15', borderColor: colors.border }]}
+                        onPress={() => {
+                          const newFilters = { ...activeFilters };
+                          delete newFilters.date_filter;
+                          setActiveFilters(newFilters);
+                        }}
+                      >
+                        <Text style={[styles.filterChipText, { color: colors.text }]}>{dateLabel}</Text>
+                        <Ionicons name="close-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
+                      </TouchableOpacity>
+                    );
+                  }
+
+                  // --- 2. Agar Multiple Selection (Array) hai - Services/Tags ---
+                  if (Array.isArray(value) && value.length > 0) {
+                    return value.map((item, index) => (
+                      <TouchableOpacity
+                        key={`filter-${key}-${index}`}
+                        style={[styles.filterChip, { backgroundColor: colors.primary + '15', borderColor: colors.border }]}
+                        onPress={() => {
+                          const newFilters = { ...activeFilters };
+                          newFilters[key] = value.filter(v => v !== item);
+                          if (newFilters[key].length === 0) delete newFilters[key];
+                          setActiveFilters(newFilters);
+                        }}
+                      >
+                        <Text style={[styles.filterChipText, { color: colors.text }]}>{item}</Text>
+                        <Ionicons name="close-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
+                      </TouchableOpacity>
+                    ));
+                  }
+
+                  return null;
+                })}
+              </ScrollView>
+            </View>
+          )}
+
+
           {/* Sticky Results & Sort Bar */}
           <View style={{
             flexDirection: 'row',
@@ -635,8 +705,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
                 photos={item.photos}
                 date={item.date}
                 time={item.time}
-                onPress={() => router.push('/(tabs)/view-history' as any)}
-                containerStyle={[styles.cardItem, { borderColor: colors.border }]}
+                onPress={() => requestAnimationFrame(() => router.push('/(tabs)/view-history'))} containerStyle={[styles.cardItem, { borderColor: colors.border }]}
                 backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                 titleColor={isDark ? "#FFFFFF" : "#1E293B"}
                 phoneColor={isDark ? "#94A3B8" : "#64748B"}
@@ -1044,7 +1113,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: 140,
     paddingVertical: 5,
-    elevation: 8,
+    elevation: 15,
+    zIndex: 9999, // Taake sab ke upar nazar aaye
+    // niche koi aur position property (like bottom) nahi honi chahiye
   },
   menuItem: {
     flexDirection: 'row',
@@ -1256,6 +1327,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  activeFiltersContainer: {
+    marginTop: 10,
+    marginBottom: 5,
+    maxHeight: 45, // Container ki height set rakhen
+  },
+  activeFiltersScroll: {
+    paddingHorizontal: 15, // Horizontal padding
+    alignItems: 'center',
+    gap: 8,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginRight: 8,
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

@@ -708,7 +708,7 @@ themeParentCard: {
     borderWidth: 1 
   },
   themeTitle: { 
-    fontSize: 15, // Slightly smaller title
+    fontSize: 15, 
     fontWeight: 'bold', 
     marginBottom: 10, // Reduced gap
     marginLeft: 5 
