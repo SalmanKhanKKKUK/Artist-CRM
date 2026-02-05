@@ -87,7 +87,7 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                   onChangeText={(text: string) => setCompanyName(text)}
                   placeholder="Company Name"
                   leftIcon={"domain" as IconNames}
-                  containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  containerStyle={styles.inputContainer}
                   backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
                   focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
                   borderColor={colors.border}
@@ -108,7 +108,7 @@ const CompanyName: React.FC<CompanyNameProps> = ({
                   keyboardType="url"
                   autoCapitalize="none"
                   leftIcon={"web" as IconNames}
-                  containerStyle={[styles.inputContainer, styles.roundedInput]}
+                  containerStyle={styles.inputContainer}
                   backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
                   focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
                   borderColor={colors.border}

@@ -76,6 +76,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
   const topTags = ['Premium', 'Regular', 'VIP'];
 
   const [notes, setNotes] = useState<string>('');
+  const [isNotesFocused, setIsNotesFocused] = useState<boolean>(false); // State for focus border
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
@@ -190,7 +191,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
         )}
 
         <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
-          <NavHeader title="Add New Visit !" showProfileIcon={false}>
+          <NavHeader title="Add New Visit !" showProfileIcon={false} titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
             <TouchableOpacity onPress={handleSave} activeOpacity={0.8} disabled={loading}>
               <LinearGradient
                 colors={THEME_COLORS.buttonGradient}
@@ -238,6 +239,7 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                         placeholder="Search by name or phone..."
                         leftIcon="account-search"
                         variant="outlined"
+                        inputStyle={{ color: isDark ? '#FFFFFF' : colors.text }} // Forced white in dark mode
                         placeholderTextColor={colors.textSecondary}
                         backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
                         focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
@@ -443,13 +445,19 @@ const NewVisit: React.FC<NewVisitProps> = ({ onBack }) => {
                     <TextInput
                       style={[
                         styles.textArea, 
-                        { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, color: colors.text }
+                        { 
+                          backgroundColor: isDark ? "#1e293b" : "#FFFFFF", 
+                          borderColor: isDark && isNotesFocused ? "#FFFFFF" : colors.border, // White focus in dark mode
+                          color: isDark ? "#FFFFFF" : colors.text 
+                        }
                       ]}
                       placeholder="Technical formulas/Notes..."
                       placeholderTextColor={colors.textSecondary}
                       multiline
                       value={notes}
                       onChangeText={setNotes}
+                      onFocus={() => setIsNotesFocused(true)} // Track focus
+                      onBlur={() => setIsNotesFocused(false)} // Track blur
                     />
                   </View>
                 )}

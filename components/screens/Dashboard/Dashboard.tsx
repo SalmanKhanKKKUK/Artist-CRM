@@ -69,7 +69,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        <NavHeader title="Dashboard !" showProfileIcon={false}>
+        <NavHeader title="Dashboard !" showProfileIcon={false} titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
           <View style={styles.headerIconsWrapper}>
 
             <TouchableOpacity onPress={handleOtherPagePress} activeOpacity={0.7}>

@@ -76,7 +76,7 @@ const Login: React.FC<LoginProps> = ({
                   keyboardType="email-address"
                   autoCapitalize="none"
                   leftIcon="email"
-                  containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                 containerStyle={styles.fullWidthInput}
                   backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
                   focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
                   borderColor={colors.border}
@@ -98,7 +98,7 @@ const Login: React.FC<LoginProps> = ({
                   leftIcon="lock"
                   rightIcon={showPassword ? "eye" : "eye-off"}
                   onRightIconPress={() => setShowPassword(!showPassword)}
-                  containerStyle={[styles.inputContainer, styles.fullWidthInput, styles.roundedInput]}
+                  containerStyle={styles.fullWidthInput}
                   backgroundColor={isDark ? '#1e293b' : '#FFFFFF'}
                   focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
                   borderColor={colors.border}

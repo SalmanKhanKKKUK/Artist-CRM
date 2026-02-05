@@ -107,7 +107,6 @@ export default function TabLayout() {
         <Tabs.Screen name="history" />
         <Tabs.Screen name="customers" />
         <Tabs.Screen name="add-clients" />
-        <Tabs.Screen name="invite" />
         <Tabs.Screen name="profile" />
         <Tabs.Screen name="view-history" />
         <Tabs.Screen name="notifications" />

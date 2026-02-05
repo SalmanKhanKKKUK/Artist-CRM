@@ -12,9 +12,6 @@ export default function CustomersScreen() {
     });
 
     return (
-        <Customers
-            onBack={() => router.back()}
-            onNavigateToInvite={() => router.push('/(tabs)/invite' as any)}
-        />
+        <Customers />
     );
 }

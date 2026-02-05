@@ -98,7 +98,7 @@ const Notifications: React.FC = () => {
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
         {/* Updated Title */}
-        <NavHeader title="Help & Support" showProfileIcon={false} />
+        <NavHeader title="Help & Support" showProfileIcon={false} titleColor={isDark ? "#FFFFFF" : "#5152B3"}/>
 
         <ScrollView 
           showsVerticalScrollIndicator={false} 

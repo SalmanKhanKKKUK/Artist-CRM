@@ -67,7 +67,6 @@ artist-crm/
 │   │
 │   ├── (modals)/              # Modal Screens Group
 │   │   ├── profile.tsx        # Profile Modal
-│   │   ├── invite.tsx         # Invite Modal
 │   │   └── add-clients.tsx    # Add Clients Modal
 │   │   └── _layout.tsx        # Modal Stack Layout
 │   │
@@ -86,7 +85,6 @@ artist-crm/
         ├── Customers/
         ├── NewVisit/
         ├── AddClients/
-        └── Invite/
 
 
         // import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';

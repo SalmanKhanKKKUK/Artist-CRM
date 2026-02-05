@@ -493,7 +493,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
-        <NavHeader title="Our All History !">
+        <NavHeader title="Our All History !" titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
           <TouchableOpacity onPress={() => onNavigateToNewVisit?.()} activeOpacity={0.8}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}

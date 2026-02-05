@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Image,
   Modal,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -33,32 +33,16 @@ interface Customer {
   image: string;
 }
 
-const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void }> = ({
-  onBack,
-  onNavigateToInvite
-}) => {
+const Customers: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 
-  // --- Data ---
-  const defaultCustomers: Customer[] = [
-    { id: '1', title: "Ahmad Ali", phone: "0300-1234567", email: "ahmad@mail.com", description: "0300-1234567\nahmad@mail.com", image: 'https://i.pravatar.cc/150?u=1' },
-    { id: '2', title: "Sara Khan", phone: "0312-7654321", email: "sara@mail.com", description: "0312-7654321\nsara@mail.com", image: 'https://i.pravatar.cc/150?u=2' },
-    { id: '3', title: "Zeenat Malik", phone: "0345-1122334", email: "zeenat@mail.com", description: "0345-1122334\nzeenat@mail.com", image: 'https://i.pravatar.cc/150?u=3' },
-    { id: '4', title: "Hamza Sheikh", phone: "0321-9988776", email: "hamza@mail.com", description: "0321-9988776\nhamza@mail.com", image: 'https://i.pravatar.cc/150?u=4' },
-    { id: '5', title: "Danish Ahmed", phone: "0333-5544332", email: "danish@mail.com", description: "0333-5544332\ndanish@mail.com", image: 'https://i.pravatar.cc/150?u=5' },
-    { id: '6', title: "Zoya Malik", phone: "0310-1122445", email: "zoya@mail.com", description: "0310-1122445\nzoya@mail.com", image: 'https://i.pravatar.cc/150?u=6' },
-    { id: '7', title: "Bilal Khan", phone: "0301-8877665", email: "bilal@mail.com", description: "0301-8877665\nbilal@mail.com", image: 'https://i.pravatar.cc/150?u=7' },
-    { id: '8', title: "Mariam Aziz", phone: "0344-5566778", email: "mariam@mail.com", description: "0344-5566778\nmariam@mail.com", image: 'https://i.pravatar.cc/150?u=8' },
-    { id: '9', title: "Usman Pirzada", phone: "0322-1234000", email: "usman@mail.com", description: "0322-1234000\nusman@mail.com", image: 'https://i.pravatar.cc/150?u=9' },
-    { id: '10', title: "Ayesha Omer", phone: "0300-0001112", email: "ayesha@mail.com", description: "0300-0001112\nayesha@mail.com", image: 'https://i.pravatar.cc/150?u=10' },
-  ];
-
   // --- States ---
-  const [customers, setCustomers] = useState<Customer[]>(defaultCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [menuVisible, setMenuVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const [tempTitle, setTempTitle] = useState("");
@@ -68,11 +52,11 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
 
   // --- Search Logic ---
-  const filteredCustomers = customers.filter(customer => {
+  const filteredCustomers = customers.filter((customer) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      customer.title.toLowerCase().includes(query) || 
+      customer.title.toLowerCase().includes(query) ||
       customer.phone.includes(query)
     );
   });
@@ -90,6 +74,18 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
   };
 
   // --- Handlers ---
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setTempImg(result.assets[0].uri);
+    }
+  };
+
   const handleOpenMenu = (event: any, member: Customer) => {
     const { pageY } = event.nativeEvent;
     const adjustedTop = pageY > 500 ? pageY - 120 : pageY - 10;
@@ -104,42 +100,49 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
   };
 
   const handleSaveEdit = () => {
-    const updated = customers.map(c => c.id === selectedId ? {
-      ...c, 
-      title: tempTitle, 
-      phone: tempPhone, 
-      email: tempEmail, 
-      image: tempImg,
-      description: `${tempPhone}\n${tempEmail}`
-    } : c);
-
+    const updated = customers.map((c) =>
+      c.id === selectedId
+        ? {
+            ...c,
+            title: tempTitle,
+            phone: tempPhone,
+            email: tempEmail,
+            image: tempImg,
+            description: `${tempPhone}\n${tempEmail}`,
+          }
+        : c
+    );
     setCustomers(updated);
     persistData(updated);
     setEditModalVisible(false);
   };
 
+  const confirmDelete = () => {
+    const updated = customers.filter((c) => c.id !== selectedId);
+    setCustomers(updated);
+    persistData(updated);
+    setDeleteModalVisible(false);
+  };
+
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.flex}>
       <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
-        <StatusBar 
-          barStyle={isDark ? "light-content" : "dark-content"} 
-          translucent 
-          backgroundColor="transparent" 
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          translucent
+          backgroundColor="transparent"
         />
 
-        <NavHeader title="Meet Our Customers !">
-          <TouchableOpacity onPress={() => onNavigateToInvite?.()} activeOpacity={0.8}>
-            <LinearGradient colors={THEME_COLORS.buttonGradient} style={styles.inviteBtn}>
-              <Text style={styles.inviteText}>Invite</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </NavHeader>
+       <NavHeader 
+  title="Our All Customers!" 
+  titleColor={isDark ? "#ffffffe3" : "#5152B3"} 
+/>
 
-        {/* Search Header */}
+        {/* Search Section */}
         <View style={styles.searchFixedContainer}>
           <SearchInput
             value={searchQuery}
-            onChangeText={(text) => setSearchQuery(text)}
+            onChangeText={setSearchQuery}
             placeholder="Search Customer"
             showSearchType={false}
             backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
@@ -148,10 +151,10 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
           />
         </View>
 
-        {/* Customer List */}
+        {/* List Section */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scrollArea, { paddingBottom: insets.bottom + 20 }]}
+          contentContainerStyle={[styles.scrollArea, { paddingBottom: insets.bottom + 60 }]}
           keyboardShouldPersistTaps="handled"
         >
           {filteredCustomers.map((member) => (
@@ -165,7 +168,10 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
                 titleStyle={{ color: colors.text }}
                 descriptionStyle={{ color: colors.textSecondary }}
               />
-              <TouchableOpacity style={styles.dots} onPress={(e) => handleOpenMenu(e, member)}>
+              <TouchableOpacity
+                style={styles.dots}
+                onPress={(e) => handleOpenMenu(e, member)}
+              >
                 <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
               </TouchableOpacity>
             </View>
@@ -173,14 +179,18 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
         </ScrollView>
       </SafeAreaView>
 
-      {/* --- MENU MODAL (EDIT/DELETE OPTIONS) --- */}
+      {/* --- OPTION MENU MODAL --- */}
       <Modal visible={menuVisible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
           <View style={styles.modalOverlayClear}>
-            <View 
+            <View
               style={[
-                styles.menuPopup, 
-                { top: menuPosition.top, right: menuPosition.right, backgroundColor: colors.card }
+                styles.menuPopup,
+                {
+                  top: menuPosition.top,
+                  right: menuPosition.right,
+                  backgroundColor: colors.card,
+                },
               ]}
             >
               <TouchableOpacity
@@ -196,7 +206,13 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
 
               <View style={styles.divider} />
 
-              <TouchableOpacity style={styles.menuOption} onPress={() => setMenuVisible(false)}>
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() => {
+                  setMenuVisible(false);
+                  setDeleteModalVisible(true);
+                }}
+              >
                 <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
                 <Text style={[styles.menuOptionText, { color: colors.text }]}>Delete</Text>
               </TouchableOpacity>
@@ -205,12 +221,62 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* --- EDIT MODAL --- */}
+      {/* --- DELETE CONFIRMATION MODAL --- */}
+      <Modal visible={deleteModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlayDark}>
+          <View style={[styles.confirmBox, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Confirm Delete</Text>
+            
+            <Text style={[styles.confirmDesc, { color: colors.textSecondary }]}>
+              Are you sure you want to delete this customer
+            </Text>
+
+            <View style={styles.confirmBtnGroup}>
+              <TouchableOpacity
+                style={[
+                  styles.confirmBtn,
+                  { backgroundColor: isDark ? '#334155' : '#F1F5F9' },
+                ]}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={[styles.confirmBtnText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.confirmBtn, { backgroundColor: '#EF4444' }]}
+                onPress={confirmDelete}
+              >
+                <Text style={[styles.confirmBtnText, { color: '#FFF' }]}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* --- EDIT CUSTOMER MODAL --- */}
       <Modal visible={editModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlayDark}>
           <View style={[styles.editBox, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Edit Customer</Text>
-            
+
+            {/* Image Upload Section */}
+            <View style={styles.imagePickerContainer}>
+              <TouchableOpacity onPress={pickImage} activeOpacity={0.7}>
+                <View style={[styles.imageWrapper, { borderColor: colors.primary }]}>
+                  {tempImg ? (
+                    <Image source={{ uri: tempImg }} style={styles.previewImage} />
+                  ) : (
+                    <MaterialCommunityIcons name="camera-plus" size={30} color={colors.primary} />
+                  )}
+                  <View style={styles.cameraIconBadge}>
+                    <MaterialCommunityIcons name="camera" size={14} color="#FFF" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+              <Text style={[styles.label, { marginTop: 8 }]}>Tap to change photo</Text>
+            </View>
+
+            {/* Form Fields */}
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Client Name</Text>
               <TextInput
@@ -240,6 +306,7 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
               />
             </View>
 
+            {/* Action Buttons */}
             <View style={styles.btnGroup}>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                 <Text style={styles.cancelLink}>Cancel</Text>
@@ -255,25 +322,15 @@ const Customers: React.FC<{ onBack?: () => void; onNavigateToInvite?: () => void
   );
 };
 
-// --- Stylesheet Layout ---
+// --- Stylesheet ---
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  inviteBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 6,
-    borderRadius: 20,
-    elevation: 3,
-  },
-  inviteText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
   searchFixedContainer: {
     paddingHorizontal: 15,
     paddingBottom: 10,
+    marginTop: 10,
     zIndex: 10,
   },
   scrollArea: {
@@ -281,7 +338,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: -10,
   },
   cardItem: {
     borderRadius: 20,
@@ -328,55 +385,106 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     marginHorizontal: 10,
   },
-  editPopup: {
+  confirmBox: {
     borderRadius: 24,
     width: '85%',
-    padding: 24,
-    elevation: 10,
+    padding: 25,
+    elevation: 20,
+    alignItems: 'center',
+  },
+  confirmDesc: {
+    textAlign: 'center',
+    fontSize: 15,
+    marginBottom: 25,
+    lineHeight: 22,
+  },
+  confirmBtnGroup: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  confirmBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  confirmBtnText: {
+    fontWeight: 'bold',
+    fontSize: 15,
   },
   editBox: {
     borderRadius: 24,
-    width: '85%',
-    padding: 24,
+    width: '90%',
+    padding: 20,
     elevation: 10,
+  },
+  imagePickerContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  imageWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+  },
+  cameraIconBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#5152B3',
+    padding: 6,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
   inputWrapper: {
     marginBottom: 15,
   },
   label: {
-    marginBottom: 6,
+    marginBottom: 4,
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 13,
     color: '#64748B',
   },
   field: {
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderRadius: 12,
-    padding: 12,
+    padding: 10,
     fontSize: 15,
   },
   btnGroup: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 20,
-    marginTop: 15,
+    gap: 25,
+    marginTop: 20,
     alignItems: 'center',
   },
   cancelLink: {
     color: '#94A3B8',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 15,
   },
   updateBtn: {
     backgroundColor: '#5152B3',
     paddingVertical: 12,
-    paddingHorizontal: 25,
+    paddingHorizontal: 30,
     borderRadius: 12,
   },
   updateTxt: {

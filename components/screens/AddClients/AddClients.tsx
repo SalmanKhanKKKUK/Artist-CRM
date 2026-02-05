@@ -46,7 +46,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   const showTopSuccessLoader = () => {
     setShowSuccess(true);
 
-    // Slide Down Animation (Same as Invite.tsx)
+    // Slide Down Animation 
     Animated.spring(slideAnim, {
       toValue: Platform.OS === 'android' ? 50 : 60,
       useNativeDriver: true,
@@ -97,7 +97,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
     >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
-      {/* Success Notification - Invite.tsx Design */}
+      {/* Success Notification */}
       {showSuccess && (
         <Animated.View
           style={[
@@ -114,7 +114,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
       )}
 
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
-        <NavHeader title="Add New Customer !">
+        <NavHeader title="Add New Customer !" titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
           <TouchableOpacity onPress={handleSave} activeOpacity={0.8} disabled={loading}>
             <LinearGradient
               colors={THEME_COLORS.buttonGradient}
