@@ -32,7 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
   const handleProfilePress = () => router.push('/(tabs)/profile');
 
   const handleOtherPagePress = () => {
-    router.push('/(tabs)/notifications');
+    router.push('/(tabs)/help');
   };
 
   const visitData = [
@@ -72,11 +72,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
         <NavHeader title="Dashboard !" showProfileIcon={false} titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
           <View style={styles.headerIconsWrapper}>
 
-            <TouchableOpacity onPress={handleOtherPagePress} activeOpacity={0.7}>
-              <View style={[styles.secondaryIconContainer, { backgroundColor: isDark ? "#334155" : "#FFFFFF", borderColor: colors.border }]}>
-                <Ionicons name="notifications-outline" size={20} color={isDark ? "#FFFFFF" : colors.primary} />
-              </View>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={handleOtherPagePress} activeOpacity={0.7}>
+      <View style={[styles.secondaryIconContainer, { backgroundColor: isDark ? "#334155" : "#FFFFFF", borderColor: colors.border }]}>
+        <Ionicons name="help-circle-outline" size={22} color={isDark ? "#FFFFFF" : colors.primary} />
+      </View>
+    </TouchableOpacity>
 
             <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.7}>
               <LinearGradient

@@ -61,6 +61,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [inviteModalVisible, setInviteModalVisible] = useState<boolean>(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState<boolean>(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false);
+  const [emailErrorVisible, setEmailErrorVisible] = useState<boolean>(false);
 
   // --- Temp States for Forms ---
   const [inviteEmail, setInviteEmail] = useState<string>("");
@@ -196,7 +197,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
 
   const handleSendInvitation = () => {
     if (!inviteEmail) {
-      Alert.alert("Error", "Please enter an email address");
+      setEmailErrorVisible(true);
       return;
     }
     setInviteModalVisible(false);
@@ -297,7 +298,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           >
             {activeTab === 'profile' ? (
               <View style={styles.innerContainer}>
-                {/* Profile Header */}
                 <View style={styles.profileHeader}>
                   <TouchableOpacity
                     onPress={() => pickImage('profile')}
@@ -316,7 +316,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <Text style={[styles.profileBusiness, { color: colors.textSecondary }]}>Artist CRM</Text>
                 </View>
 
-                {/* Profile Details */}
                 <View style={styles.infoWrapper}>
                   <InfoCard
                     title="Email"
@@ -343,7 +342,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Theme Selector */}
                   <View style={[styles.themeParentCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
                     <Text style={[styles.themeTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Theme</Text>
                     <View style={styles.gridContainer}>
@@ -375,7 +373,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
               </View>
             ) : (
               <View style={styles.innerContainer}>
-                {/* Team Invite Row */}
                 <View style={styles.inviteSectionWrapper}>
                   <Text style={[styles.inviteInstructionText, { color: colors.textSecondary }]}>Invite your team member</Text>
                   <TouchableOpacity onPress={() => setInviteModalVisible(true)} activeOpacity={0.8}>
@@ -386,7 +383,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Team Members List */}
                 {teams.map((member) => (
                   <View key={member.id} style={styles.teamCardWrapper}>
                     <ImageDesCard
@@ -410,39 +406,32 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
 
         {/* --- MODALS --- */}
 
-        {/* Context Menu (Edit/Status/Delete) */}
+        <Modal visible={emailErrorVisible} transparent animationType="fade">
+          <View style={styles.modalOverlayCenterDark}>
+            <View style={[styles.errorPopup, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF" }]}>
+              <Text style={[styles.errorTitleText, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Required !</Text>
+              <Text style={[styles.errorSubText, { color: colors.textSecondary }]}>Please enter an email address first.</Text>
+              <TouchableOpacity style={styles.errorOkBtn} onPress={() => setEmailErrorVisible(false)}>
+                <Text style={styles.errorOkBtnText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={styles.modalOverlayClear}>
-              <View 
-                style={[
-                  styles.menuPopup, 
-                  { 
-                    top: menuPosition.top, 
-                    right: menuPosition.right, 
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                    borderWidth: 1
-                  }
-                ]}
-              >
+              <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
                 <TouchableOpacity style={styles.menuItem} onPress={handleEditInitiate}>
                   <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
                   <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
                 </TouchableOpacity>
-                
                 {activeTab === 'teams' && (
                   <>
                     <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
                     <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
-                      <MaterialCommunityIcons 
-                        name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"} 
-                        size={20} 
-                        color={isSelectedActive ? "#F59E0B" : "#10B981"} 
-                      />
-                      <Text style={[styles.menuText, { color: colors.text }]}>
-                        {isSelectedActive ? "Deactivate" : "Activate"}
-                      </Text>
+                      <MaterialCommunityIcons name={isSelectedActive ? "close-circle-outline" : "check-circle-outline"} size={20} color={isSelectedActive ? "#F59E0B" : "#10B981"} />
+                      <Text style={[styles.menuText, { color: colors.text }]}>{isSelectedActive ? "Deactivate" : "Activate"}</Text>
                     </TouchableOpacity>
                     <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
                     <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); setDeleteModalVisible(true); }}>
@@ -456,31 +445,21 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Invite Team Modal */}
         <Modal visible={inviteModalVisible} transparent animationType="slide">
           <TouchableWithoutFeedback onPress={() => setInviteModalVisible(false)}>
             <View style={styles.modalOverlayCenterDark}>
               <TouchableWithoutFeedback onPress={() => { }}>
                 <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+                  
                   <Text style={[styles.editTitle, { color: colors.text }]}>Invite Team</Text>
                   <View style={styles.formBody}>
                     <View style={styles.inputGroup}>
                       <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Team Member Email</Text>
-                      <TextInput
-                        style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                        placeholderTextColor={colors.textSecondary}
-                        value={inviteEmail}
-                        onChangeText={setInviteEmail}
-                        keyboardType="email-address"
-                        placeholder="Enter email address"
-                        autoCapitalize="none"
-                      />
+                      <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} placeholderTextColor={colors.textSecondary} value={inviteEmail} onChangeText={setInviteEmail} keyboardType="email-address" placeholder="Enter email address" autoCapitalize="none" />
                     </View>
                   </View>
                   <View style={styles.actionRowInvite}>
-                    <TouchableOpacity style={styles.saveBtnFull} onPress={handleSendInvitation}>
-                      <Text style={styles.saveBtnText}>Send Invitation</Text>
-                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.saveBtnFull} onPress={handleSendInvitation}><Text style={styles.saveBtnText}>Send Invitation</Text></TouchableOpacity>
                   </View>
                 </View>
               </TouchableWithoutFeedback>
@@ -488,7 +467,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Logout Modal */}
         <Modal visible={logoutModalVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setLogoutModalVisible(false)}>
             <View style={styles.modalOverlayCenterDark}>
@@ -497,12 +475,8 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Logout</Text>
                   <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>Are you sure you want to Logout?</Text>
                   <View style={styles.actionRow}>
-                    <TouchableOpacity onPress={() => setLogoutModalVisible(false)}>
-                      <Text style={styles.cancelBtnText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmLogout}>
-                      <Text style={styles.saveBtnText}>Logout</Text>
-                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setLogoutModalVisible(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmLogout}><Text style={styles.saveBtnText}>Logout</Text></TouchableOpacity>
                   </View>
                 </View>
               </TouchableWithoutFeedback>
@@ -510,7 +484,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* Edit Details Modal */}
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
             <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
@@ -529,25 +502,12 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
               <View style={styles.formBody}>
                 <View style={styles.inputGroup}>
                   <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>{activeTab === 'profile' ? "Phone Number" : "Full Name"}</Text>
-                  <TextInput
-                    style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                    placeholderTextColor={colors.textSecondary}
-                    value={activeTab === 'profile' ? tempValue : tempTitle}
-                    onChangeText={activeTab === 'profile' ? setTempValue : setTempTitle}
-                    keyboardType={activeTab === 'profile' ? "phone-pad" : "default"}
-                    placeholder={activeTab === 'profile' ? "Enter phone" : "Enter name"}
-                  />
+                  <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} placeholderTextColor={colors.textSecondary} value={activeTab === 'profile' ? tempValue : tempTitle} onChangeText={activeTab === 'profile' ? setTempValue : setTempTitle} keyboardType={activeTab === 'profile' ? "phone-pad" : "default"} placeholder={activeTab === 'profile' ? "Enter phone" : "Enter name"} />
                 </View>
                 {activeTab === 'teams' && (
                   <View style={styles.inputGroup}>
                     <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Designation</Text>
-                    <TextInput
-                      style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                      placeholderTextColor={colors.textSecondary}
-                      value={tempDesc}
-                      onChangeText={setTempDesc}
-                      placeholder="e.g. Senior Artist"
-                    />
+                    <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} placeholderTextColor={colors.textSecondary} value={tempDesc} onChangeText={setTempDesc} placeholder="e.g. Senior Artist" />
                   </View>
                 )}
               </View>
@@ -559,7 +519,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </View>
         </Modal>
 
-        {/* Delete Confirmation Modal */}
         <Modal visible={deleteModalVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
             <View style={styles.modalOverlayCenterDark}>
@@ -568,12 +527,8 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
                   <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>Are you sure you want to delete this team member?</Text>
                   <View style={styles.actionRow}>
-                    <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
-                      <Text style={styles.cancelBtnText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmDeleteTeam}>
-                      <Text style={styles.saveBtnText}>Delete</Text>
-                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setDeleteModalVisible(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
+                    <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmDeleteTeam}><Text style={styles.saveBtnText}>Delete</Text></TouchableOpacity>
                   </View>
                 </View>
               </TouchableWithoutFeedback>
@@ -586,345 +541,374 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   );
 };
 
-// --- Styles ---
 const styles = StyleSheet.create({
-  gradientContainer: { 
-    flex: 1 
+  gradientContainer: {
+    flex: 1,
   },
-  masterContainer: { 
-    flex: 1, 
-    backgroundColor: 'transparent' 
+  masterContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
-  flexOne: { 
-    flex: 1 
+  flexOne: {
+    flex: 1,
   },
-  tabContainer: { 
-    flexDirection: 'row', 
-    paddingHorizontal: 20, 
-    marginVertical: 12, 
-    gap: 12 
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginVertical: 12,
+    gap: 12,
   },
-  tabButton: { 
-    flex: 1, 
-    paddingVertical: 12, 
-    borderRadius: 15, 
-    backgroundColor: '#FFFFFF', 
-    borderWidth: 1, 
-    borderColor: '#E2E8F0', 
-    alignItems: 'center', 
-    justifyContent: 'center' 
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  activeTabButton: { 
-    backgroundColor: '#5152B3', 
-    borderColor: '#5152B3' 
+  activeTabButton: {
+    backgroundColor: '#5152B3',
+    borderColor: '#5152B3',
   },
-  tabText: { 
-    fontSize: 14, 
-    fontWeight: '700', 
-    color: '#64748B' 
+  tabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
   },
-  activeTabText: { 
-    color: '#FFFFFF' 
+  activeTabText: {
+    color: '#FFFFFF',
   },
-  scrollContent: { 
-    flexGrow: 1, 
-    paddingHorizontal: 15 
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 15,
   },
-  innerContainer: { 
-    width: '100%', 
-    paddingRight: 5 
+  innerContainer: {
+    width: '100%',
+    paddingRight: 5,
   },
-  profileHeader: { 
-    alignItems: 'center', 
-    marginBottom: 25, 
-    marginTop: 10 
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 25,
+    marginTop: 10,
   },
-  imageCircle: { 
-    width: 120, 
-    height: 120, 
-    borderRadius: 60, 
-    backgroundColor: '#EEF2FF', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderWidth: 2, 
-    borderColor: '#E2E8F0', 
-    borderStyle: 'dashed', 
-    position: 'relative' 
+  imageCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#EEF2FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    position: 'relative',
   },
-  avatarImage: { 
-    width: 120, 
-    height: 120, 
-    borderRadius: 60 
+  avatarImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
-  plusIconWrapper: { 
-    position: 'absolute', 
-    bottom: 2, 
-    right: 2, 
-    backgroundColor: '#5152B3', 
-    width: 30, 
-    height: 30, 
-    borderRadius: 15, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderWidth: 2, 
-    borderColor: '#FFFFFF' 
+  plusIconWrapper: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    backgroundColor: '#5152B3',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  profileName: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#1E293B', 
-    marginTop: 10 
+  profileName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginTop: 10,
   },
-  profileBusiness: { 
-    fontSize: 15, 
-    color: '#64748B' 
+  profileBusiness: {
+    fontSize: 15,
+    color: '#64748B',
   },
-  infoWrapper: { 
-    gap: 15, 
-    paddingHorizontal: 10, 
-    width: '100%', 
-    marginTop: 0
+  infoWrapper: {
+    gap: 5,
+    paddingHorizontal: 0,
+    width: '100%',
+    marginTop: 0,
+    marginLeft: -5,
   },
-  cardBorder: { 
-    borderWidth: 1, 
-    borderColor: '#E2E8F0', 
-    width: '100%' 
+  cardBorder: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    width: '100%',
   },
-  cardWithMenu: { 
-    position: 'relative', 
-    justifyContent: 'center', 
-    width: '100%' 
+  cardWithMenu: {
+    position: 'relative',
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: -10,
   },
-  threeDotButton: { 
-    position: 'absolute', 
-    right: 0, 
-    padding: 10, 
-    zIndex: 10 
+  threeDotButton: {
+    position: 'absolute',
+    right: 0,
+    padding: 10,
+    zIndex: 10,
   },
-themeParentCard: { 
-    width: '100%', 
-    padding: 15, // Reduced from 20 to make the container tighter
-    borderRadius: 20, 
-    borderWidth: 1 
+  themeParentCard: {
+    width: '100%',
+    padding: 15,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginLeft: 10,
   },
-  themeTitle: { 
-    fontSize: 15, 
-    fontWeight: 'bold', 
-    marginBottom: 10, // Reduced gap
-    marginLeft: 5 
+  themeTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginLeft: 5,
   },
-  gridContainer: { 
-    flexDirection: 'row', 
-    gap: 8, // Slightly tighter gap
-    width: '100%' 
+  gridContainer: {
+    flexDirection: 'row',
+    gap: 5,
+    width: '100%',
   },
-  gridButton: { 
-    flex: 1, 
-    paddingVertical: 8, // Reduced from 12 to make button height small
-    borderRadius: 12, // Slightly smaller radius for a tighter look
-    alignItems: 'center', 
-    borderWidth: 1, 
-    gap: 4 
+  gridButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    gap: 4,
   },
-  gridButtonText: { 
-    fontSize: 11, // Reduced from 12
-    fontWeight: '700' 
+  gridButtonText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
-  modalOverlayClear: { 
-    flex: 1, 
-    backgroundColor: 'transparent' 
+  modalOverlayClear: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
-  modalOverlayCenterDark: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.6)', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  modalOverlayCenterDark: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalOverlayDimmed: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.2)' 
+  menuPopup: {
+    position: 'absolute',
+    borderRadius: 12,
+    width: 140,
+    paddingVertical: 5,
+    elevation: 8,
+    zIndex: 9999,
   },
-  menuPopup: { 
-    position: 'absolute', 
-    borderRadius: 12, 
-    width: 140, 
-    paddingVertical: 5, 
-    elevation: 8, 
-    zIndex: 9999 
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 10,
   },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    padding: 12, 
-    gap: 10 
+  menuText: {
+    fontSize: 15,
+    fontWeight: '500',
   },
-  menuText: { 
-    fontSize: 15, 
-    fontWeight: '500' 
+  menuSeparator: {
+    height: 1,
+    marginHorizontal: 10,
   },
-  menuSeparator: { 
-    height: 1, 
-    marginHorizontal: 10 
+  editPopup: {
+    borderRadius: 30,
+    width: '88%',
+    padding: 24,
+    elevation: 10,
   },
-  editPopup: { 
-    borderRadius: 30, 
-    width: '88%', 
-    padding: 24, 
-    elevation: 10 
+  editTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  editTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    textAlign: 'center', 
-    marginBottom: 20 
+  formImageContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  formImageContainer: { 
-    alignItems: 'center', 
-    marginBottom: 20 
+  formImageCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 3,
+    borderColor: '#EEF2FF',
+    position: 'relative',
   },
-  formImageCircle: { 
-    width: 90, 
-    height: 90, 
-    borderRadius: 45, 
-    borderWidth: 3, 
-    borderColor: '#EEF2FF', 
-    position: 'relative' 
+  formAvatar: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
   },
-  formAvatar: { 
-    width: 84, 
-    height: 84, 
-    borderRadius: 42 
+  formCameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#5152B3',
+    padding: 6,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: 'white',
   },
-  formCameraBadge: { 
-    position: 'absolute', 
-    bottom: 0, 
-    right: 0, 
-    backgroundColor: '#5152B3', 
-    padding: 6, 
-    borderRadius: 15, 
-    borderWidth: 2, 
-    borderColor: 'white' 
+  formChangeText: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 8,
+    fontWeight: '600',
   },
-  formChangeText: { 
-    fontSize: 12, 
-    color: '#64748B', 
-    marginTop: 8, 
-    fontWeight: '600' 
+  formBody: {
+    width: '100%',
+    marginBottom: 0,
   },
-  formBody: { 
-    width: '100%', 
-    marginBottom: 0 
+  inputGroup: {
+    marginBottom: 18,
   },
-  inputGroup: { 
-    marginBottom: 18 
+  inputLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+    fontWeight: '600',
   },
-  inputLabel: { 
-    fontSize: 14, 
-    marginBottom: 8, 
-    fontWeight: '600' 
+  inputField: {
+    borderWidth: 1.5,
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
   },
-  inputField: { 
-    borderWidth: 1.5, 
-    borderRadius: 12, 
-    padding: 14, 
-    fontSize: 16 
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 10,
   },
-  actionRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'flex-end', 
-    alignItems: 'center', 
-    gap: 20, 
-    marginTop: 10 
+  actionRowInvite: {
+    marginTop: 0,
+    alignItems: 'center',
   },
-  actionRowInvite: { 
-    marginTop: 0, 
-    alignItems: 'center' 
+  cancelBtnText: {
+    color: '#94A3B8',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  cancelBtnText: { 
-    color: '#94A3B8', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  saveBtn: {
+    backgroundColor: '#5152B3',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 15,
+    elevation: 2,
   },
-  saveBtn: { 
-    backgroundColor: '#5152B3', 
-    paddingVertical: 12, 
-    paddingHorizontal: 24, 
-    borderRadius: 15, 
-    elevation: 2 
+  saveBtnFull: {
+    backgroundColor: '#5152B3',
+    paddingVertical: 14,
+    borderRadius: 15,
+    width: '100%',
+    alignItems: 'center',
   },
-  saveBtnFull: { 
-    backgroundColor: '#5152B3', 
-    paddingVertical: 14, 
-    borderRadius: 15, 
-    width: '100%', 
-    alignItems: 'center' 
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  saveBtnText: { 
-    color: '#FFFFFF', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  headerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
-  headerBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 12 
+  headerBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
-  headerBtnText: { 
-    color: '#FFFFFF', 
-    fontWeight: 'bold', 
-    fontSize: 12 
+  successNotification: {
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    right: 20,
+    backgroundColor: '#10B981',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18,
+    borderRadius: 20,
+    zIndex: 9999,
+    gap: 15,
+    elevation: 10,
   },
-  successNotification: { 
-    position: 'absolute', 
-    top: 0, 
-    left: 20, 
-    right: 20, 
-    backgroundColor: '#10B981', 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    padding: 18, 
-    borderRadius: 20, 
-    zIndex: 9999, 
-    gap: 15, 
-    elevation: 10 
+  successTitle: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  successTitle: { 
-    color: '#FFFFFF', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  successMessage: {
+    color: '#E0F2FE',
+    fontSize: 13,
   },
-  successMessage: { 
-    color: '#E0F2FE', 
-    fontSize: 13 
+  inviteSectionWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+    paddingHorizontal: 5,
   },
-  inviteSectionWrapper: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: 20, 
-    marginTop: 10, 
-    paddingHorizontal: 5 
+  inviteInstructionText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
-  inviteInstructionText: { 
-    fontSize: 14, 
-    fontWeight: '600' 
+  teamCardWrapper: {
+    position: 'relative',
+    marginBottom: -5,
   },
-  teamCardWrapper: { 
-    position: 'relative', 
-    marginBottom: -5 
+  teamCard: {
+    borderRadius: 20,
+    borderWidth: 1,
   },
-  teamCard: { 
-    borderRadius: 20, 
-    borderWidth: 1 
+  teamThreeDot: {
+    position: 'absolute',
+    right: 15,
+    top: 25,
+    padding: 10,
+    zIndex: 10,
   },
-  teamThreeDot: { 
-    position: 'absolute', 
-    right: 15, 
-    top: 25, 
-    padding: 10, 
-    zIndex: 10 
+  errorPopup: {
+    width: '80%',
+    padding: 25,
+    borderRadius: 25,
+    alignItems: 'center',
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  errorTitleText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  errorSubText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  errorOkBtn: {
+    backgroundColor: '#5152B3',
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+  },
+  errorOkBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
 });
 

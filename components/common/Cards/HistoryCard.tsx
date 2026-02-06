@@ -53,6 +53,12 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
 }) => {
   const { isDark } = useTheme();
 
+  // Logic to show limited data
+  const displayedServices = services.slice(0, 3);
+  const displayedTags = tags.slice(0, 2); // Tags limited to 2
+  const displayedPhotos = photos?.slice(0, 4) || [];
+  const morePhotosCount = (photos?.length || 0) - 4;
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -74,9 +80,9 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
           </View>
         </View>
 
-        {/* 2. Services (Wrapped) */}
+        {/* 2. Services (Limited to 3) */}
         <View style={styles.chipsRow}>
-          {services.map((service, index) => (
+          {displayedServices.map((service, index) => (
             <View key={`s-${index}`} style={[
               styles.serviceChip,
               isDark && { backgroundColor: '#312e81', borderColor: '#4338ca' }
@@ -84,11 +90,14 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
               <Text style={[styles.serviceChipText, isDark && { color: '#e0e7ff' }]}>{service}</Text>
             </View>
           ))}
+          {services.length > 3 && (
+             <Text style={[styles.moreText, { color: phoneColor }]}>+{services.length - 3} more</Text>
+          )}
         </View>
 
-        {/* 3. Tags (Wrapped) */}
+        {/* 3. Tags (Updated with +more logic) */}
         <View style={styles.chipsRow}>
-          {tags.map((tag, index) => (
+          {displayedTags.map((tag, index) => (
             <View key={`t-${index}`} style={[
               styles.tagChip,
               isDark && { backgroundColor: '#064e3b', borderColor: '#065f46' }
@@ -96,22 +105,33 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
               <Text style={[styles.tagChipText, isDark && { color: '#d1fae5' }]}>{tag}</Text>
             </View>
           ))}
+          {tags.length > 2 && (
+            <Text style={[styles.moreText, { color: phoneColor }]}>+{tags.length - 2} more</Text>
+          )}
         </View>
 
-        {/* 4. Notes (Full Wrap) */}
+        {/* 4. Notes (Limited to 2 lines) */}
         {notes ? (
-          <Text style={[styles.notesText, { color: noteColor }]}>
+          <Text 
+            style={[styles.notesText, { color: noteColor }]} 
+            numberOfLines={2}
+          >
             <Text style={[styles.noteLabel, isDark && { color: '#e2e8f0' }]}>Note: </Text>
             {notes}
           </Text>
         ) : null}
 
-        {/* 5. Photos Grid (Wrapped - ScrollView Removed to fix Wrapping) */}
+        {/* 5. Photos Grid (Limited to 4 photos) */}
         {photos && photos.length > 0 && (
           <View style={styles.photoGrid}>
-            {photos.map((photo, index) => (
+            {displayedPhotos.map((photo, index) => (
               <View key={index} style={styles.imageWrapper}>
                 <Image source={{ uri: photo }} style={styles.miniPhoto} />
+                {index === 3 && morePhotosCount > 0 && (
+                  <View style={styles.morePhotosOverlay}>
+                    <Text style={styles.morePhotosText}>+{morePhotosCount}</Text>
+                  </View>
+                )}
               </View>
             ))}
           </View>
@@ -151,7 +171,7 @@ const styles = StyleSheet.create({
   },
   nameBlock: {
     flex: 1,
-    paddingRight: 40,
+    paddingRight: 10,
   },
   nameText: {
     fontSize: 16,
@@ -163,10 +183,11 @@ const styles = StyleSheet.create({
   },
   chipsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap', // LINE CHANGE FIX
+    flexWrap: 'wrap',
     gap: 6,
     marginBottom: 8,
     width: '100%',
+    alignItems: 'center'
   },
   serviceChip: {
     backgroundColor: '#F5F3FF',
@@ -194,6 +215,10 @@ const styles = StyleSheet.create({
     color: '#059669',
     fontWeight: '600',
   },
+  moreText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
   noteLabel: {
     fontWeight: 'bold',
     color: '#334155',
@@ -207,7 +232,7 @@ const styles = StyleSheet.create({
   },
   photoGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap', // PHOTOS WRAPPING FIX
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 10,
     width: '100%',
@@ -219,11 +244,23 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    position: 'relative'
   },
   miniPhoto: {
     width: '100%',
     height: '100%',
     backgroundColor: '#F1F5F9',
+  },
+  morePhotosOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  morePhotosText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   footerRow: {
     flexDirection: 'row',
