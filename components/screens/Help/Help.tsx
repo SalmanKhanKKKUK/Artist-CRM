@@ -29,7 +29,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface QueryTicket {
   id: string;
-  type: 'Issue' | 'New Feature';
+  type: 'Visit Issue' | 'App Feedback';
   subject: string;
   status: 'In Progress' | 'Resolved' | 'Pending';
   date: string;
@@ -39,7 +39,7 @@ interface QueryTicket {
 const Help: React.FC = () => {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  
+
   // --- States ---
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -76,10 +76,7 @@ const Help: React.FC = () => {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only take over if swiping down significantly
-        return gestureState.dy > 10;
-      },
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 10,
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
@@ -102,19 +99,19 @@ const Help: React.FC = () => {
   const [queries] = useState<QueryTicket[]>([
     {
       id: '1',
-      type: 'New Feature',
-      subject: 'Automatic Performance Tracking',
+      type: 'Visit Issue',
+      subject: 'Visit History Not Syncing',
       status: 'In Progress',
-      date: 'Feb 04, 2026',
-      description: 'Requesting a dashboard feature for weekly stats.',
+      date: 'Feb 06, 2026',
+      description: 'I recently added a visit for Salman Khan but it is not appearing in history.',
     },
     {
       id: '2',
-      type: 'Issue',
-      subject: 'Slow Image Upload',
+      type: 'App Feedback',
+      subject: 'Dark Mode Improvement',
       status: 'Resolved',
       date: 'Feb 02, 2026',
-      description: 'Fixed the lag during high-res photo uploads.',
+      description: 'The contrast in dark mode is much better now. Thank you!',
     }
   ]);
 
@@ -137,33 +134,42 @@ const Help: React.FC = () => {
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.masterGradient}>
       <SafeAreaView style={styles.safeContainer} edges={['top']}>
-        <StatusBar 
-          barStyle={isDark ? "light-content" : "dark-content"} 
-          backgroundColor="transparent" 
-          translucent 
-        />
-        
-        <NavHeader 
-          title="Support !" 
-          showProfileIcon={false} 
-          titleColor={isDark ? "#FFFFFF" : "#5152B3"} 
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
         />
 
-        <ScrollView 
+        <NavHeader
+          title="Help & Support !"
+          showProfileIcon={false}
+          titleColor={isDark ? "#FFFFFF" : "#5152B3"}
+        />
+
+        <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.mainScroll, { paddingBottom: insets.bottom + 100 }]}
+          contentContainerStyle={[
+            styles.mainScroll,
+            { paddingBottom: insets.bottom + 100 }
+          ]}
         >
-          {/* Section 1: Branding */}
-          <View style={[styles.brandingCard, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(81, 82, 179, 0.08)" }]}>
-            <Text style={[styles.welcomeText, { color: colors.text }]}>Welcome to Support Center</Text>
-            <Text style={[styles.subText, { color: colors.textSecondary }]}>
-              Are you facing any issue or want to help us improve?
+          {/* Branding Section */}
+          <View style={[
+            styles.brandingCard,
+            { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(81, 82, 179, 0.08)" }
+          ]}>
+            <Text style={[styles.welcomeText, { color: colors.text }]}>
+              Welcome to Support Center
             </Text>
-            
+            <Text style={[styles.subText, { color: colors.textSecondary }]}>
+              Facing any issues with your visit records or team data?
+            </Text>
+
             <TouchableOpacity activeOpacity={0.8} onPress={() => setShowForm(true)}>
               <LinearGradient
                 colors={THEME_COLORS.buttonGradient}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={styles.submitBtn}
               >
                 <MaterialCommunityIcons name="chat-plus" size={20} color="white" />
@@ -172,39 +178,60 @@ const Help: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Section 2: Queries List */}
+          {/* Queries List */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Queries</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Your Queries
+            </Text>
             <View style={[styles.countBadge, { backgroundColor: colors.primary }]}>
               <Text style={styles.countText}>{queries.length}</Text>
             </View>
           </View>
 
           {queries.map((item) => (
-            <TouchableOpacity 
-              key={item.id} 
-              style={[styles.ticketCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}
+            <TouchableOpacity
+              key={item.id}
+              style={[
+                styles.ticketCard,
+                {
+                  backgroundColor: isDark ? "#1e293b" : "#FFFFFF",
+                  borderColor: colors.border
+                }
+              ]}
             >
               <View style={styles.ticketTopRow}>
-                <View style={[styles.typeBadge, { backgroundColor: item.type === 'Issue' ? '#FEE2E2' : '#E0E7FF' }]}>
-                  <Text style={[styles.typeBadgeText, { color: item.type === 'Issue' ? '#EF4444' : '#5152B3' }]}>
+                <View style={[
+                  styles.typeBadge,
+                  { backgroundColor: item.type === 'Visit Issue' ? '#FEE2E2' : '#E0E7FF' }
+                ]}>
+                  <Text style={[
+                    styles.typeBadgeText,
+                    { color: item.type === 'Visit Issue' ? '#EF4444' : '#5152B3' }
+                  ]}>
                     {item.type}
                   </Text>
                 </View>
-                <Text style={[styles.statusIndicator, { color: item.status === 'Resolved' ? '#10B981' : '#F59E0B' }]}>
+                <Text style={[
+                  styles.statusIndicator,
+                  { color: item.status === 'Resolved' ? '#10B981' : '#F59E0B' }
+                ]}>
                   ● {item.status}
                 </Text>
               </View>
 
-              <Text style={[styles.ticketSubject, { color: colors.text }]}>{item.subject}</Text>
+              <Text style={[styles.ticketSubject, { color: colors.text }]}>
+                {item.subject}
+              </Text>
               <Text style={[styles.ticketDesc, { color: colors.textSecondary }]} numberOfLines={2}>
                 {item.description}
               </Text>
-              
+
               <View style={styles.ticketFooter}>
                 <Text style={styles.dateLabel}>{item.date}</Text>
                 <View style={styles.viewChatLink}>
-                  <Text style={[styles.chatLinkText, { color: colors.primary }]}>View Response</Text>
+                  <Text style={[styles.chatLinkText, { color: colors.primary }]}>
+                    View Response
+                  </Text>
                   <Ionicons name="chevron-forward" size={12} color={colors.primary} />
                 </View>
               </View>
@@ -212,55 +239,62 @@ const Help: React.FC = () => {
           ))}
         </ScrollView>
 
-        {/* --- Submission Modal --- */}
-        <Modal 
-          visible={showForm} 
+        {/* --- Submission Modal (Swipe-up Sheet) --- */}
+        <Modal
+          visible={showForm}
           transparent
           animationType="none"
           onRequestClose={closeForm}
         >
           <View style={styles.modalBackdrop}>
             <Pressable style={StyleSheet.absoluteFill} onPress={closeForm} />
-            
-            <KeyboardAvoidingView 
+
+            <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               style={styles.keyboardView}
             >
-              <Animated.View 
+              <Animated.View
                 style={[
-                  styles.modalSheet, 
-                  { backgroundColor: isDark ? "#0f172a" : "#FFFFFF", transform: [{ translateY }] }
+                  styles.modalSheet,
+                  {
+                    backgroundColor: isDark ? "#0f172a" : "#FFFFFF",
+                    transform: [{ translateY }]
+                  }
                 ]}
               >
-                {/* Swipe Area Handle */}
+                {/* Swipe Handle Area */}
                 <View {...panResponder.panHandlers} style={styles.swipeHandleArea}>
                   <View style={styles.modalHandle} />
                   <View style={styles.modalHeader}>
-                    <Text style={[styles.modalTitle, { color: colors.text }]}>Submit Query</Text>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>
+                      Submit Query
+                    </Text>
                     <TouchableOpacity onPress={closeForm}>
                       <Ionicons name="close-circle" size={30} color="#94A3B8" />
                     </TouchableOpacity>
                   </View>
                 </View>
 
-                <ScrollView 
+                <ScrollView
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.formScrollContent}
                 >
                   <View style={styles.formBody}>
+                    {/* Full Name Section */}
                     <Text style={styles.fieldLabel}>Full Name</Text>
-                    <TextInput 
-                      style={[styles.fieldInput, { borderColor: colors.border, color: colors.text }]} 
-                      placeholder="E.g. Aqib Shoaib"
+                    <TextInput
+                      style={[styles.fieldInput, { borderColor: colors.border, color: colors.text }]}
+                      placeholder="Enter name...."
                       placeholderTextColor="#94A3B8"
                       value={name}
                       onChangeText={setName}
                     />
 
+                    {/* Email Address Section */}
                     <Text style={styles.fieldLabel}>Email Address</Text>
-                    <TextInput 
-                      style={[styles.fieldInput, { borderColor: colors.border, color: colors.text }]} 
+                    <TextInput
+                      style={[styles.fieldInput, { borderColor: colors.border, color: colors.text }]}
                       placeholder="email@example.com"
                       placeholderTextColor="#94A3B8"
                       keyboardType="email-address"
@@ -269,20 +303,22 @@ const Help: React.FC = () => {
                       onChangeText={setEmail}
                     />
 
+                    {/* Message Section */}
                     <Text style={styles.fieldLabel}>Message / Feature Request</Text>
-                    <TextInput 
-                      style={[styles.fieldArea, { borderColor: colors.border, color: colors.text }]} 
+                    <TextInput
+                      style={[styles.fieldArea, { borderColor: colors.border, color: colors.text }]}
                       multiline
-                      placeholder="Describe your issue here..."
+                      placeholder="Describe your issue or request here..."
                       placeholderTextColor="#94A3B8"
                       value={message}
                       onChangeText={setMessage}
                     />
 
+                    {/* Attachments Section */}
                     <Text style={styles.fieldLabel}>Attachments</Text>
                     <View style={styles.attachmentGrid}>
-                      <TouchableOpacity 
-                        style={[styles.imageAddBtn, { borderColor: colors.primary }]} 
+                      <TouchableOpacity
+                        style={[styles.imageAddBtn, { borderColor: colors.primary }]}
                         onPress={pickImages}
                       >
                         <MaterialCommunityIcons name="camera-plus-outline" size={26} color={colors.primary} />
@@ -292,7 +328,7 @@ const Help: React.FC = () => {
                       {images.map((img, i) => (
                         <View key={i} style={styles.thumbWrapper}>
                           <Image source={{ uri: img }} style={styles.thumbImage} />
-                          <TouchableOpacity 
+                          <TouchableOpacity
                             style={styles.removeThumbBtn}
                             onPress={() => removeImage(i)}
                           >
@@ -321,7 +357,6 @@ const Help: React.FC = () => {
   );
 };
 
-// --- Proper Formatted CSS ---
 const styles = StyleSheet.create({
   masterGradient: {
     flex: 1,
@@ -453,8 +488,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
   },
-  
-  // --- Modal Styles ---
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
