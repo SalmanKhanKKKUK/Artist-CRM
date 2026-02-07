@@ -140,8 +140,8 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         {/* 6. Footer: Date & Time */}
         <View style={styles.footerRow}>
           <View style={styles.dateBlock}>
-            <Text style={[styles.dateText, { color: dateColor }]}>{date}</Text>
-            <Text style={[styles.timeText, { color: phoneColor }]}>{time}</Text>
+            <Text style={[styles.dateText, { color: dateColor }]}>  {time} | {date}</Text>
+            {/* <Text style={[styles.timeText, { color: phoneColor }]}>{time}</Text> */}
           </View>
         </View>
       </View>

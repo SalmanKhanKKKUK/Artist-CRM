@@ -866,7 +866,7 @@ const styles = StyleSheet.create({
   },
   teamCardWrapper: {
     position: 'relative',
-    marginBottom: -5,
+    marginBottom: -10,
   },
   teamCard: {
     borderRadius: 20,

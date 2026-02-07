@@ -157,7 +157,7 @@ const Help: React.FC = () => {
           <View style={[styles.brandingCard, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(81, 82, 179, 0.08)" }]}>
             <Text style={[styles.welcomeText, { color: colors.text }]}>Welcome to Support Center</Text>
             <Text style={[styles.subText, { color: colors.textSecondary }]}>
-              Are you facing any issue or want more about app?
+              Are you facing any issue or want to help us improve?
             </Text>
             
             <TouchableOpacity activeOpacity={0.8} onPress={() => setShowForm(true)}>

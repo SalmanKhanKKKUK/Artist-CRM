@@ -73,6 +73,12 @@ const CUSTOMERS_DATA: Customer[] = [
   { id: '3', name: 'Zeenat Malik', phone: '0345-1122334' },
   { id: '4', name: 'Hamza Sheikh', phone: '0321-9988776' },
   { id: '5', name: 'Danish Ahmed', phone: '0333-5544332' },
+  { id: '6', name: 'Bilal Khan', phone: '0301-7654321' },
+  { id: '7', name: 'Fahad Mustafa', phone: '0312-5566778' },
+  { id: '8', name: 'Yasir Hussain', phone: '0302-8899001' },
+  { id: '9', name: 'Saad Qureshi', phone: '0322-1112223' },
+  { id: '10', name: 'Rizwan Baig', phone: '0300-9988776' },
+  // Jitni bari list hogi, ScrollView automatically handle kar lega
 ];
 
 const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
@@ -191,6 +197,23 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+  const [headerMenuVisible, setHeaderMenuVisible] = useState(false);
+
+  const [customerDropdownVisible, setCustomerDropdownVisible] = useState(false);
+
+  // Find your handleSelectCustomer and replace it with this:
+  const handleSelectCustomer = (name: string) => {
+    // Update activeFilters to include the selected customer
+    setActiveFilters(prev => ({
+      ...prev,
+      selected_customer: name
+    }));
+
+    // Close the dropdown and clear search text for a clean UI
+    setCustomerDropdownVisible(false);
+    setSearchText('');
+  };
 
   // Sorting State
   const [sortOption, setSortOption] = useState<string>('newest');
@@ -435,6 +458,12 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       (item.notes || "").toLowerCase().includes(query) ||
       (item.tags || []).some(t => t.toLowerCase().includes(query));
 
+    // 2. NEW: Add Customer Filter Logic here
+    const customerFilter = activeFilters.selected_customer;
+    const customerMatch = customerFilter
+      ? item.customer.name === customerFilter
+      : true;
+
     // Name Filter (Removed)
     const nameMatch = true;
 
@@ -475,7 +504,7 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
       }
     }
 
-    return searchMatch && nameMatch && serviceMatch && tagMatch && dateRangeMatch;
+    return searchMatch && customerMatch && serviceMatch && tagMatch && dateRangeMatch;
   }).sort((a, b) => {
     switch (sortOption) {
       case 'name_asc':
@@ -500,543 +529,630 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     }
   };
 
+  // 1. Jab Customer Dropdown khule, toh Sort Menu band ho jaye
+  useEffect(() => {
+    if (customerDropdownVisible && showSortMenu) {
+      setShowSortMenu(false);
+    }
+  }, [customerDropdownVisible]);
+
+  // 2. Jab Sort Menu khule, toh Customer Dropdown band ho jaye
+  useEffect(() => {
+    if (showSortMenu && customerDropdownVisible) {
+      setCustomerDropdownVisible(false);
+    }
+  }, [showSortMenu]);
+
+
+
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
-      <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
-        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+      {/* Yeh wrapper poori screen par click detect karega */}
+      <TouchableWithoutFeedback
+        onPress={() => {
+          setCustomerDropdownVisible(false);
+          setShowSortMenu(false);
+        }}
+      >
+        <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
+          <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
-        <NavHeader title="Our All History !" titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
-          <TouchableOpacity onPress={() => onNavigateToNewVisit?.()} activeOpacity={0.8}>
-            <LinearGradient
-              colors={THEME_COLORS.buttonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.newVisitHeaderBtn}
-            >
-              <Text style={styles.newVisitBtnText}>New Visit</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </NavHeader>
+          <NavHeader title="All History !" titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
+            <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
 
-        <View style={styles.searchFixedWrapper}>
-          <SearchInput
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholder="Search history..."
-            showFilterIcon={true}
-            onFilterIconPress={() => setIsFilterVisible(true)}
-            containerStyle={styles.searchBar}
-            backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-            textColor={isDark ? "#FFFFFF" : "#333333"}
-            iconColor={isDark ? "#94A3B8" : "#888888"}
-            showFilterSort={false}
-          />
-
-
-
-          {/* --- Active Filters Section --- */}
-          {Object.keys(activeFilters).length > 0 && (
-            <View style={styles.activeFiltersContainer}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.activeFiltersScroll}
-              >
-                {Object.entries(activeFilters).map(([key, value]) => {
-                  if (!value) return null;
-
-                  // --- 1. Agar Date Filter hai ---
-                  if (key === 'date_filter' && (value.start || value.end)) {
-                    const dateLabel = `${value.start || '...'} - ${value.end || '...'}`;
-                    return (
-                      <TouchableOpacity
-                        key="filter-date"
-                        style={[styles.filterChip, { backgroundColor: colors.primary + '15', borderColor: colors.border }]}
-                        onPress={() => {
-                          const newFilters = { ...activeFilters };
-                          delete newFilters.date_filter;
-                          setActiveFilters(newFilters);
-                        }}
-                      >
-                        <Text style={[styles.filterChipText, { color: colors.text }]}>{dateLabel}</Text>
-                        <Ionicons name="close-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
-                      </TouchableOpacity>
-                    );
-                  }
-
-                  // --- 2. Agar Multiple Selection (Array) hai - Services/Tags ---
-                  if (Array.isArray(value) && value.length > 0) {
-                    return value.map((item, index) => (
-                      <TouchableOpacity
-                        key={`filter-${key}-${index}`}
-                        style={[styles.filterChip, { backgroundColor: colors.primary + '15', borderColor: colors.border }]}
-                        onPress={() => {
-                          const newFilters = { ...activeFilters };
-                          newFilters[key] = value.filter(v => v !== item);
-                          if (newFilters[key].length === 0) delete newFilters[key];
-                          setActiveFilters(newFilters);
-                        }}
-                      >
-                        <Text style={[styles.filterChipText, { color: colors.text }]}>{item}</Text>
-                        <Ionicons name="close-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
-                      </TouchableOpacity>
-                    ));
-                  }
-
-                  return null;
-                })}
-              </ScrollView>
-            </View>
-          )}
-
-
-          {/* Sticky Results & Sort Bar */}
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: 15, // Increased margin to move it down slightly
-            paddingHorizontal: 5
-          }}>
-            <Text style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: isDark ? '#94A3B8' : '#64748B'
-            }}>
-              Results: {filteredData.length}
-            </Text>
-
-            <View style={{ position: 'relative', zIndex: 100 }}>
-              <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center' }}
-                onPress={() => setShowSortMenu(!showSortMenu)}
-              >
-                <Text style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: isDark ? '#FFFFFF' : '#334155',
-                  marginRight: 6
-                }}>
-                  Sort By:
-                </Text>
-                <View style={{
-                  backgroundColor: isDark ? '#334155' : '#e5ecf7ff', // Proper background for selected value
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 6,
-                  marginRight: 4,
-                  flexDirection: 'row',
-                  alignItems: 'center'
-                }}>
-                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>
-                    {getSortLabel()}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-down" size={16} color={isDark ? '#FFFFFF' : '#334155'} />
+              {/* New Visit Button */}
+              <TouchableOpacity onPress={() => onNavigateToNewVisit?.()} activeOpacity={0.8}>
+                <LinearGradient
+                  colors={THEME_COLORS.buttonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.newVisitHeaderBtn}
+                >
+                  <Text style={styles.newVisitBtnText}>New Visit</Text>
+                </LinearGradient>
               </TouchableOpacity>
 
-              {/* Sort Menu Dropdown */}
-              {showSortMenu && (
-                <View style={{
-                  position: 'absolute',
-                  top: 35,
-                  right: 0,
-                  width: 170,
-                  backgroundColor: isDark ? '#1e293b' : '#FFFFFF',
-                  borderRadius: 12,
-                  elevation: 5,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 4,
-                  paddingVertical: 5,
-                  borderWidth: 1,
-                  borderColor: isDark ? '#334155' : '#E2E8F0',
-                  zIndex: 200
-                }}>
-                  {[
-                    { label: 'Newest First', value: 'newest' },
-                    { label: 'Oldest First', value: 'oldest' },
-                    { label: 'Name (A-Z)', value: 'name_asc' },
-                    { label: 'Name (Z-A)', value: 'name_desc' }
-                  ].map((opt) => (
-                    <TouchableOpacity
-                      key={opt.value}
-                      style={{
-                        paddingVertical: 10,
-                        paddingHorizontal: 15,
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: sortOption === opt.value ? (isDark ? '#334155' : '#F1F5F9') : 'transparent'
-                      }}
-                      onPress={() => {
-                        setSortOption(opt.value);
-                        setShowSortMenu(false);
-                      }}
-                    >
-                      <Text style={{
-                        fontSize: 13,
-                        color: sortOption === opt.value ? colors.primary : (isDark ? '#CBD5E1' : '#475569'),
-                        fontWeight: sortOption === opt.value ? '600' : '400'
-                      }}>
-                        {opt.label}
-                      </Text>
-                      {sortOption === opt.value && <Ionicons name="checkmark" size={14} color={colors.primary} />}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.listContent, { paddingBottom: 80 + insets.bottom }]}
-        >
-          {filteredData.map((item) => (
-            <View key={item.id} style={styles.cardOuterWrapper}>
-              <HistoryCard
-                customer={item.customer}
-                services={item.services}
-                tags={item.tags}
-                notes={item.notes}
-                photos={item.photos}
-                date={item.date}
-                time={item.time}
-                onPress={() => requestAnimationFrame(() => router.push('/(tabs)/view-history'))} containerStyle={[styles.cardItem, { borderColor: colors.border }]}
-                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                titleColor={isDark ? "#FFFFFF" : "#1E293B"}
-                phoneColor={isDark ? "#94A3B8" : "#64748B"}
-                noteColor={isDark ? "#CBD5E1" : "#475569"}
-                dateColor={isDark ? "#818CF8" : "#5152B3"}
-              />
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={(e) => handleOpenMenu(e, item)}
-              >
-                <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Menu Popover */}
-        <Modal visible={menuVisible} transparent animationType="fade">
-          <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-            <View style={styles.modalOverlayDimmed}>
-              <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right, backgroundColor: colors.card }]}>
-                <TouchableOpacity style={styles.menuItem} onPress={handleViewDetails}>
-                  <MaterialCommunityIcons name="eye" size={20} color={colors.textSecondary} />
-                  <Text style={[styles.menuText, { color: colors.text }]}>View</Text>
-                </TouchableOpacity>
-                <View style={styles.menuSeparator} />
+              {/* Customer Dropdown Wrapper */}
+              <View style={{ position: 'relative' }}>
                 <TouchableOpacity
-                  style={styles.menuItem}
+                  style={[styles.customerMenuBtn, { backgroundColor: isDark ? "#334155" : "#F1F5F9" }]}
                   onPress={() => {
-                    setMenuVisible(false);
-                    setEditModalVisible(true);
+                    setCustomerDropdownVisible(!customerDropdownVisible);
+                    setShowSortMenu(false); // Doosra menu band kar dein
+                  }}
+
+                >
+                  <Ionicons name="people" size={18} color={colors.primary} />
+                  <Ionicons name="chevron-down" size={12} color={isDark ? "#FFFFFF" : "#334155"} />
+                </TouchableOpacity>
+
+                {/* Actual Dropdown Menu */}
+                {customerDropdownVisible && (
+                  <View style={[styles.customerDropdownMenu, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                    <ScrollView bounces={false} style={{ maxHeight: 250 }}>
+                      {CUSTOMERS_DATA.map((item) => (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={[styles.customerDropDownItem, { borderBottomColor: colors.border }]}
+                          onPress={() => handleSelectCustomer(item.name)}
+                        >
+                          <Text style={[styles.dropDownName, { color: colors.text }]}>{item.name}</Text>
+                          <Text style={styles.dropDownPhone}>{item.phone}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+
+            </View>
+          </NavHeader>
+
+          <View style={styles.searchFixedWrapper}>
+            <SearchInput
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder="Search history..."
+              showFilterIcon={true}
+              onFilterIconPress={() => setIsFilterVisible(true)}
+              containerStyle={styles.searchBar}
+              backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+              textColor={isDark ? "#FFFFFF" : "#333333"}
+              iconColor={isDark ? "#94A3B8" : "#888888"}
+              showFilterSort={false}
+            />
+
+
+
+            {/* --- Active Filters Section --- */}
+            {Object.keys(activeFilters).length > 0 && (
+              <View style={styles.activeFiltersContainer}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.activeFiltersScroll}
+                >
+
+
+
+                  {Object.entries(activeFilters).map(([key, value]) => {
+                    if (!value) return null;
+
+                    if (key === 'selected_customer') {
+                      return (
+                        <TouchableOpacity
+                          key="filter-customer"
+                          style={[styles.filterChip, { backgroundColor: colors.primary + '15', borderColor: colors.border }]}
+                          onPress={() => {
+                            // Remove selected_customer from filters when clicking "X"
+                            const newFilters = { ...activeFilters };
+                            delete newFilters.selected_customer;
+                            setActiveFilters(newFilters);
+                          }}
+                        >
+                          <Ionicons name="person" size={14} color={colors.primary} style={{ marginRight: 6 }} />
+                          <Text style={[styles.filterChipText, { color: colors.text }]}>{value as string}</Text>
+                          <Ionicons name="close-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
+                        </TouchableOpacity>
+                      );
+                    }
+
+                    // --- 2. Agar Date Filter hai ---
+                    if (key === 'date_filter' && (value.start || value.end)) {
+                      const dateLabel = `${value.start || '...'} - ${value.end || '...'}`;
+                      return (
+                        <TouchableOpacity
+                          key="filter-date"
+                          style={[styles.filterChip, { backgroundColor: colors.primary + '15', borderColor: colors.border }]}
+                          onPress={() => {
+                            const newFilters = { ...activeFilters };
+                            delete newFilters.date_filter;
+                            setActiveFilters(newFilters);
+                          }}
+                        >
+                          <Text style={[styles.filterChipText, { color: colors.text }]}>{dateLabel}</Text>
+                          <Ionicons name="close-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
+                        </TouchableOpacity>
+                      );
+                    }
+
+                    // --- 2. Agar Multiple Selection (Array) hai - Services/Tags ---
+                    if (Array.isArray(value) && value.length > 0) {
+                      return value.map((item, index) => (
+                        <TouchableOpacity
+                          key={`filter-${key}-${index}`}
+                          style={[styles.filterChip, { backgroundColor: colors.primary + '15', borderColor: colors.border }]}
+                          onPress={() => {
+                            const newFilters = { ...activeFilters };
+                            newFilters[key] = value.filter(v => v !== item);
+                            if (newFilters[key].length === 0) delete newFilters[key];
+                            setActiveFilters(newFilters);
+                          }}
+                        >
+                          <Text style={[styles.filterChipText, { color: colors.text }]}>{item}</Text>
+                          <Ionicons name="close-circle" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
+                        </TouchableOpacity>
+                      ));
+                    }
+
+                    return null;
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+
+            {/* Sticky Results & Sort Bar */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: 15, // Increased margin to move it down slightly
+              paddingHorizontal: 5
+            }}>
+              <Text style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: isDark ? '#94A3B8' : '#64748B'
+              }}>
+                Results: {filteredData.length}
+              </Text>
+
+              <View style={{ position: 'relative', zIndex: 100 }}>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  onPress={() => {
+                    setShowSortMenu(!showSortMenu);
+                    setCustomerDropdownVisible(false); // Pehla menu band kar dein
                   }}
                 >
-                  <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
-                  <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
+                  <Text style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: isDark ? '#FFFFFF' : '#334155',
+                    marginRight: 6
+                  }}>
+                    Sort By:
+                  </Text>
+                  <View style={{
+                    backgroundColor: isDark ? '#334155' : '#e5ecf7ff', // Proper background for selected value
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                    marginRight: 4,
+                    flexDirection: 'row',
+                    alignItems: 'center'
+                  }}>
+                    <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>
+                      {getSortLabel()}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-down" size={16} color={isDark ? '#FFFFFF' : '#334155'} />
                 </TouchableOpacity>
-                <View style={styles.menuSeparator} />
-                <TouchableOpacity style={styles.menuItem} onPress={handleDeleteItem}>
-                  <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
-                  <Text style={[styles.menuText, { color: colors.text }]}>Delete</Text>
-                </TouchableOpacity>
+
+                {/* Sort Menu Dropdown */}
+                {showSortMenu && (
+                  <View style={{
+                    position: 'absolute',
+                    top: 35,
+                    right: 0,
+                    width: 170,
+                    backgroundColor: isDark ? '#1e293b' : '#FFFFFF',
+                    borderRadius: 12,
+                    elevation: 5,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    paddingVertical: 5,
+                    borderWidth: 1,
+                    borderColor: isDark ? '#334155' : '#E2E8F0',
+                    zIndex: 200
+                  }}>
+                    {[
+                      { label: 'Newest First', value: 'newest' },
+                      { label: 'Oldest First', value: 'oldest' },
+                      { label: 'Name (A-Z)', value: 'name_asc' },
+                      { label: 'Name (Z-A)', value: 'name_desc' }
+                    ].map((opt) => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={{
+                          paddingVertical: 10,
+                          paddingHorizontal: 15,
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          backgroundColor: sortOption === opt.value ? (isDark ? '#334155' : '#F1F5F9') : 'transparent'
+                        }}
+                        onPress={() => {
+                          setSortOption(opt.value);
+                          setShowSortMenu(false);
+                        }}
+                      >
+                        <Text style={{
+                          fontSize: 13,
+                          color: sortOption === opt.value ? colors.primary : (isDark ? '#CBD5E1' : '#475569'),
+                          fontWeight: sortOption === opt.value ? '600' : '400'
+                        }}>
+                          {opt.label}
+                        </Text>
+                        {sortOption === opt.value && <Ionicons name="checkmark" size={14} color={colors.primary} />}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
             </View>
-          </TouchableWithoutFeedback>
-        </Modal>
+          </View>
 
-        {/* Edit Visit Modal (Synced with NewVisit.tsx UI) */}
-        <Modal visible={editModalVisible} transparent animationType="slide">
-          <View style={styles.modalOverlayCenterDark}>
-            <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.editTitle, { color: colors.text }]}>Edit Visit Info</Text>
-                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                  <Ionicons name="close" size={24} color={colors.textSecondary} />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.listContent, { paddingBottom: 80 + insets.bottom }]}
+          >
+            {filteredData.map((item) => (
+              <View key={item.id} style={styles.cardOuterWrapper}>
+                <HistoryCard
+                  customer={item.customer}
+                  services={item.services}
+                  tags={item.tags}
+                  notes={item.notes}
+                  photos={item.photos}
+                  date={item.date}
+                  time={item.time}
+                  onPress={() => requestAnimationFrame(() => router.push('/(tabs)/view-history'))} containerStyle={[styles.cardItem, { borderColor: colors.border }]}
+                  backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                  titleColor={isDark ? "#FFFFFF" : "#1E293B"}
+                  phoneColor={isDark ? "#94A3B8" : "#64748B"}
+                  noteColor={isDark ? "#CBD5E1" : "#475569"}
+                  dateColor={isDark ? "#818CF8" : "#5152B3"}
+                />
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={(e) => handleOpenMenu(e, item)}
+                >
+                  <MaterialCommunityIcons name="dots-vertical" size={24} color="#64748B" />
                 </TouchableOpacity>
               </View>
+            ))}
+          </ScrollView>
 
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
-                {/* 1. Customer Section */}
-                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
-                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('customer')}>
-                    <View style={styles.headerTitleRow}>
-                      <Ionicons name="person-outline" size={20} color={colors.primary} />
-                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Customer</Text>
-                    </View>
-                    <Ionicons name={(expandedSection === 'customer' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+          {/* Menu Popover */}
+          <Modal visible={menuVisible} transparent animationType="fade">
+            <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+              <View style={styles.modalOverlayDimmed}>
+                <View style={[styles.menuPopup, { top: menuPosition.top, right: menuPosition.right, backgroundColor: colors.card }]}>
+                  <TouchableOpacity style={styles.menuItem} onPress={handleViewDetails}>
+                    <MaterialCommunityIcons name="eye" size={20} color={colors.textSecondary} />
+                    <Text style={[styles.menuText, { color: colors.text }]}>View</Text>
                   </TouchableOpacity>
+                  <View style={styles.menuSeparator} />
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => {
+                      setMenuVisible(false);
+                      setEditModalVisible(true);
+                    }}
+                  >
+                    <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
+                    <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
+                  </TouchableOpacity>
+                  <View style={styles.menuSeparator} />
+                  <TouchableOpacity style={styles.menuItem} onPress={handleDeleteItem}>
+                    <MaterialCommunityIcons name="delete" size={20} color="#EF4444" />
+                    <Text style={[styles.menuText, { color: colors.text }]}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
 
-                  {expandedSection === 'customer' && (
-                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
-                      <View style={styles.inputWrapper}>
-                        <Input
-                          value={customerSearch}
-                          onChangeText={(val) => {
-                            setCustomerSearch(val);
-                            if (selectedCustomer) setSelectedCustomer(null);
-                          }}
-                          placeholder="Search customer..."
-                          leftIcon="account-search"
-                          variant="outlined"
-                          backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                        />
-                        {customerSearch.length > 0 && !selectedCustomer && filteredCustomers.length > 0 && (
-                          <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                            <ScrollView style={{ maxHeight: 150 }} keyboardShouldPersistTaps="handled">
-                              {filteredCustomers.map(c => (
-                                <TouchableOpacity
-                                  key={c.id}
-                                  style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
-                                  onPress={() => { setSelectedCustomer(c); setCustomerSearch(c.name); }}
-                                >
-                                  <MaterialCommunityIcons name="account-circle" size={22} color={colors.textSecondary} />
-                                  <View>
-                                    <Text style={[styles.itemTitle, { color: colors.text }]}>{c.name}</Text>
-                                    <Text style={[styles.itemSub, { color: colors.textSecondary }]}>{c.phone}</Text>
-                                  </View>
-                                </TouchableOpacity>
-                              ))}
-                            </ScrollView>
+          {/* Edit Visit Modal (Synced with NewVisit.tsx UI) */}
+          <Modal visible={editModalVisible} transparent animationType="slide">
+            <View style={styles.modalOverlayCenterDark}>
+              <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+                <View style={styles.modalHeader}>
+                  <Text style={[styles.editTitle, { color: colors.text }]}>Edit Visit Info</Text>
+                  <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                    <Ionicons name="close" size={24} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+
+                  {/* 1. Customer Section */}
+                  <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                    <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('customer')}>
+                      <View style={styles.headerTitleRow}>
+                        <Ionicons name="person-outline" size={20} color={colors.primary} />
+                        <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Customer</Text>
+                      </View>
+                      <Ionicons name={(expandedSection === 'customer' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+
+                    {expandedSection === 'customer' && (
+                      <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                        <View style={styles.inputWrapper}>
+                          <Input
+                            value={customerSearch}
+                            onChangeText={(val) => {
+                              setCustomerSearch(val);
+                              if (selectedCustomer) setSelectedCustomer(null);
+                            }}
+                            placeholder="Search customer..."
+                            leftIcon="account-search"
+                            variant="outlined"
+                            backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                          />
+                          {customerSearch.length > 0 && !selectedCustomer && filteredCustomers.length > 0 && (
+                            <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                              <ScrollView style={{ maxHeight: 150 }} keyboardShouldPersistTaps="handled">
+                                {filteredCustomers.map(c => (
+                                  <TouchableOpacity
+                                    key={c.id}
+                                    style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
+                                    onPress={() => { setSelectedCustomer(c); setCustomerSearch(c.name); }}
+                                  >
+                                    <MaterialCommunityIcons name="account-circle" size={22} color={colors.textSecondary} />
+                                    <View>
+                                      <Text style={[styles.itemTitle, { color: colors.text }]}>{c.name}</Text>
+                                      <Text style={[styles.itemSub, { color: colors.textSecondary }]}>{c.phone}</Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                ))}
+                              </ScrollView>
+                            </View>
+                          )}
+                        </View>
+                        {selectedCustomer && (
+                          <View style={[styles.selectedBadge, { backgroundColor: isDark ? colors.border : '#ECFDF5' }]}>
+                            <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                            <Text style={[styles.selectedBadgeText, { color: isDark ? colors.text : '#065F46' }]}>Selected: {selectedCustomer.name}</Text>
                           </View>
                         )}
                       </View>
-                      {selectedCustomer && (
-                        <View style={[styles.selectedBadge, { backgroundColor: isDark ? colors.border : '#ECFDF5' }]}>
-                          <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-                          <Text style={[styles.selectedBadgeText, { color: isDark ? colors.text : '#065F46' }]}>Selected: {selectedCustomer.name}</Text>
+                    )}
+                  </View>
+
+                  {/* 2. Services Section */}
+                  <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                    <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('services')}>
+                      <View style={styles.headerTitleRow}>
+                        <MaterialCommunityIcons name="content-cut" size={20} color={colors.primary} />
+                        <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Services</Text>
+                      </View>
+                      <Ionicons name={(expandedSection === 'services' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+
+                    {expandedSection === 'services' && (
+                      <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                        <View style={styles.chipsRow}>
+                          {selectedServices.map(s => (
+                            <TouchableOpacity key={s} style={[styles.chip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(s, 'service')}>
+                              <Text style={[styles.chipText, { color: colors.primary }]}>{s} ✕</Text>
+                            </TouchableOpacity>
+                          ))}
                         </View>
-                      )}
-                    </View>
-                  )}
-                </View>
-
-                {/* 2. Services Section */}
-                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
-                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('services')}>
-                    <View style={styles.headerTitleRow}>
-                      <MaterialCommunityIcons name="content-cut" size={20} color={colors.primary} />
-                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Services</Text>
-                    </View>
-                    <Ionicons name={(expandedSection === 'services' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
-
-                  {expandedSection === 'services' && (
-                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
-                      <View style={styles.chipsRow}>
-                        {selectedServices.map(s => (
-                          <TouchableOpacity key={s} style={[styles.chip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(s, 'service')}>
-                            <Text style={[styles.chipText, { color: colors.primary }]}>{s} ✕</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                      <Input
-                        value={serviceSearch}
-                        onChangeText={setServiceSearch}
-                        placeholder="Search or add service..."
-                        leftIcon="plus-circle-outline"
-                        variant="outlined"
-                        backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                      />
-                      <View style={styles.quickSelectRow}>
-                        {topServices.filter(s => !selectedServices.includes(s)).map(s => (
-                          <TouchableOpacity
-                            key={s}
-                            style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
-                            onPress={() => handleAddItem(s, 'service')}
-                          >
-                            <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>+ {s}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                      {serviceSearch.length > 0 && (
-                        <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                          <TouchableOpacity style={styles.suggestionItem} onPress={() => handleAddItem(serviceSearch, 'service')}>
-                            <Ionicons name="add-circle" size={22} color={colors.primary} />
-                            <Text style={[styles.itemTitle, { color: colors.text }]}>Add "{serviceSearch}"</Text>
-                          </TouchableOpacity>
+                        <Input
+                          value={serviceSearch}
+                          onChangeText={setServiceSearch}
+                          placeholder="Search or add service..."
+                          leftIcon="plus-circle-outline"
+                          variant="outlined"
+                          backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                        />
+                        <View style={styles.quickSelectRow}>
+                          {topServices.filter(s => !selectedServices.includes(s)).map(s => (
+                            <TouchableOpacity
+                              key={s}
+                              style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
+                              onPress={() => handleAddItem(s, 'service')}
+                            >
+                              <Text style={[styles.quickChipText, { color: colors.textSecondary }]}>+ {s}</Text>
+                            </TouchableOpacity>
+                          ))}
                         </View>
-                      )}
-                    </View>
-                  )}
-                </View>
-
-                {/* 3. Tags Section */}
-                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
-                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('tags')}>
-                    <View style={styles.headerTitleRow}>
-                      <MaterialCommunityIcons name="tag-outline" size={20} color={colors.primary} />
-                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Tags</Text>
-                    </View>
-                    <Ionicons name={(expandedSection === 'tags' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
-
-                  {expandedSection === 'tags' && (
-                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
-                      <View style={styles.chipsRow}>
-                        {selectedTags.map(t => (
-                          <TouchableOpacity key={t} style={[styles.chip, styles.tagChip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(t, 'tag')}>
-                            <Text style={[styles.chipText, styles.tagChipText, { color: colors.textSecondary }]}>{t} ✕</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                      <Input
-                        value={tagSearch}
-                        onChangeText={setTagSearch}
-                        placeholder="Add custom tags..."
-                        leftIcon="tag-plus-outline"
-                        variant="outlined"
-                        backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                      />
-                      <View style={styles.quickSelectRow}>
-                        {topTags.filter(t => !selectedTags.includes(t)).map(t => (
-                          <TouchableOpacity
-                            key={t}
-                            style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
-                            onPress={() => handleAddItem(t, 'tag')}
-                          >
-                            <Text style={[styles.quickChipText, { color: colors.textSecondary }]}># {t}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                      {tagSearch.length > 0 && (
-                        <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                          <TouchableOpacity style={styles.suggestionItem} onPress={() => handleAddItem(tagSearch, 'tag')}>
-                            <Ionicons name="add-circle" size={22} color={colors.primary} />
-                            <Text style={[styles.itemTitle, { color: colors.text }]}>Add "#{tagSearch}"</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                    </View>
-                  )}
-                </View>
-
-                {/* 4. Notes Section */}
-                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
-                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('notes')}>
-                    <View style={styles.headerTitleRow}>
-                      <MaterialCommunityIcons name="notebook-outline" size={20} color={colors.primary} />
-                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Notes</Text>
-                    </View>
-                    <Ionicons name={(expandedSection === 'notes' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                  {expandedSection === 'notes' && (
-                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
-                      <TextInput
-                        style={[styles.textArea, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, color: colors.text }]}
-                        value={tempNotes}
-                        onChangeText={setTempNotes}
-                        multiline
-                        placeholder="Formulas/Notes..."
-                        placeholderTextColor={colors.textSecondary}
-                      />
-                    </View>
-                  )}
-                </View>
-
-                {/* 5. Photos Section */}
-                <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
-                  <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('photos')}>
-                    <View style={styles.headerTitleRow}>
-                      <Ionicons name="images-outline" size={20} color={colors.primary} />
-                      <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Photos</Text>
-                    </View>
-                    <Ionicons name={(expandedSection === 'photos' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                  {expandedSection === 'photos' && (
-                    <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
-                      <View style={styles.photoGrid}>
-                        <TouchableOpacity style={[styles.addPhotoBox, { backgroundColor: colors.background, borderColor: colors.primary }]} onPress={handleImagePick}>
-                          <MaterialCommunityIcons name="camera-plus" size={24} color={colors.primary} />
-                          <Text style={[styles.addPhotoText, { color: colors.primary }]}>Add</Text>
-                        </TouchableOpacity>
-                        {tempPhotos.map((uri, i) => (
-                          <View key={i} style={styles.imageWrapper}>
-                            <Image source={{ uri }} style={styles.uploadedImg} />
-                            <TouchableOpacity style={[styles.removeBtn, { backgroundColor: colors.card }]} onPress={() => removeImage(i)}>
-                              <Ionicons name="close-circle" size={20} color="#EF4444" />
+                        {serviceSearch.length > 0 && (
+                          <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                            <TouchableOpacity style={styles.suggestionItem} onPress={() => handleAddItem(serviceSearch, 'service')}>
+                              <Ionicons name="add-circle" size={22} color={colors.primary} />
+                              <Text style={[styles.itemTitle, { color: colors.text }]}>Add "{serviceSearch}"</Text>
                             </TouchableOpacity>
                           </View>
-                        ))}
+                        )}
                       </View>
-                    </View>
-                  )}
-                </View>
+                    )}
+                  </View>
 
-                <View style={styles.actionRow}>
-                  <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                    <Text style={styles.cancelBtnText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleSaveEdit}>
-                    <LinearGradient
-                      colors={THEME_COLORS.buttonGradient}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                      style={styles.saveBtn}
-                    >
-                      <Text style={styles.saveBtnText}>Update</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
+                  {/* 3. Tags Section */}
+                  <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                    <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('tags')}>
+                      <View style={styles.headerTitleRow}>
+                        <MaterialCommunityIcons name="tag-outline" size={20} color={colors.primary} />
+                        <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Tags</Text>
+                      </View>
+                      <Ionicons name={(expandedSection === 'tags' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
 
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
+                    {expandedSection === 'tags' && (
+                      <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                        <View style={styles.chipsRow}>
+                          {selectedTags.map(t => (
+                            <TouchableOpacity key={t} style={[styles.chip, styles.tagChip, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={() => removeChip(t, 'tag')}>
+                              <Text style={[styles.chipText, styles.tagChipText, { color: colors.textSecondary }]}>{t} ✕</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                        <Input
+                          value={tagSearch}
+                          onChangeText={setTagSearch}
+                          placeholder="Add custom tags..."
+                          leftIcon="tag-plus-outline"
+                          variant="outlined"
+                          backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                        />
+                        <View style={styles.quickSelectRow}>
+                          {topTags.filter(t => !selectedTags.includes(t)).map(t => (
+                            <TouchableOpacity
+                              key={t}
+                              style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.border }]}
+                              onPress={() => handleAddItem(t, 'tag')}
+                            >
+                              <Text style={[styles.quickChipText, { color: colors.textSecondary }]}># {t}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                        {tagSearch.length > 0 && (
+                          <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                            <TouchableOpacity style={styles.suggestionItem} onPress={() => handleAddItem(tagSearch, 'tag')}>
+                              <Ionicons name="add-circle" size={22} color={colors.primary} />
+                              <Text style={[styles.itemTitle, { color: colors.text }]}>Add "#{tagSearch}"</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </View>
 
-        <FilterInput
-          isVisible={isFilterVisible}
-          onClose={() => setIsFilterVisible(false)}
-          backgroundColor={isDark ? "#1e293b" : "#F8FAFC"}
-          textColor={isDark ? "#FFFFFF" : "#334155"}
-          chipInactiveBackgroundColor={isDark ? "#334155" : "#FFFFFF"}
-          sections={filterSections}
-          onApply={(selections) => {
-            setActiveFilters(selections);
-            setIsFilterVisible(false);
-          }}
-          onReset={() => setActiveFilters({})}
-          title="Search Filters"
-          borderColor={colors.border}
-        />
+                  {/* 4. Notes Section */}
+                  <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                    <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('notes')}>
+                      <View style={styles.headerTitleRow}>
+                        <MaterialCommunityIcons name="notebook-outline" size={20} color={colors.primary} />
+                        <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Notes</Text>
+                      </View>
+                      <Ionicons name={(expandedSection === 'notes' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                    {expandedSection === 'notes' && (
+                      <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                        <TextInput
+                          style={[styles.textArea, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border, color: colors.text }]}
+                          value={tempNotes}
+                          onChangeText={setTempNotes}
+                          multiline
+                          placeholder="Formulas/Notes..."
+                          placeholderTextColor={colors.textSecondary}
+                        />
+                      </View>
+                    )}
+                  </View>
 
-
-        {/* --- Delete History Item Modal --- */}
-        <Modal visible={deleteModalVisible} transparent animationType="fade">
-          <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
-            <View style={styles.modalOverlayCenterDark}>
-              <TouchableWithoutFeedback onPress={() => { }}>
-                <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
-                  <Text style={{ color: colors.textSecondary, textAlign: 'left', marginBottom: 25, fontSize: 16 }}>
-                    Are you sure?
-                  </Text>
+                  {/* 5. Photos Section */}
+                  <View style={[styles.accordionCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
+                    <TouchableOpacity style={styles.accordionHeader} onPress={() => toggleSection('photos')}>
+                      <View style={styles.headerTitleRow}>
+                        <Ionicons name="images-outline" size={20} color={colors.primary} />
+                        <Text style={[styles.accordionTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Photos</Text>
+                      </View>
+                      <Ionicons name={(expandedSection === 'photos' ? 'chevron-up' : 'chevron-down') as IonIconName} size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                    {expandedSection === 'photos' && (
+                      <View style={[styles.accordionBody, { borderTopColor: colors.border }]}>
+                        <View style={styles.photoGrid}>
+                          <TouchableOpacity style={[styles.addPhotoBox, { backgroundColor: colors.background, borderColor: colors.primary }]} onPress={handleImagePick}>
+                            <MaterialCommunityIcons name="camera-plus" size={24} color={colors.primary} />
+                            <Text style={[styles.addPhotoText, { color: colors.primary }]}>Add</Text>
+                          </TouchableOpacity>
+                          {tempPhotos.map((uri, i) => (
+                            <View key={i} style={styles.imageWrapper}>
+                              <Image source={{ uri }} style={styles.uploadedImg} />
+                              <TouchableOpacity style={[styles.removeBtn, { backgroundColor: colors.card }]} onPress={() => removeImage(i)}>
+                                <Ionicons name="close-circle" size={20} color="#EF4444" />
+                              </TouchableOpacity>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </View>
 
                   <View style={styles.actionRow}>
-                    <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                    <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                       <Text style={styles.cancelBtnText}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.saveBtn, { backgroundColor: '#EF4444' }]}
-                      onPress={confirmDeleteItem}
-                    >
-                      <Text style={styles.saveBtnText}>Delete</Text>
+                    <TouchableOpacity onPress={handleSaveEdit}>
+                      <LinearGradient
+                        colors={THEME_COLORS.buttonGradient}
+                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                        style={styles.saveBtn}
+                      >
+                        <Text style={styles.saveBtnText}>Update</Text>
+                      </LinearGradient>
                     </TouchableOpacity>
                   </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
 
-      </SafeAreaView>
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
+
+          <FilterInput
+            isVisible={isFilterVisible}
+            onClose={() => setIsFilterVisible(false)}
+            backgroundColor={isDark ? "#1e293b" : "#F8FAFC"}
+            textColor={isDark ? "#FFFFFF" : "#334155"}
+            chipInactiveBackgroundColor={isDark ? "#334155" : "#FFFFFF"}
+            sections={filterSections}
+            onApply={(selections) => {
+              setActiveFilters(selections);
+              setIsFilterVisible(false);
+            }}
+            onReset={() => setActiveFilters({})}
+            title="Search Filters"
+            borderColor={colors.border}
+          />
+
+
+          {/* --- Delete History Item Modal --- */}
+          <Modal visible={deleteModalVisible} transparent animationType="fade">
+            <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
+              <View style={styles.modalOverlayCenterDark}>
+                <TouchableWithoutFeedback onPress={() => { }}>
+                  <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+                    <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
+                    <Text style={{ color: colors.textSecondary, textAlign: 'left', marginBottom: 25, fontSize: 16 }}>
+                      Are you sure?
+                    </Text>
+
+                    <View style={styles.actionRow}>
+                      <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                        <Text style={styles.cancelBtnText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.saveBtn, { backgroundColor: '#EF4444' }]}
+                        onPress={confirmDeleteItem}
+                      >
+                        <Text style={styles.saveBtnText}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
     </LinearGradient>
   );
 };
@@ -1079,11 +1195,11 @@ const styles = StyleSheet.create({
   cardOuterWrapper: {
     position: 'relative',
     justifyContent: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   cardItem: {
     marginBottom: 0,
-    borderRadius: 20,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     ...Platform.select({
@@ -1350,6 +1466,59 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  headerDropdownIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  customerMenuBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  customerDropdownMenu: {
+    position: 'absolute',
+    top: 45, // Button ke niche dikhanay ke liye
+    right: 0,
+    width: 180,
+    borderRadius: 15,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    borderWidth: 1,
+    zIndex: 9999, // Taake list ke upar nazar aaye
+    overflow: 'hidden',
+  },
+  customerDropDownItem: {
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+  },
+  dropDownName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dropDownPhone: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
   },
 });
 
