@@ -75,6 +75,25 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const slideAnim = useRef(new Animated.Value(-150)).current;
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // --- for parmenently images saving  ---
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const savedPhone = await AsyncStorage.getItem('user_phone');
+        if (savedPhone) setPhone(savedPhone);
+
+        // --- Profile Image Load Karein ---
+        const savedImage = await AsyncStorage.getItem('user_profile_image');
+        if (savedImage) setProfileImage(savedImage);
+
+        // ... baqi teams ka data ...
+      } catch (error) {
+        console.error("Load Data Error:", error);
+      }
+    };
+    loadData();
+  }, []);
+
   // --- Lifecycle & Data Persistence ---
   useEffect(() => {
     const loadData = async () => {
@@ -116,12 +135,19 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.8, // Thori quality kam karne se storage fast rehti hai
     });
 
     if (!result.canceled) {
-      if (type === 'profile') setProfileImage(result.assets[0].uri);
-      else setTempImg(result.assets[0].uri);
+      const selectedUri = result.assets[0].uri;
+
+      if (type === 'profile') {
+        setProfileImage(selectedUri);
+        // Persistent storage mein save karein
+        await AsyncStorage.setItem('user_profile_image', selectedUri);
+      } else {
+        setTempImg(selectedUri);
+      }
     }
   };
 
@@ -159,7 +185,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           : item
       );
       setTeams(updated);
-      persistTeams(updated);
+      persistTeams(updated); // Yeh teams ko save kar raha hai
     }
     setEditModalVisible(false);
   };
@@ -192,7 +218,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
 
   const confirmLogout = async () => {
     setLogoutModalVisible(false);
-    router.replace('/login'); 
+    router.replace('/login');
   };
 
   const handleSendInvitation = () => {
@@ -217,10 +243,10 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
-        <StatusBar 
-          barStyle={isDark ? "light-content" : "dark-content"} 
-          backgroundColor="transparent" 
-          translucent 
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor="transparent"
+          translucent
         />
 
         {/* --- Success Alert --- */}
@@ -235,17 +261,17 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
         )}
 
         {/* --- Header --- */}
-        <NavHeader 
-          title={activeTab === 'profile' ? "Profile !" : "Team Members !"} 
+        <NavHeader
+          title={activeTab === 'profile' ? "Profile !" : "Team Members !"}
           showProfileIcon={false}
           titleColor={isDark ? "#FFFFFF" : "#5152B3"}
         >
           {activeTab === 'profile' && (
             <TouchableOpacity onPress={() => setLogoutModalVisible(true)} activeOpacity={0.8}>
-              <LinearGradient 
-                colors={THEME_COLORS.buttonGradient} 
-                start={{ x: 0, y: 0 }} 
-                end={{ x: 1, y: 0 }} 
+              <LinearGradient
+                colors={THEME_COLORS.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={styles.headerBtn}
               >
                 <MaterialCommunityIcons name="logout" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
@@ -259,11 +285,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[
-              styles.tabButton, 
-              { 
-                backgroundColor: activeTab === 'profile' && isDark ? "#1e293b" : colors.card, 
-                borderColor: colors.border 
-              }, 
+              styles.tabButton,
+              {
+                backgroundColor: activeTab === 'profile' && isDark ? "#1e293b" : colors.card,
+                borderColor: colors.border
+              },
               activeTab === 'profile' && styles.activeTabButton
             ]}
             onPress={() => setActiveTab('profile')}
@@ -272,11 +298,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.tabButton, 
-              { 
-                backgroundColor: activeTab === 'teams' && isDark ? "#1e293b" : colors.card, 
-                borderColor: colors.border 
-              }, 
+              styles.tabButton,
+              {
+                backgroundColor: activeTab === 'teams' && isDark ? "#1e293b" : colors.card,
+                borderColor: colors.border
+              },
               activeTab === 'teams' && styles.activeTabButton
             ]}
             onPress={() => setActiveTab('teams')}
@@ -285,14 +311,14 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableOpacity>
         </View>
 
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flexOne}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
-              styles.scrollContent, 
+              styles.scrollContent,
               { paddingBottom: insets.bottom + (activeTab === 'profile' ? 70 : 40) }
             ]}
           >
@@ -450,7 +476,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
             <View style={styles.modalOverlayCenterDark}>
               <TouchableWithoutFeedback onPress={() => { }}>
                 <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-                  
+
                   <Text style={[styles.editTitle, { color: colors.text }]}>Invite Team</Text>
                   <View style={styles.formBody}>
                     <View style={styles.inputGroup}>
