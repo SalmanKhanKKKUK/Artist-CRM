@@ -1,11 +1,13 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Dimensions,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -22,6 +24,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import NavHeader from '../../common/Buttons/NavHeader';
 import Input from '../../common/Inputs/Input';
 
+const { width } = Dimensions.get('window');
+
 interface AddClientsProps {
   onBack?: () => void;
   onNavigateToWelcome?: () => void;
@@ -29,31 +33,42 @@ interface AddClientsProps {
 
 const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  
+  // State Management
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [image, setImage] = useState<string | null>(null);
-
-  // States for Loading and Success Animation
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+
+  // Animation & Scroll Refs
   const slideAnim = useRef(new Animated.Value(-150)).current;
+  const scrollRef = useRef<ScrollView>(null);
 
-  const insets = useSafeAreaInsets();
+  // Keyboard Event Listener
+  useEffect(() => {
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ y: 0, animated: true });
+      }
+    });
 
-  // BackHandler is now handled at route level via useSmartBackHandler hook
+    return () => {
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
+  // Handlers
   const showTopSuccessLoader = () => {
     setShowSuccess(true);
-
-    // Slide Down Animation 
     Animated.spring(slideAnim, {
       toValue: Platform.OS === 'android' ? 50 : 60,
       useNativeDriver: true,
       bounciness: 10,
     }).start();
 
-    // Hide after 2 seconds and navigate back to Dashboard
     setTimeout(() => {
       Animated.timing(slideAnim, {
         toValue: -150,
@@ -61,7 +76,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
         useNativeDriver: true,
       }).start(() => {
         setShowSuccess(false);
-        if (onBack) onBack(); // Automatically go to Dashboard
+        if (onBack) onBack();
       });
     }, 2000);
   };
@@ -73,7 +88,6 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
       aspect: [1, 1],
       quality: 1,
     });
-
     if (!result.canceled) {
       setImage(result.assets[0].uri);
     }
@@ -82,29 +96,34 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   const handleSave = () => {
     if (loading) return;
     setLoading(true);
-
-    // Simulating save logic
     setTimeout(() => {
       setLoading(false);
       showTopSuccessLoader();
     }, 1500);
   };
 
+  // Theme-based Dynamic Values
+  const dynamicInputStyle = { color: colors.text };
+  const dynamicBackground = { backgroundColor: isDark ? "#1e293b" : "#FFFFFF" };
+  const dynamicBorder = { borderColor: colors.border };
+  const labelColor = { color: colors.text };
+  const textColorSecondary = { color: colors.textSecondary };
+  
+  // Dark Mode Specific Fixes
+  const focusColor = isDark ? "#FFFFFF" : "#5152B3";
+  const placeholderColor = isDark ? "#FFFFFF" : colors.textSecondary;
+
   return (
-    <LinearGradient
-      colors={colors.bgGradient}
-      style={styles.gradientContainer}
-    >
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+    <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
+      <StatusBar 
+        barStyle={isDark ? "light-content" : "dark-content"} 
+        backgroundColor="transparent" 
+        translucent 
+      />
 
       {/* Success Notification */}
       {showSuccess && (
-        <Animated.View
-          style={[
-            styles.successNotification,
-            { transform: [{ translateY: slideAnim }] }
-          ]}
-        >
+        <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
           <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
           <View>
             <Text style={styles.successTitle}>Success!</Text>
@@ -134,89 +153,91 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.flexOne}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 60}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 20}
         >
           <ScrollView
+            ref={scrollRef}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingBottom: insets.bottom + 60 } // Extra padding so email is visible when typing
-            ]}
+            contentContainerStyle={styles.scrollContent}
           >
-            <View style={styles.photoSection}>
-              <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
-                <View style={[styles.imageCircle, { backgroundColor: isDark ? "#1e293b" : colors.background, borderColor: colors.border }]}>
-                  {image ? (
-                    <Image source={{ uri: image }} style={styles.profileImage} />
-                  ) : (
-                    <MaterialCommunityIcons name="account-outline" size={60} color={colors.primary} />
-                  )}
-                  <View style={[styles.plusIconWrapper, { backgroundColor: colors.primary, borderColor: colors.card }]}>
-                    <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
+            <TouchableOpacity 
+              activeOpacity={1} 
+              onPress={Keyboard.dismiss} 
+              style={styles.innerContainer}
+            >
+              {/* Photo Section */}
+              <View style={styles.photoSection}>
+                <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
+                  <View style={[styles.imageCircle, dynamicBackground, dynamicBorder]}>
+                    {image ? (
+                      <Image source={{ uri: image }} style={styles.profileImage} />
+                    ) : (
+                      <MaterialCommunityIcons name="account-outline" size={60} color={colors.primary} />
+                    )}
+                    <View style={[styles.plusIconWrapper, { backgroundColor: colors.primary, borderColor: colors.card }]}>
+                      <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
+                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-              <Text style={[styles.addPhotoText, { color: colors.textSecondary }]}>Add profile photo</Text>
-            </View>
+                </TouchableOpacity>
+                <Text style={[styles.addPhotoText, textColorSecondary]}>Add profile photo</Text>
+              </View>
 
-            <View style={styles.formContainer}>
-              <Text style={[styles.inputLabel, { color: colors.text }]}>Client Name</Text>
-              <Input
-                value={name}
-                onChangeText={setName}
-                placeholder="Enter full name"
-                containerStyle={styles.fullWidthInput}
-                size="large"
-                variant="outlined"
-                inputStyle={{ color: colors.text }}
-                placeholderTextColor={colors.textSecondary}
-                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
-                borderColor={colors.border}
+              {/* Form Section */}
+              <View style={styles.formContainer}>
+                <Text style={[styles.inputLabel, labelColor]}>Client Name</Text>
+                <Input
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Enter full name"
+                  placeholderTextColor={placeholderColor}
+                  containerStyle={styles.fullWidthInput}
+                  size="large"
+                  variant="outlined"
+                  inputStyle={dynamicInputStyle}
+                  backgroundColor={dynamicBackground.backgroundColor}
+                  borderColor={dynamicBorder.borderColor}
+                  focusBorderColor={focusColor}
+                />
 
-              />
+                <View style={styles.sectionGap} />
 
-              <View style={styles.sectionGap} />
+                <Text style={[styles.inputLabel, labelColor]}>Phone Number</Text>
+                <Input
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="Contact Number...."
+                  placeholderTextColor={placeholderColor}
+                  keyboardType="phone-pad"
+                  containerStyle={styles.fullWidthInput}
+                  size="large"
+                  variant="outlined"
+                  inputStyle={dynamicInputStyle}
+                  backgroundColor={dynamicBackground.backgroundColor}
+                  borderColor={dynamicBorder.borderColor}
+                  focusBorderColor={focusColor}
+                />
 
-              <Text style={[styles.inputLabel, { color: colors.text }]}>Phone Number</Text>
-              <Input
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="Contact Number...."
-                keyboardType="phone-pad"
-                containerStyle={styles.fullWidthInput}
-                size="large"
-                variant="outlined"
-                inputStyle={{ color: colors.text }}
-                placeholderTextColor={colors.textSecondary}
-                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
-                borderColor={colors.border}
+                <View style={styles.sectionGap} />
 
-              />
-
-              <View style={styles.sectionGap} />
-
-              {/* Email Input Fix: Scrolling ensures this is visible */}
-              <Text style={[styles.inputLabel, { color: colors.text }]}>Email Address</Text>
-              <Input
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter email address"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                containerStyle={styles.fullWidthInput}
-                size="large"
-                variant="outlined"
-                inputStyle={{ color: colors.text }}
-                placeholderTextColor={colors.textSecondary}
-                backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                focusBorderColor={isDark ? '#FFFFFF' : '#5152B3'}
-                borderColor={colors.border}
-
-              />
-            </View>
+                <Text style={[styles.inputLabel, labelColor]}>Email Address</Text>
+                <Input
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter email address"
+                  placeholderTextColor={placeholderColor}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  containerStyle={styles.fullWidthInput}
+                  size="large"
+                  variant="outlined"
+                  inputStyle={dynamicInputStyle}
+                  backgroundColor={dynamicBackground.backgroundColor}
+                  borderColor={dynamicBorder.borderColor}
+                  focusBorderColor={focusColor}
+                />
+              </View>
+            </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -224,6 +245,7 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   );
 };
 
+// --- Stylesheet ---
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
@@ -234,6 +256,17 @@ const styles = StyleSheet.create({
   },
   flexOne: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    paddingHorizontal: 25,
+    paddingTop: 40, 
+  },
+  innerContainer: {
+    alignItems: 'center',
+    width: '100%',
+    paddingBottom: 40,
   },
   saveHeaderBtn: {
     paddingHorizontal: 20,
@@ -249,50 +282,41 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
-  scrollContent: {
-    paddingHorizontal: 25,
-    paddingTop: 20,
-  },
   photoSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 35,
   },
   imageWrapper: {
     position: 'relative',
   },
   imageCircle: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    backgroundColor: '#EEF2FF',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#E2E8F0',
     borderStyle: 'dashed',
   },
   profileImage: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   plusIconWrapper: {
     position: 'absolute',
-    bottom: 5,
-    right: 5,
-    backgroundColor: '#5152B3',
+    bottom: 2,
+    right: 2,
     width: 32,
     height: 32,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
   },
   addPhotoText: {
     marginTop: 10,
     fontSize: 14,
-    color: '#64748B',
     fontWeight: '500',
   },
   formContainer: {
@@ -300,37 +324,30 @@ const styles = StyleSheet.create({
   },
   fullWidthInput: {
     width: '100%',
-    marginBottom: 5,
   },
   inputLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#334155',
-    marginBottom: 10,
+    marginBottom: 8,
     marginLeft: 2,
   },
   sectionGap: {
-    height: 10,
+    height: 18,
   },
-
   successNotification: {
     position: 'absolute',
     top: 0,
-    left: 80,
+    left: 20,
     right: 20,
     backgroundColor: '#10B981',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderRadius: 20,
+    borderRadius: 15,
     zIndex: 9999,
-    elevation: 15,
+    elevation: 10,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
   },
   successTitle: {
     color: '#FFFFFF',
