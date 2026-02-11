@@ -424,38 +424,38 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     setDeleteModalVisible(false);
   };
 
- const parseDate = (dateStr: string | undefined | null): number => {
-  try {
-    if (!dateStr) return 0;
+  const parseDate = (dateStr: string | undefined | null): number => {
+    try {
+      if (!dateStr) return 0;
 
-    const months: { [key: string]: number } = {
-      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-    };
+      const months: { [key: string]: number } = {
+        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+      };
 
-    const parts = dateStr.split(' ');
-    
-    // Handle "DD MMM YYYY" format
-    if (parts.length >= 3) {
-      const day = parseInt(parts[0], 10);
-      const month = months[parts[1]];
-      const year = parseInt(parts[2], 10);
+      const parts = dateStr.split(' ');
 
-      if (!isNaN(day) && month !== undefined && !isNaN(year)) {
-        return new Date(year, month, day).getTime();
+      // Handle "DD MMM YYYY" format
+      if (parts.length >= 3) {
+        const day = parseInt(parts[0], 10);
+        const month = months[parts[1]];
+        const year = parseInt(parts[2], 10);
+
+        if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+          return new Date(year, month, day).getTime();
+        }
       }
+
+      // Standard date fallback
+      const parsed = Date.parse(dateStr);
+      return isNaN(parsed) ? 0 : parsed;
+    } catch (error) {
+      console.error("Error parsing date:", dateStr);
+      return 0;
     }
+  };
 
-    // Standard date fallback
-    const parsed = Date.parse(dateStr);
-    return isNaN(parsed) ? 0 : parsed;
-  } catch (error) {
-    console.error("Error parsing date:", dateStr);
-    return 0;
-  }
-};
-
-const filteredData = historyItems.filter((item) => {
+  const filteredData = historyItems.filter((item) => {
     if (!item || !item.customer) return false;
     const query = searchText.toLowerCase().trim();
 
@@ -490,7 +490,7 @@ const filteredData = historyItems.filter((item) => {
     if (dateFilter && (dateFilter.start || dateFilter.end)) {
       const itemDate = parseDate(item.date);
       const startDate = dateFilter.start ? parseDate(dateFilter.start) : 0;
-      
+
       // End date logic: end of day include karne ke liye milliseconds add kiye hain
       let endDate = Number.MAX_SAFE_INTEGER;
       if (dateFilter.end) {
@@ -902,7 +902,17 @@ const filteredData = historyItems.filter((item) => {
                             leftIcon="account-search"
                             variant="outlined"
                             backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+
+                            // --- YEH HACK USE KAREIN ---
+                            // Isse design wahi rahega jo Input component ka hai, 
+                            // lekin text color white force ho jayega.
+                            {...({
+                              style: { color: isDark ? "#FFFFFF" : "#1E293B" }
+                            } as any)}
+
+                            placeholderTextColor={isDark ? "#94A3B8" : "#64748B"}
                           />
+
                           {customerSearch.length > 0 && !selectedCustomer && filteredCustomers.length > 0 && (
                             <View style={[styles.dropdownMenu, { backgroundColor: colors.card, borderColor: colors.border }]}>
                               <ScrollView style={{ maxHeight: 150 }} keyboardShouldPersistTaps="handled">
@@ -926,7 +936,9 @@ const filteredData = historyItems.filter((item) => {
                         {selectedCustomer && (
                           <View style={[styles.selectedBadge, { backgroundColor: isDark ? colors.border : '#ECFDF5' }]}>
                             <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-                            <Text style={[styles.selectedBadgeText, { color: isDark ? colors.text : '#065F46' }]}>Selected: {selectedCustomer.name}</Text>
+                            <Text style={[styles.selectedBadgeText, { color: isDark ? "#FFFFFF" : '#065F46' }]}>
+                              Selected: {selectedCustomer.name}
+                            </Text>
                           </View>
                         )}
                       </View>

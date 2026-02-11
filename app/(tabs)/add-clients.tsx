@@ -6,12 +6,7 @@ import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 export default function AddClientsScreen() {
     const router = useRouter();
 
-    // Handle Android back button - go to previous page instead of quitting
-    const handleBack = React.useCallback(() => {
-        router.back();
-    }, [router]);
 
-    useSmartBackHandler(handleBack);
 
     return (
         <AddClients

@@ -5,14 +5,14 @@ import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 
 export default function SignupScreen() {
   const router = useRouter();
-  
+
   // Handle Android back button - go to previous page instead of quitting
   useSmartBackHandler(() => {
     router.back();
   });
 
   return (
-    <Signup 
+    <Signup
       onNavigateToLogin={() => router.push('/(auth)/login')}
       onNavigateToCompanyName={() => router.push('/(auth)/company-name')}
       onBack={() => router.back()}

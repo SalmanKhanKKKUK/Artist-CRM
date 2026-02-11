@@ -5,11 +5,8 @@ import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 
 export default function HistoryScreen() {
   const router = useRouter();
-  
-  // Handle Android back button - go to previous page instead of quitting
-  useSmartBackHandler(() => {
-    router.back();
-  });
+
+
 
   return (
     <History
