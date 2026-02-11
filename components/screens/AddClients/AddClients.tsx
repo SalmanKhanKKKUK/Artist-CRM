@@ -16,6 +16,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -43,43 +44,59 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
+  // Validation States (New)
+  const [showValidationError, setShowValidationError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   // Animation & Scroll Refs
   const slideAnim = useRef(new Animated.Value(-150)).current;
   const scrollRef = useRef<ScrollView>(null);
 
   // Keyboard Event Listener
-  useEffect(() => {
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({ y: 0, animated: true });
-      }
-    });
+useEffect(() => {
+  const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ y: 0, animated: true });
+    }
+  });
 
-    return () => {
-      keyboardDidHideListener.remove();
-    };
-  }, []);
+  return () => {
+    keyboardDidHideListener.remove();
+    // --- Screen saaf karne ke liye ---
+    setName('');
+    setPhone('');
+    setEmail('');
+    setImage(null);
+  };
+}, []);
 
   // Handlers
-  const showTopSuccessLoader = () => {
-    setShowSuccess(true);
-    Animated.spring(slideAnim, {
-      toValue: Platform.OS === 'android' ? 50 : 60,
-      useNativeDriver: true,
-      bounciness: 10,
-    }).start();
+ const showTopSuccessLoader = () => {
+  setShowSuccess(true);
+  Animated.spring(slideAnim, {
+    toValue: Platform.OS === 'android' ? 50 : 60,
+    useNativeDriver: true,
+    bounciness: 10,
+  }).start();
 
-    setTimeout(() => {
-      Animated.timing(slideAnim, {
-        toValue: -150,
-        duration: 400,
-        useNativeDriver: true,
-      }).start(() => {
-        setShowSuccess(false);
-        if (onBack) onBack();
-      });
-    }, 2000);
-  };
+  setTimeout(() => {
+    Animated.timing(slideAnim, {
+      toValue: -150,
+      duration: 400,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowSuccess(false);
+
+      // --- Form Reset ---
+      setName('');
+      setPhone('');
+      setEmail('');
+      setImage(null);
+
+      if (onBack) onBack();
+    });
+  }, 2000);
+};
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -93,8 +110,21 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
     }
   };
 
-  const handleSave = () => {
+const handleSave = () => {
     if (loading) return;
+
+    // --- Validation Logic (New) ---
+    if (!name.trim()) {
+      setErrorMessage("Please enter the client's name.");
+      setShowValidationError(true);
+      return;
+    }
+    if (!phone.trim()) {
+      setErrorMessage("Please enter a phone number.");
+      setShowValidationError(true);
+      return;
+    }
+
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -111,7 +141,8 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
   
   // Dark Mode Specific Fixes
   const focusColor = isDark ? "#FFFFFF" : "#5152B3";
-  const placeholderColor = isDark ? "#FFFFFF" : colors.textSecondary;
+  // Agar aapka textSecondary dark mode mein thoda greyish hai:
+const placeholderColor = isDark ? colors.textSecondary : colors.textSecondary;
 
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
@@ -240,6 +271,25 @@ const AddClients: React.FC<AddClientsProps> = ({ onBack }) => {
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
+        {/* --- NEW: VALIDATION ERROR MODAL --- */}
+        <Modal visible={showValidationError} transparent animationType="fade">
+          <View style={styles.modalOverlayDark}>
+            <View style={[styles.confirmBox, { backgroundColor: colors.card }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Missing Info!</Text>
+              
+              <Text style={[styles.confirmDesc, { color: colors.textSecondary }]}>
+                {errorMessage}
+              </Text>
+
+              <TouchableOpacity
+                style={[styles.confirmBtn, { backgroundColor: colors.primary, width: '100%' }]}
+                onPress={() => setShowValidationError(false)}
+              >
+                <Text style={[styles.confirmBtnText, { color: '#FFF' }]}>Got it</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -357,6 +407,40 @@ const styles = StyleSheet.create({
   successMessage: {
     color: '#E0F2FE',
     fontSize: 12,
+  },
+  modalOverlayDark: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  confirmBox: {
+    borderRadius: 24,
+    width: '80%',
+    padding: 25,
+    elevation: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  confirmDesc: {
+    textAlign: 'center',
+    fontSize: 15,
+    marginBottom: 15,
+    lineHeight: 22,
+  },
+  confirmBtn: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmBtnText: {
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 

@@ -424,81 +424,80 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
     setDeleteModalVisible(false);
   };
 
-  const parseDate = (dateStr: string) => {
-    // Robust parser for "DD MMM YYYY" (e.g., "14 Jan 2026")
+ const parseDate = (dateStr: string | undefined | null): number => {
+  try {
+    if (!dateStr) return 0;
+
     const months: { [key: string]: number } = {
       Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
       Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
     };
+
     const parts = dateStr.split(' ');
-    if (parts.length < 3) return 0;
+    
+    // Handle "DD MMM YYYY" format
+    if (parts.length >= 3) {
+      const day = parseInt(parts[0], 10);
+      const month = months[parts[1]];
+      const year = parseInt(parts[2], 10);
 
-    // Handle cases like "14 Jan 2026"
-    const day = parseInt(parts[0], 10);
-    const month = months[parts[1]];
-    const year = parseInt(parts[2], 10);
-
-    if (!isNaN(day) && month !== undefined && !isNaN(year)) {
-      return new Date(year, month, day).getTime();
+      if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+        return new Date(year, month, day).getTime();
+      }
     }
 
-    // Fallback for standard ISO formats just in case
+    // Standard date fallback
     const parsed = Date.parse(dateStr);
     return isNaN(parsed) ? 0 : parsed;
-  };
+  } catch (error) {
+    console.error("Error parsing date:", dateStr);
+    return 0;
+  }
+};
 
-  const filteredData = historyItems.filter((item) => {
+const filteredData = historyItems.filter((item) => {
     if (!item || !item.customer) return false;
-    const query = searchText.toLowerCase();
+    const query = searchText.toLowerCase().trim();
 
-    // Global Search (Search Input Header)
-    const searchMatch = (item.customer.name || "").toLowerCase().includes(query) ||
+    // 1. Global Search
+    const searchMatch = !query ? true : (
+      (item.customer.name || "").toLowerCase().includes(query) ||
       (item.customer.phone || "").includes(query) ||
       (item.services || []).some(s => s.toLowerCase().includes(query)) ||
       (item.notes || "").toLowerCase().includes(query) ||
-      (item.tags || []).some(t => t.toLowerCase().includes(query));
+      (item.tags || []).some(t => t.toLowerCase().includes(query))
+    );
 
-    // 2. NEW: Add Customer Filter Logic here
-    const customerFilter = activeFilters.selected_customer;
-    const customerMatch = customerFilter
-      ? item.customer.name === customerFilter
-      : true;
+    // 2. Customer Filter
+    const customerFilter = activeFilters.selected_customer as string | undefined;
+    const customerMatch = customerFilter ? item.customer.name === customerFilter : true;
 
-    // Name Filter (Removed)
-    const nameMatch = true;
-
-    // Service Filter (Multi Select)
-    const serviceFilters: string[] = activeFilters.category_filter || [];
+    // 3. Service Filter (Multi Select)
+    const serviceFilters = (activeFilters.category_filter as string[]) || [];
     const serviceMatch = serviceFilters.length > 0
-      ? item.services.some(s => serviceFilters.some(filter => s.includes(filter)))
+      ? (item.services || []).some(s => serviceFilters.some(filter => s.includes(filter)))
       : true;
 
-    // Tag Filter (Multi Select)
-    const tagFilters: string[] = activeFilters.tag_filter || [];
+    // 4. Tag Filter (Multi Select)
+    const tagFilters = (activeFilters.tag_filter as string[]) || [];
     const tagMatch = tagFilters.length > 0
-      ? item.tags.some(t => tagFilters.some(filter => t.includes(filter)))
+      ? (item.tags || []).some(t => tagFilters.some(filter => t.includes(filter)))
       : true;
 
-    // Date Filter (Range)
-    // Date Filter (Range)
-    const dateFilter = activeFilters.date_filter;
+    // 5. Date Filter (Range)
+    const dateFilter = activeFilters.date_filter as { start?: string; end?: string } | undefined;
     let dateRangeMatch = true;
     if (dateFilter && (dateFilter.start || dateFilter.end)) {
       const itemDate = parseDate(item.date);
       const startDate = dateFilter.start ? parseDate(dateFilter.start) : 0;
-
-      // End Date Logic: If selected, set to End of Day (23:59:59.999) to include the full day
+      
+      // End date logic: end of day include karne ke liye milliseconds add kiye hain
       let endDate = Number.MAX_SAFE_INTEGER;
       if (dateFilter.end) {
         const parsedEnd = parseDate(dateFilter.end);
-        // Add 1 day in ms minus 1 ms -> End of that day
-        // Or create date object and set time. Since parseDate returns timestamp (00:00), adding 86399999ms works.
-        if (parsedEnd > 0) {
-          endDate = parsedEnd + 86399999;
-        }
+        if (parsedEnd > 0) endDate = parsedEnd + 86399999;
       }
 
-      // Include logic to handle if user enters partial date or just start/end
       if (itemDate > 0) {
         dateRangeMatch = itemDate >= startDate && itemDate <= endDate;
       }
@@ -508,9 +507,9 @@ const History: React.FC<HistoryProps> = ({ onNavigateToNewVisit }) => {
   }).sort((a, b) => {
     switch (sortOption) {
       case 'name_asc':
-        return a.customer.name.localeCompare(b.customer.name);
+        return (a.customer.name || "").localeCompare(b.customer.name || "");
       case 'name_desc':
-        return b.customer.name.localeCompare(a.customer.name);
+        return (b.customer.name || "").localeCompare(a.customer.name || "");
       case 'oldest':
         return parseDate(a.date) - parseDate(b.date);
       case 'newest':
