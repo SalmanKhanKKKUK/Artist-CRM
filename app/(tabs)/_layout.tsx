@@ -25,7 +25,7 @@ function CustomTabBar() {
   const currentRoute = getActiveRoute();
 
   const handleTabPress = (route: string) => {
-    router.push(`/(tabs)/${route}` as any);
+    router.navigate(`/(tabs)/${route}` as any);
   };
 
   const handleAddClientsPress = () => {
@@ -97,6 +97,7 @@ export default function TabLayout() {
   return (
     <>
       <Tabs
+        backBehavior="history"
         screenOptions={{
           headerShown: false,
           tabBarStyle: { display: 'none' }, // Hide default tab bar

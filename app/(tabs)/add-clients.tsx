@@ -6,7 +6,9 @@ import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 export default function AddClientsScreen() {
     const router = useRouter();
 
-
+    useSmartBackHandler(() => {
+        router.back();
+    });
 
     return (
         <AddClients

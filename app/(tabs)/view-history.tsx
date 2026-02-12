@@ -6,11 +6,13 @@ import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 export default function ViewHistoryModal() {
     const router = useRouter();
 
-
+    useSmartBackHandler(() => {
+        router.back();
+    });
 
     return (
         <ViewHistory
-            
+
         />
     );
 }

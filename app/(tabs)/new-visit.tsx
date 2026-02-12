@@ -6,7 +6,9 @@ import { useSmartBackHandler } from '../../hooks/useSmartBackHandler';
 export default function NewVisitScreen() {
   const router = useRouter();
 
-
+  useSmartBackHandler(() => {
+    router.back();
+  });
 
   return (
     <NewVisit

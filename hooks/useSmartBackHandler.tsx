@@ -31,16 +31,12 @@ export function useSmartBackHandler(customGoBack?: () => void) {
         return true;
       } else {
         // 3. For all other pages (Tabs, Stack, Auth), go back one page
-        if (router.canGoBack()) {
-          router.back();
-          return true;
-        } else {
-          // If we can't go back and we typically should (stack behavior),
-          // normally we return false to let system handle it (exit),
-          // BUT since we are not on dashboard, we might want to default to dashboard or exit.
-          // Given the request "previous page ana chahiye", if no previous page, exit is standard.
-          return false;
-        }
+        // We call router.back() directly. This allows React Navigation to handle
+        // Tab history (backBehavior='history') internally.
+        // If there is absolutely no history, this might do nothing, but currently
+        // we prioritized 'back' over 'exit'.
+        router.back();
+        return true;
       }
     };
 
