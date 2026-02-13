@@ -35,6 +35,7 @@ interface TeamMember {
   title: string;
   description: string;
   image: string;
+  
 }
 
 interface ProfileProps {
@@ -240,6 +241,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const isSelectedActive = selectedTeamMember?.description.toLowerCase().includes("active") &&
     !selectedTeamMember?.description.toLowerCase().includes("deactive");
 
+
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
@@ -368,6 +370,20 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                     </TouchableOpacity>
                   </View>
 
+                  {/* --- Company Website Card --- */}
+                  <View style={styles.cardWithMenu}>
+                    <InfoCard
+                      title="Company"
+                      description="www.artistcrm.com"
+                      backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
+                      borderRadius={20}
+                      containerStyle={[styles.cardBorder, { borderColor: colors.border }]}
+                      titleColor={isDark ? "#FFFFFF" : "#1E293B"}
+                      descriptionColor="#64748B"
+                    />
+                    {/* Right side par koi icon ya button nahi hai */}
+                  </View>
+
                   <View style={[styles.themeParentCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
                     <Text style={[styles.themeTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Theme</Text>
                     <View style={styles.gridContainer}>
@@ -414,6 +430,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                     <ImageDesCard
                       imageSource={{ uri: member.image }}
                       title={member.title}
+                      
                       description={member.description}
                       backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                       containerStyle={[styles.teamCard, { borderColor: colors.border }]}
