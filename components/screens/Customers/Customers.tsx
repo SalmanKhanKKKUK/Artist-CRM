@@ -69,27 +69,34 @@ const Customers: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     })();
   }, []);
 
+ 
+
   const persistData = async (list: Customer[]) => {
     await AsyncStorage.setItem('permanently_saved_customers', JSON.stringify(list));
   };
 
   // --- Handlers ---
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-    if (!result.canceled) {
-      setTempImg(result.assets[0].uri);
-    }
-  };
+// 1. pickImage ko update karein (base64 enable karne ke liye)
+const pickImage = async () => {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.5, // Quality thori kam rakhein taake data heavy na ho
+    base64: true,  // Ye lazmi hai
+  });
+
+  if (!result.canceled) {
+    // Ham base64 string ko data URI format mein save karenge
+    const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+    setTempImg(base64Image);
+  }
+};
 
   const handleOpenMenu = (event: any, member: Customer) => {
     const { pageY } = event.nativeEvent;
     const adjustedTop = pageY > 500 ? pageY - 120 : pageY - 10;
-    
+
     setMenuPosition({ top: adjustedTop, right: 40 });
     setSelectedId(member.id);
     setTempTitle(member.title);
@@ -99,23 +106,24 @@ const Customers: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     setMenuVisible(true);
   };
 
-  const handleSaveEdit = () => {
-    const updated = customers.map((c) =>
-      c.id === selectedId
-        ? {
-            ...c,
-            title: tempTitle,
-            phone: tempPhone,
-            email: tempEmail,
-            image: tempImg,
-            description: `${tempPhone}\n${tempEmail}`,
-          }
-        : c
-    );
-    setCustomers(updated);
-    persistData(updated);
-    setEditModalVisible(false);
-  };
+ // 2. handleSaveEdit check karein (wese hi rahega lekin confirm karein tempImg base64 ho)
+const handleSaveEdit = () => {
+  const updated = customers.map((c) =>
+    c.id === selectedId
+      ? {
+          ...c,
+          title: tempTitle,
+          phone: tempPhone,
+          email: tempEmail,
+          image: tempImg, // Ab ye base64 string hogi
+          description: `${tempPhone}\n${tempEmail}`,
+        }
+      : c
+  );
+  setCustomers(updated);
+  persistData(updated);
+  setEditModalVisible(false);
+};
 
   const confirmDelete = () => {
     const updated = customers.filter((c) => c.id !== selectedId);
@@ -133,10 +141,10 @@ const Customers: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           backgroundColor="transparent"
         />
 
-       <NavHeader 
-  title="Our All Customers!" 
-  titleColor={isDark ? "#ffffffe3" : "#5152B3"} 
-/>
+        <NavHeader
+          title="Our All Customers!"
+          titleColor={isDark ? "#ffffffe3" : "#5152B3"}
+        />
 
         {/* Search Section */}
         <View style={styles.searchFixedContainer}>
@@ -226,7 +234,7 @@ const Customers: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         <View style={styles.modalOverlayDark}>
           <View style={[styles.confirmBox, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Confirm Delete</Text>
-            
+
             <Text style={[styles.confirmDesc, { color: colors.textSecondary }]}>
               Are you sure you want to delete this customer
             </Text>

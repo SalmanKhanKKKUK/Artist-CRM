@@ -74,11 +74,7 @@ const ImageDesCard: React.FC<ImageDesCardProps> = ({
         source={imageSource}
         style={[
           styles.image,
-          {
-            width: imageSize,
-            height: imageSize,
-            borderRadius: imageBorderRadius,
-          },
+          { width: 70, height: 70, borderRadius: 35 },
           imageStyle,
         ]}
         resizeMode="cover"
