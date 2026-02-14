@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   Image,
   KeyboardAvoidingView,
@@ -35,7 +34,8 @@ interface TeamMember {
   title: string;
   description: string;
   image: string;
-  
+  email: string;
+  password: string;
 }
 
 interface ProfileProps {
@@ -48,10 +48,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const router = useRouter();
   const { themeMode, setThemeMode, colors, isDark } = useTheme();
 
-  // --- States ---
+  // --- Core States ---
   const [activeTab, setActiveTab] = useState<'profile' | 'teams'>('profile');
   const [email] = useState<string>("aqibshoaib@gmail.com");
   const [phone, setPhone] = useState<string>("3118298343");
+  const [website, setWebsite] = useState<string>("www.artistcrm.com");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [teams, setTeams] = useState<TeamMember[]>([]);
   const [selectedTeamMember, setSelectedTeamMember] = useState<TeamMember | null>(null);
@@ -63,64 +64,52 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const [logoutModalVisible, setLogoutModalVisible] = useState<boolean>(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false);
   const [emailErrorVisible, setEmailErrorVisible] = useState<boolean>(false);
+  const [editType, setEditType] = useState<'phone' | 'website' | 'team'>('phone');
 
-  // --- Temp States for Forms ---
+  // --- Form States ---
   const [inviteEmail, setInviteEmail] = useState<string>("");
   const [tempValue, setTempValue] = useState<string>("");
   const [tempTitle, setTempTitle] = useState<string>("");
   const [tempDesc, setTempDesc] = useState<string>("");
   const [tempImg, setTempImg] = useState<string>("");
+  const [tempEmail, setTempEmail] = useState<string>("");
+  const [tempPass, setTempPass] = useState<string>("");
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
 
-  // --- Animation States ---
+  // --- Animation ---
   const slideAnim = useRef(new Animated.Value(-150)).current;
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // --- for parmenently images saving  ---
+  // --- Load Data ---
   useEffect(() => {
     const loadData = async () => {
       try {
         const savedPhone = await AsyncStorage.getItem('user_phone');
         if (savedPhone) setPhone(savedPhone);
 
-        // --- Profile Image Load Karein ---
+        const savedWeb = await AsyncStorage.getItem('user_website');
+        if (savedWeb) setWebsite(savedWeb);
+
         const savedImage = await AsyncStorage.getItem('user_profile_image');
         if (savedImage) setProfileImage(savedImage);
 
-        // ... baqi teams ka data ...
+        const savedTeams = await AsyncStorage.getItem('permanently_saved_teams');
+        if (savedTeams) {
+          setTeams(JSON.parse(savedTeams));
+        } else {
+          const initialTeams: TeamMember[] = [
+            { id: '1', title: "Ahmad Ali", description: "Senior Stylist - Active", image: 'https://i.pravatar.cc/150?u=1', email: 'ahmad@test.com', password: 'password123' },
+            { id: '2', title: "Sara Khan", description: "Color Expert - Active", image: 'https://i.pravatar.cc/150?u=2', email: 'sara@test.com', password: 'password123' },
+          ];
+          setTeams(initialTeams);
+          await AsyncStorage.setItem('permanently_saved_teams', JSON.stringify(initialTeams));
+        }
       } catch (error) {
         console.error("Load Data Error:", error);
       }
     };
     loadData();
   }, []);
-
-  // --- Lifecycle & Data Persistence ---
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const savedPhone = await AsyncStorage.getItem('user_phone');
-        if (savedPhone) setPhone(savedPhone);
-
-        const initialTeams = [
-          { id: '1', title: "Ahmad Ali", description: "Senior Stylist - Active", image: 'https://i.pravatar.cc/150?u=1' },
-          { id: '2', title: "Sara Khan", description: "Color Expert - Active", image: 'https://i.pravatar.cc/150?u=2' },
-          { id: '3', title: "Zain Malik", description: "Barber - Active", image: 'https://i.pravatar.cc/150?u=3' },
-          { id: '4', title: "Hina Shah", description: "Manager - Active", image: 'https://i.pravatar.cc/150?u=4' },
-          { id: '5', title: "Omar Farooq", description: "Junior Stylist - Active", image: 'https://i.pravatar.cc/150?u=5' },
-        ];
-        setTeams(initialTeams);
-        await AsyncStorage.setItem('permanently_saved_teams', JSON.stringify(initialTeams));
-      } catch (error) {
-        console.error("Load Data Error:", error);
-      }
-    };
-    loadData();
-  }, []);
-
-  const persistPhone = async (val: string) => {
-    await AsyncStorage.setItem('user_phone', val);
-  };
 
   const persistTeams = async (updatedTeams: TeamMember[]) => {
     await AsyncStorage.setItem('permanently_saved_teams', JSON.stringify(updatedTeams));
@@ -136,15 +125,13 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8, // Thori quality kam karne se storage fast rehti hai
+      quality: 0.8,
     });
 
     if (!result.canceled) {
       const selectedUri = result.assets[0].uri;
-
       if (type === 'profile') {
         setProfileImage(selectedUri);
-        // Persistent storage mein save karein
         await AsyncStorage.setItem('user_profile_image', selectedUri);
       } else {
         setTempImg(selectedUri);
@@ -152,10 +139,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     }
   };
 
-  const handleOpenPhoneMenu = (event: any) => {
+  const handleOpenGeneralMenu = (event: any, type: 'phone' | 'website') => {
     const { pageY } = event.nativeEvent;
     setMenuPosition({ top: pageY - 10, right: 40 });
-    setTempValue(phone);
+    setEditType(type);
+    setTempValue(type === 'phone' ? phone : website);
     setMenuVisible(true);
   };
 
@@ -163,10 +151,13 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     const { pageY } = event.nativeEvent;
     const adjustedTop = pageY > 500 ? pageY - 120 : pageY - 10;
     setMenuPosition({ top: adjustedTop, right: 40 });
+    setEditType('team');
     setSelectedTeamMember(member);
     setTempTitle(member.title);
     setTempDesc(member.description);
     setTempImg(member.image);
+    setTempEmail(member.email);
+    setTempPass(member.password);
     setMenuVisible(true);
   };
 
@@ -175,18 +166,21 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
     setTimeout(() => setEditModalVisible(true), 100);
   };
 
-  const handleSaveEdit = () => {
-    if (activeTab === 'profile') {
+  const handleSaveEdit = async () => {
+    if (editType === 'phone') {
       setPhone(tempValue);
-      persistPhone(tempValue);
-    } else {
+      await AsyncStorage.setItem('user_phone', tempValue);
+    } else if (editType === 'website') {
+      setWebsite(tempValue);
+      await AsyncStorage.setItem('user_website', tempValue);
+    } else if (editType === 'team' && selectedTeamMember) {
       const updated = teams.map(item =>
-        item.id === selectedTeamMember?.id
-          ? { ...item, title: tempTitle, description: tempDesc, image: tempImg }
+        item.id === selectedTeamMember.id
+          ? { ...item, title: tempTitle, description: tempDesc, image: tempImg, email: tempEmail, password: tempPass }
           : item
       );
       setTeams(updated);
-      persistTeams(updated); // Yeh teams ko save kar raha hai
+      persistTeams(updated);
     }
     setEditModalVisible(false);
   };
@@ -241,17 +235,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
   const isSelectedActive = selectedTeamMember?.description.toLowerCase().includes("active") &&
     !selectedTeamMember?.description.toLowerCase().includes("deactive");
 
-
   return (
     <LinearGradient colors={colors.bgGradient} style={styles.gradientContainer}>
       <SafeAreaView style={styles.masterContainer} edges={['top', 'bottom']}>
-        <StatusBar
-          barStyle={isDark ? "light-content" : "dark-content"}
-          backgroundColor="transparent"
-          translucent
-        />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
 
-        {/* --- Success Alert --- */}
         {showSuccess && (
           <Animated.View style={[styles.successNotification, { transform: [{ translateY: slideAnim }] }]}>
             <MaterialCommunityIcons name="check-circle" size={24} color="#FFFFFF" />
@@ -262,20 +250,10 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </Animated.View>
         )}
 
-        {/* --- Header --- */}
-        <NavHeader
-          title={activeTab === 'profile' ? "Profile !" : "Team Members !"}
-          showProfileIcon={false}
-          titleColor={isDark ? "#FFFFFF" : "#5152B3"}
-        >
+        <NavHeader title={activeTab === 'profile' ? "Profile !" : "Team Members !"} showProfileIcon={false} titleColor={isDark ? "#FFFFFF" : "#5152B3"}>
           {activeTab === 'profile' && (
             <TouchableOpacity onPress={() => setLogoutModalVisible(true)} activeOpacity={0.8}>
-              <LinearGradient
-                colors={THEME_COLORS.buttonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.headerBtn}
-              >
+              <LinearGradient colors={THEME_COLORS.buttonGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.headerBtn}>
                 <MaterialCommunityIcons name="logout" size={18} color="#FFFFFF" style={{ marginRight: 5 }} />
                 <Text style={styles.headerBtnText}>Logout</Text>
               </LinearGradient>
@@ -283,130 +261,52 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           )}
         </NavHeader>
 
-        {/* --- Tabs --- */}
         <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              {
-                backgroundColor: activeTab === 'profile' && isDark ? "#1e293b" : colors.card,
-                borderColor: colors.border
-              },
-              activeTab === 'profile' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('profile')}
-          >
+          <TouchableOpacity style={[styles.tabButton, { backgroundColor: activeTab === 'profile' && isDark ? "#1e293b" : colors.card, borderColor: colors.border }, activeTab === 'profile' && styles.activeTabButton]} onPress={() => setActiveTab('profile')}>
             <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>My Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              {
-                backgroundColor: activeTab === 'teams' && isDark ? "#1e293b" : colors.card,
-                borderColor: colors.border
-              },
-              activeTab === 'teams' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('teams')}
-          >
+          <TouchableOpacity style={[styles.tabButton, { backgroundColor: activeTab === 'teams' && isDark ? "#1e293b" : colors.card, borderColor: colors.border }, activeTab === 'teams' && styles.activeTabButton]} onPress={() => setActiveTab('teams')}>
             <Text style={[styles.tabText, activeTab === 'teams' && styles.activeTabText]}>Our Team</Text>
           </TouchableOpacity>
         </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.flexOne}
-        >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingBottom: insets.bottom + (activeTab === 'profile' ? 70 : 40) }
-            ]}
-          >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flexOne}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + (activeTab === 'profile' ? 70 : 40) }]}>
             {activeTab === 'profile' ? (
               <View style={styles.innerContainer}>
                 <View style={styles.profileHeader}>
-                  <TouchableOpacity
-                    onPress={() => pickImage('profile')}
-                    style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}
-                  >
-                    {profileImage ? (
-                      <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-                    ) : (
-                      <MaterialCommunityIcons name="account-outline" size={60} color={colors.primary} />
-                    )}
-                    <View style={[styles.plusIconWrapper, { backgroundColor: colors.primary, borderColor: colors.background }]}>
-                      <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
-                    </View>
+                  <TouchableOpacity onPress={() => pickImage('profile')} style={[styles.imageCircle, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    {profileImage ? <Image source={{ uri: profileImage }} style={styles.avatarImage} /> : <MaterialCommunityIcons name="account-outline" size={60} color={colors.primary} />}
+                    <View style={[styles.plusIconWrapper, { backgroundColor: colors.primary, borderColor: colors.background }]}><MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" /></View>
                   </TouchableOpacity>
                   <Text style={[styles.profileName, { color: colors.text }]}>Aqib Shoaib</Text>
                   <Text style={[styles.profileBusiness, { color: colors.textSecondary }]}>Artist CRM</Text>
                 </View>
 
                 <View style={styles.infoWrapper}>
-                  <InfoCard
-                    title="Email"
-                    description={email}
-                    backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                    borderRadius={20}
-                    containerStyle={[styles.cardBorder, { borderColor: colors.border }]}
-                    titleColor={isDark ? "#FFFFFF" : "#1E293B"}
-                    descriptionColor="#64748B"
-                  />
-
+                  <InfoCard title="Email" description={email} backgroundColor={isDark ? "#1e293b" : "#FFFFFF"} borderRadius={20} containerStyle={[styles.cardBorder, { borderColor: colors.border }]} titleColor={isDark ? "#FFFFFF" : "#1E293B"} descriptionColor="#64748B" />
+                  
                   <View style={styles.cardWithMenu}>
-                    <InfoCard
-                      title="Phone"
-                      description={phone}
-                      backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                      borderRadius={20}
-                      containerStyle={[styles.cardBorder, { borderColor: colors.border }]}
-                      titleColor={isDark ? "#FFFFFF" : "#1E293B"}
-                      descriptionColor="#64748B"
-                    />
-                    <TouchableOpacity style={styles.threeDotButton} onPress={(e) => handleOpenPhoneMenu(e)}>
+                    <InfoCard title="Phone" description={phone} backgroundColor={isDark ? "#1e293b" : "#FFFFFF"} borderRadius={20} containerStyle={[styles.cardBorder, { borderColor: colors.border }]} titleColor={isDark ? "#FFFFFF" : "#1E293B"} descriptionColor="#64748B" />
+                    <TouchableOpacity style={styles.threeDotButton} onPress={(e) => handleOpenGeneralMenu(e, 'phone')}>
                       <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
 
-                  {/* --- Company Website Card --- */}
                   <View style={styles.cardWithMenu}>
-                    <InfoCard
-                      title="Company"
-                      description="www.artistcrm.com"
-                      backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
-                      borderRadius={20}
-                      containerStyle={[styles.cardBorder, { borderColor: colors.border }]}
-                      titleColor={isDark ? "#FFFFFF" : "#1E293B"}
-                      descriptionColor="#64748B"
-                    />
-                    {/* Right side par koi icon ya button nahi hai */}
+                    <InfoCard title="Company" description={website} backgroundColor={isDark ? "#1e293b" : "#FFFFFF"} borderRadius={20} containerStyle={[styles.cardBorder, { borderColor: colors.border }]} titleColor={isDark ? "#FFFFFF" : "#1E293B"} descriptionColor="#64748B" />
+                    <TouchableOpacity style={styles.threeDotButton} onPress={(e) => handleOpenGeneralMenu(e, 'website')}>
+                      <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.textSecondary} />
+                    </TouchableOpacity>
                   </View>
 
                   <View style={[styles.themeParentCard, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF", borderColor: colors.border }]}>
                     <Text style={[styles.themeTitle, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Theme</Text>
                     <View style={styles.gridContainer}>
                       {(['active', 'dark', 'light'] as const).map((mode) => (
-                        <TouchableOpacity
-                          key={mode}
-                          style={[
-                            styles.gridButton,
-                            {
-                              backgroundColor: themeMode === mode ? colors.primary : (isDark ? "#0f172a" : "#F8FAFC"),
-                              borderColor: themeMode === mode ? colors.primary : colors.border
-                            }
-                          ]}
-                          onPress={() => setThemeMode(mode)}
-                        >
-                          <MaterialCommunityIcons
-                            name={mode === 'active' ? "check-circle-outline" : mode === 'dark' ? "weather-night" : "weather-sunny"}
-                            size={22}
-                            color={themeMode === mode ? "#FFFFFF" : colors.primary}
-                          />
-                          <Text style={[styles.gridButtonText, { color: themeMode === mode ? '#FFFFFF' : colors.textSecondary }]}>
-                            {mode === 'active' ? 'Auto' : mode.charAt(0).toUpperCase() + mode.slice(1)}
-                          </Text>
+                        <TouchableOpacity key={mode} style={[styles.gridButton, { backgroundColor: themeMode === mode ? colors.primary : (isDark ? "#0f172a" : "#F8FAFC"), borderColor: themeMode === mode ? colors.primary : colors.border }]} onPress={() => setThemeMode(mode)}>
+                          <MaterialCommunityIcons name={mode === 'active' ? "check-circle-outline" : mode === 'dark' ? "weather-night" : "weather-sunny"} size={22} color={themeMode === mode ? "#FFFFFF" : colors.primary} />
+                          <Text style={[styles.gridButtonText, { color: themeMode === mode ? '#FFFFFF' : colors.textSecondary }]}>{mode === 'active' ? 'Auto' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -430,12 +330,11 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                     <ImageDesCard
                       imageSource={{ uri: member.image }}
                       title={member.title}
-                      
-                      description={member.description}
+                      description={`Desig: ${member.description}\nEmail: ${member.email}\nPass: ••••••••`}
                       backgroundColor={isDark ? "#1e293b" : "#FFFFFF"}
                       containerStyle={[styles.teamCard, { borderColor: colors.border }]}
                       titleStyle={{ color: isDark ? "#FFFFFF" : "#1E293B" }}
-                      descriptionStyle={{ color: "#64748B" }}
+                      descriptionStyle={{ color: "#64748B", lineHeight: 18 }}
                     />
                     <TouchableOpacity style={styles.teamThreeDot} onPress={(e) => handleOpenTeamMenu(e, member)}>
                       <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.textSecondary} />
@@ -447,20 +346,9 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </ScrollView>
         </KeyboardAvoidingView>
 
-        {/* --- MODALS --- */}
+        {/* --- UNIVERSAL MODALS --- */}
 
-        <Modal visible={emailErrorVisible} transparent animationType="fade">
-          <View style={styles.modalOverlayCenterDark}>
-            <View style={[styles.errorPopup, { backgroundColor: isDark ? "#1e293b" : "#FFFFFF" }]}>
-              <Text style={[styles.errorTitleText, { color: isDark ? "#FFFFFF" : "#1E293B" }]}>Required !</Text>
-              <Text style={[styles.errorSubText, { color: colors.textSecondary }]}>Please enter an email address first.</Text>
-              <TouchableOpacity style={styles.errorOkBtn} onPress={() => setEmailErrorVisible(false)}>
-                <Text style={styles.errorOkBtnText}>OK</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
+        {/* Menu Options Modal */}
         <Modal visible={menuVisible} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
             <View style={styles.modalOverlayClear}>
@@ -469,7 +357,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
                   <Text style={[styles.menuText, { color: colors.text }]}>Edit</Text>
                 </TouchableOpacity>
-                {activeTab === 'teams' && (
+                {editType === 'team' && (
                   <>
                     <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
                     <TouchableOpacity style={styles.menuItem} onPress={handleToggleStatus}>
@@ -488,50 +376,15 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </TouchableWithoutFeedback>
         </Modal>
 
-        <Modal visible={inviteModalVisible} transparent animationType="slide">
-          <TouchableWithoutFeedback onPress={() => setInviteModalVisible(false)}>
-            <View style={styles.modalOverlayCenterDark}>
-              <TouchableWithoutFeedback onPress={() => { }}>
-                <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-
-                  <Text style={[styles.editTitle, { color: colors.text }]}>Invite Team</Text>
-                  <View style={styles.formBody}>
-                    <View style={styles.inputGroup}>
-                      <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Team Member Email</Text>
-                      <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} placeholderTextColor={colors.textSecondary} value={inviteEmail} onChangeText={setInviteEmail} keyboardType="email-address" placeholder="Enter email address" autoCapitalize="none" />
-                    </View>
-                  </View>
-                  <View style={styles.actionRowInvite}>
-                    <TouchableOpacity style={styles.saveBtnFull} onPress={handleSendInvitation}><Text style={styles.saveBtnText}>Send Invitation</Text></TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-
-        <Modal visible={logoutModalVisible} transparent animationType="fade">
-          <TouchableWithoutFeedback onPress={() => setLogoutModalVisible(false)}>
-            <View style={styles.modalOverlayCenterDark}>
-              <TouchableWithoutFeedback onPress={() => { }}>
-                <View style={[styles.editPopup, { backgroundColor: colors.card, width: '80%' }]}>
-                  <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Logout</Text>
-                  <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>Are you sure you want to Logout?</Text>
-                  <View style={styles.actionRow}>
-                    <TouchableOpacity onPress={() => setLogoutModalVisible(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
-                    <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmLogout}><Text style={styles.saveBtnText}>Logout</Text></TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-
+        {/* Edit Form Modal */}
         <Modal visible={editModalVisible} transparent animationType="slide">
           <View style={styles.modalOverlayCenterDark}>
             <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
-              <Text style={[styles.editTitle, { color: colors.text }]}>{activeTab === 'profile' ? "Update Phone" : "Edit Team Member"}</Text>
-              {activeTab === 'teams' && (
+              <Text style={[styles.editTitle, { color: colors.text }]}>
+                {editType === 'phone' ? "Update Phone" : editType === 'website' ? "Update Website" : "Edit Team Member"}
+              </Text>
+
+              {editType === 'team' && (
                 <View style={styles.formImageContainer}>
                   <TouchableOpacity onPress={() => pickImage('team')} activeOpacity={0.8}>
                     <View style={styles.formImageCircle}>
@@ -542,18 +395,45 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
                   <Text style={styles.formChangeText}>Change Photo</Text>
                 </View>
               )}
-              <View style={styles.formBody}>
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>{activeTab === 'profile' ? "Phone Number" : "Full Name"}</Text>
-                  <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} placeholderTextColor={colors.textSecondary} value={activeTab === 'profile' ? tempValue : tempTitle} onChangeText={activeTab === 'profile' ? setTempValue : setTempTitle} keyboardType={activeTab === 'profile' ? "phone-pad" : "default"} placeholder={activeTab === 'profile' ? "Enter phone" : "Enter name"} />
+
+              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 350 }}>
+                <View style={styles.formBody}>
+                  {editType !== 'team' ? (
+                    <View style={styles.inputGroup}>
+                      <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                        {editType === 'phone' ? "Phone Number" : "Website URL"}
+                      </Text>
+                      <TextInput 
+                        style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} 
+                        value={tempValue} 
+                        onChangeText={setTempValue} 
+                        placeholder={editType === 'phone' ? "Enter phone number" : "Enter website URL"}
+                        placeholderTextColor={colors.textSecondary}
+                      />
+                    </View>
+                  ) : (
+                    <>
+                      <View style={styles.inputGroup}>
+                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Full Name</Text>
+                        <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} value={tempTitle} onChangeText={setTempTitle} placeholder="Enter full name" placeholderTextColor={colors.textSecondary} />
+                      </View>
+                      <View style={styles.inputGroup}>
+                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Designation</Text>
+                        <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} value={tempDesc} onChangeText={setTempDesc} placeholder="e.g. Senior Stylist" placeholderTextColor={colors.textSecondary} />
+                      </View>
+                      <View style={styles.inputGroup}>
+                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Email Address</Text>
+                        <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} value={tempEmail} onChangeText={setTempEmail} keyboardType="email-address" autoCapitalize="none" placeholder="Enter email address" placeholderTextColor={colors.textSecondary} />
+                      </View>
+                      <View style={styles.inputGroup}>
+                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Password</Text>
+                        <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} value={tempPass} onChangeText={setTempPass} secureTextEntry placeholder="Enter password" placeholderTextColor={colors.textSecondary} />
+                      </View>
+                    </>
+                  )}
                 </View>
-                {activeTab === 'teams' && (
-                  <View style={styles.inputGroup}>
-                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Designation</Text>
-                    <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} placeholderTextColor={colors.textSecondary} value={tempDesc} onChangeText={setTempDesc} placeholder="e.g. Senior Artist" />
-                  </View>
-                )}
-              </View>
+              </ScrollView>
+
               <View style={styles.actionRow}>
                 <TouchableOpacity onPress={() => setEditModalVisible(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.saveBtn} onPress={handleSaveEdit}><Text style={styles.saveBtnText}>Save Changes</Text></TouchableOpacity>
@@ -562,21 +442,50 @@ const Profile: React.FC<ProfileProps> = ({ onBack, onNavigateToInvite }) => {
           </View>
         </Modal>
 
+        {/* Delete Confirmation Modal */}
         <Modal visible={deleteModalVisible} transparent animationType="fade">
-          <TouchableWithoutFeedback onPress={() => setDeleteModalVisible(false)}>
-            <View style={styles.modalOverlayCenterDark}>
-              <TouchableWithoutFeedback onPress={() => { }}>
-                <View style={[styles.editPopup, { backgroundColor: colors.card, width: '80%' }]}>
-                  <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
-                  <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>Are you sure you want to delete this team member?</Text>
-                  <View style={styles.actionRow}>
-                    <TouchableOpacity onPress={() => setDeleteModalVisible(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
-                    <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmDeleteTeam}><Text style={styles.saveBtnText}>Delete</Text></TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
+          <View style={styles.modalOverlayCenterDark}>
+            <View style={[styles.editPopup, { backgroundColor: colors.card, width: '80%' }]}>
+              <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Delete</Text>
+              <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>Are you sure you want to delete this team member?</Text>
+              <View style={styles.actionRow}>
+                <TouchableOpacity onPress={() => setDeleteModalVisible(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmDeleteTeam}><Text style={styles.saveBtnText}>Delete</Text></TouchableOpacity>
+              </View>
             </View>
-          </TouchableWithoutFeedback>
+          </View>
+        </Modal>
+
+        {/* Logout Confirmation Modal */}
+        <Modal visible={logoutModalVisible} transparent animationType="fade">
+          <View style={styles.modalOverlayCenterDark}>
+            <View style={[styles.editPopup, { backgroundColor: colors.card, width: '80%' }]}>
+              <Text style={[styles.editTitle, { color: colors.text, marginBottom: 10 }]}>Confirm Logout</Text>
+              <Text style={{ color: colors.textSecondary, textAlign: 'center', marginBottom: 25, fontSize: 16 }}>Are you sure you want to Logout?</Text>
+              <View style={styles.actionRow}>
+                <TouchableOpacity onPress={() => setLogoutModalVisible(false)}><Text style={styles.cancelBtnText}>Cancel</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#EF4444' }]} onPress={confirmLogout}><Text style={styles.saveBtnText}>Logout</Text></TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Invite Member Modal */}
+        <Modal visible={inviteModalVisible} transparent animationType="slide">
+          <View style={styles.modalOverlayCenterDark}>
+            <View style={[styles.editPopup, { backgroundColor: colors.card }]}>
+              <Text style={[styles.editTitle, { color: colors.text }]}>Invite Team</Text>
+              <View style={styles.formBody}>
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Team Member Email</Text>
+                  <TextInput style={[styles.inputField, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} placeholderTextColor={colors.textSecondary} value={inviteEmail} onChangeText={setInviteEmail} keyboardType="email-address" placeholder="Enter email address" autoCapitalize="none" />
+                </View>
+              </View>
+              <View style={styles.actionRowInvite}>
+                <TouchableOpacity style={styles.saveBtnFull} onPress={handleSendInvitation}><Text style={styles.saveBtnText}>Send Invitation</Text></TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </Modal>
 
       </SafeAreaView>
@@ -928,10 +837,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
   },
   errorTitleText: {
     fontSize: 18,
